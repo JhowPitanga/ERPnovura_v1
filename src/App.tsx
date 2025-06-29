@@ -18,7 +18,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/desempenho" element={<Desempenho />} />
+          <Route path="/desempenho/*" element={<Desempenho />} />
           {/* Placeholder routes for other modules */}
           <Route path="/produtos" element={<div className="p-6"><h1 className="text-2xl font-bold">Módulo Produtos - Em desenvolvimento</h1></div>} />
           <Route path="/anuncios" element={<div className="p-6"><h1 className="text-2xl font-bold">Central de Anúncios - Em desenvolvimento</h1></div>} />

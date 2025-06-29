@@ -10,7 +10,6 @@ import {
   FileText, 
   Puzzle, 
   ShoppingBag,
-  ChevronDown,
   Sparkles
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
@@ -20,11 +19,9 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 
@@ -41,25 +38,26 @@ const menuItems = [
 ];
 
 export function AppSidebar() {
-  const { collapsed } = useSidebar();
+  const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
+  const isCollapsed = state === "collapsed";
 
   const isActive = (path: string) => currentPath === path;
 
   return (
-    <Sidebar className={`${collapsed ? "w-16" : "w-64"} border-r border-purple-200 bg-gradient-to-b from-novura-primary to-novura-dark`} collapsible>
-      <SidebarContent className="bg-transparent">
+    <Sidebar className="border-r border-gray-200 bg-white" collapsible="icon">
+      <SidebarContent>
         {/* Logo */}
-        <div className="p-4 border-b border-purple-400/30">
+        <div className="p-4 border-b border-gray-100">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-novura-primary" />
+            <div className="w-8 h-8 bg-novura-primary rounded-lg flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-white" />
             </div>
-            {!collapsed && (
+            {!isCollapsed && (
               <div>
-                <h1 className="text-xl font-bold text-white">Novura</h1>
-                <p className="text-xs text-purple-200">ERP Inteligente</p>
+                <h1 className="text-lg font-bold text-gray-900">Novura</h1>
+                <p className="text-xs text-gray-500">ERP Inteligente</p>
               </div>
             )}
           </div>
@@ -67,20 +65,20 @@ export function AppSidebar() {
 
         <SidebarGroup className="mt-4">
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-2">
+            <SidebarMenu className="space-y-1">
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      className={`flex items-center space-x-3 px-3 py-3 rounded-lg transition-all duration-200 ${
+                      className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 ${
                         isActive(item.url)
-                          ? "bg-white/20 text-white shadow-md"
-                          : "text-purple-100 hover:bg-white/10 hover:text-white"
+                          ? "bg-novura-primary/10 text-novura-primary border-r-2 border-novura-primary"
+                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                       }`}
                     >
-                      <item.icon className="w-5 h-5 flex-shrink-0" />
-                      {!collapsed && (
+                      <item.icon className="w-4 h-4 flex-shrink-0" />
+                      {!isCollapsed && (
                         <span className="font-medium text-sm">{item.title}</span>
                       )}
                     </NavLink>
@@ -91,15 +89,15 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* AI Assistant Button */}
-        {!collapsed && (
+        {/* AI Assistant */}
+        {!isCollapsed && (
           <div className="p-4 mt-auto">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-              <div className="flex items-center space-x-2 text-white">
+            <div className="bg-novura-primary/5 rounded-lg p-3 border border-novura-primary/20">
+              <div className="flex items-center space-x-2 text-novura-primary">
                 <Sparkles className="w-4 h-4" />
                 <span className="text-sm font-medium">IA Assistente</span>
               </div>
-              <p className="text-xs text-purple-200 mt-1">
+              <p className="text-xs text-gray-600 mt-1">
                 Sugestões inteligentes ativadas
               </p>
             </div>
