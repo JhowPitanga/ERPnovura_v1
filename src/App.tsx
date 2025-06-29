@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Desempenho from "./pages/Desempenho";
+import Produtos from "./pages/Produtos";
+import Anuncios from "./pages/Anuncios";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -19,9 +21,9 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/desempenho/*" element={<Desempenho />} />
+          <Route path="/produtos/*" element={<Produtos />} />
+          <Route path="/anuncios" element={<Anuncios />} />
           {/* Placeholder routes for other modules */}
-          <Route path="/produtos" element={<div className="p-6"><h1 className="text-2xl font-bold">Módulo Produtos - Em desenvolvimento</h1></div>} />
-          <Route path="/anuncios" element={<div className="p-6"><h1 className="text-2xl font-bold">Central de Anúncios - Em desenvolvimento</h1></div>} />
           <Route path="/pedidos" element={<div className="p-6"><h1 className="text-2xl font-bold">Módulo Pedidos - Em desenvolvimento</h1></div>} />
           <Route path="/estoque" element={<div className="p-6"><h1 className="text-2xl font-bold">Módulo Estoque - Em desenvolvimento</h1></div>} />
           <Route path="/notas-fiscais" element={<div className="p-6"><h1 className="text-2xl font-bold">Notas Fiscais - Em desenvolvimento</h1></div>} />
