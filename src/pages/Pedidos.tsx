@@ -1,39 +1,46 @@
 
 import { useState } from "react";
-import { Package, Search, Filter, Settings, AlertTriangle, CheckCircle, Truck, Printer, FileText, Link, X, ArrowRight, DollarSign, TrendingUp, Calendar, MapPin } from "lucide-react";
+import { Search, Filter, Settings, FileText, Printer, Sparkles, Bot, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
+import { PedidoDetails } from "@/components/pedidos/PedidoDetails";
 
 const statusBlocks = [
-  { id: "vincular", title: "Vincular", count: 12, icon: Link, color: "bg-blue-500", description: "Pedidos aguardando vinculação" },
-  { id: "emissao", title: "Emissão de NF", count: 8, icon: FileText, color: "bg-yellow-500", description: "Aguardando emissão de nota fiscal" },
-  { id: "impressao", title: "Impressão", count: 15, icon: Printer, color: "bg-purple-500", description: "Prontos para impressão" },
-  { id: "coleta", title: "Aguardando Coleta", count: 23, icon: Package, color: "bg-orange-500", description: "Aguardando coleta" },
-  { id: "enviado", title: "Enviado", count: 45, icon: Truck, color: "bg-green-500", description: "Pedidos enviados" },
-  { id: "cancelados", title: "Cancelados", count: 3, icon: X, color: "bg-red-500", description: "Pedidos cancelados" },
-  { id: "devolucoes", title: "Devoluções", count: 2, icon: ArrowRight, color: "bg-gray-500", description: "Devoluções" },
+  { id: "vincular", title: "Vincular", count: 18, color: "from-blue-500 to-blue-600", description: "Pedidos aguardando vinculação" },
+  { id: "emissao", title: "Emissão de NF", count: 12, color: "from-yellow-500 to-orange-500", description: "Aguardando emissão de nota fiscal" },
+  { id: "impressao", title: "Impressão", count: 25, color: "from-purple-500 to-purple-600", description: "Prontos para impressão" },
+  { id: "coleta", title: "Aguardando Coleta", count: 34, color: "from-orange-500 to-red-500", description: "Aguardando coleta" },
+  { id: "enviado", title: "Enviado", count: 67, color: "from-green-500 to-emerald-500", description: "Pedidos enviados" },
+  { id: "cancelados", title: "Cancelados", count: 5, color: "from-red-500 to-red-600", description: "Pedidos cancelados" },
+  { id: "devolucoes", title: "Devoluções", count: 3, color: "from-gray-500 to-gray-600", description: "Devoluções" },
 ];
 
 const mockPedidos = {
   vincular: [
-    { id: "PED001", marketplace: "Mercado Livre", produto: "iPhone 15 Pro", cliente: "João Silva", valor: 7999.99, data: "2024-01-15", status: "Pendente", margem: 15.5, problema: false },
-    { id: "PED002", marketplace: "Amazon", produto: "MacBook Air", cliente: "Maria Santos", valor: 9999.99, data: "2024-01-15", status: "Pendente", margem: 12.3, problema: true },
+    { id: "PED001", marketplace: "Mercado Livre", produto: "iPhone 15 Pro Max 256GB", cliente: "João Silva Santos", valor: 8999.99, data: "15/01/2024", status: "Pendente", margem: 22.5, problema: false, aiSuggestion: "Produto com alta demanda" },
+    { id: "PED002", marketplace: "Amazon", produto: "MacBook Air M3 16GB 512GB", cliente: "Maria Santos Costa", valor: 12999.99, data: "15/01/2024", status: "Pendente", margem: 18.3, problema: true, aiSuggestion: "Verificar estoque urgente" },
+    { id: "PED003", marketplace: "Shopee", produto: "Samsung Galaxy S24 Ultra", cliente: "Carlos Lima", valor: 6799.99, data: "15/01/2024", status: "Pendente", margem: 25.1, problema: false, aiSuggestion: "Margem excelente" },
+    { id: "PED004", marketplace: "Magazine Luiza", produto: "iPad Pro 12.9 256GB", cliente: "Ana Costa", valor: 9499.99, data: "14/01/2024", status: "Pendente", margem: 19.8, problema: false, aiSuggestion: null },
+    { id: "PED005", marketplace: "Casas Bahia", produto: "Apple Watch Series 9", cliente: "Roberto Alves", valor: 3899.99, data: "14/01/2024", status: "Pendente", margem: 28.7, problema: false, aiSuggestion: "Produto premium com boa margem" },
+    { id: "PED006", marketplace: "Americanas", produto: "AirPods Pro 2ª Geração", cliente: "Fernanda Lima", valor: 2199.99, data: "14/01/2024", status: "Pendente", margem: 21.4, problema: false, aiSuggestion: null },
+    { id: "PED007", marketplace: "Mercado Livre", produto: "Sony WH-1000XM5", cliente: "Pedro Santos", valor: 1899.99, data: "13/01/2024", status: "Pendente", margem: 23.8, problema: false, aiSuggestion: "Produto em alta" },
+    { id: "PED008", marketplace: "Shopee", produto: "Nintendo Switch OLED", cliente: "Juliana Costa", valor: 2799.99, data: "13/01/2024", status: "Pendente", margem: 17.2, problema: true, aiSuggestion: "Margem baixa - revisar precificação" },
   ],
   emissao: [
-    { id: "PED003", marketplace: "Shopee", produto: "AirPods Pro", cliente: "Carlos Lima", valor: 2299.99, data: "2024-01-14", status: "Vinculado", margem: 22.1, problema: false },
+    { id: "PED009", marketplace: "Amazon", produto: "Dell XPS 13 Plus", cliente: "Marcos Silva", valor: 8999.99, data: "12/01/2024", status: "Vinculado", margem: 20.5, problema: false, aiSuggestion: null },
+    { id: "PED010", marketplace: "Mercado Livre", produto: "iPhone 14 Pro 128GB", cliente: "Carla Santos", valor: 6999.99, data: "12/01/2024", status: "Vinculado", margem: 22.1, problema: false, aiSuggestion: "Emitir NF prioritário" },
   ],
   impressao: [
-    { id: "PED004", marketplace: "Mercado Livre", produto: "iPad Air", cliente: "Ana Costa", valor: 4999.99, data: "2024-01-13", status: "NF Emitida", margem: 18.7, problema: false },
+    { id: "PED011", marketplace: "Shopee", produto: "Samsung Monitor 27 4K", cliente: "Lucas Oliveira", valor: 2299.99, data: "11/01/2024", status: "NF Emitida", margem: 24.7, problema: false, aiSuggestion: null },
+    { id: "PED012", marketplace: "Magazine Luiza", produto: "Logitech MX Master 3S", cliente: "Beatriz Costa", valor: 699.99, data: "11/01/2024", status: "NF Emitida", margem: 26.3, problema: false, aiSuggestion: "Produto com boa rotatividade" },
   ],
-  // ... outros status
 };
 
 export default function Pedidos() {
@@ -45,17 +52,19 @@ export default function Pedidos() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-50">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-50 to-white">
         <AppSidebar />
         
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <header className="h-16 bg-white border-b border-gray-200 flex items-center px-6 shadow-sm">
+          <header className="h-16 bg-white/80 backdrop-blur-xl border-b border-gray-100/60 flex items-center px-6 shadow-sm">
             <SidebarTrigger className="mr-4" />
             <div className="flex-1 flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-novura-primary to-purple-600 rounded-lg flex items-center justify-center">
-                  <Package className="w-4 h-4 text-white" />
+                <div className="w-8 h-8 bg-gradient-to-br from-novura-primary to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <div className="w-4 h-4 bg-white rounded-sm flex items-center justify-center">
+                    <div className="w-2 h-2 bg-gradient-to-br from-novura-primary to-purple-600 rounded-full"></div>
+                  </div>
                 </div>
                 <h2 className="text-lg font-semibold text-gray-900">Pedidos</h2>
               </div>
@@ -66,47 +75,47 @@ export default function Pedidos() {
           <main className="flex-1 overflow-auto">
             <div className="p-6">
               {/* Header */}
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Gestão de Pedidos</h1>
-                  <p className="text-gray-600">Controle inteligente de todos os seus pedidos</p>
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                    Gestão Inteligente de Pedidos
+                  </h1>
+                  <p className="text-gray-600 mt-1">Controle total com poder da IA para otimizar suas operações</p>
                 </div>
               </div>
 
               {/* Status Blocks */}
-              <div className="grid grid-cols-7 gap-4 mb-6">
+              <div className="grid grid-cols-7 gap-4 mb-8">
                 {statusBlocks.map((block) => (
                   <Card
                     key={block.id}
-                    className={`cursor-pointer transition-all hover:shadow-lg ${
-                      activeStatus === block.id ? "ring-2 ring-novura-primary" : ""
+                    className={`cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 border-0 bg-gradient-to-br ${block.color} text-white overflow-hidden relative ${
+                      activeStatus === block.id ? "ring-4 ring-white shadow-2xl scale-105" : ""
                     }`}
                     onClick={() => setActiveStatus(block.id)}
                   >
-                    <CardContent className="p-4 text-center">
-                      <div className={`w-12 h-12 ${block.color} rounded-lg flex items-center justify-center mx-auto mb-3`}>
-                        <block.icon className="w-6 h-6 text-white" />
-                      </div>
-                      <div className="text-2xl font-bold text-gray-900">{block.count}</div>
-                      <div className="text-sm font-medium text-gray-700">{block.title}</div>
-                      <div className="text-xs text-gray-500 mt-1">{block.description}</div>
+                    <CardContent className="p-6 text-center relative z-10">
+                      <div className="text-3xl font-bold mb-2">{block.count}</div>
+                      <div className="text-sm font-medium opacity-95">{block.title}</div>
+                      <div className="text-xs opacity-80 mt-1">{block.description}</div>
                     </CardContent>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity"></div>
                   </Card>
                 ))}
               </div>
 
-              {/* Search */}
+              {/* Search and Actions */}
               <div className="flex items-center space-x-4 mb-6">
                 <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <Input
                     placeholder="Buscar pedidos..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    className="pl-12 h-12 rounded-2xl border-0 bg-white shadow-lg ring-1 ring-gray-200/60"
                   />
                 </div>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="h-12 px-6 rounded-2xl border-0 bg-white shadow-lg ring-1 ring-gray-200/60">
                   <Filter className="w-4 h-4 mr-2" />
                   Filtros
                 </Button>
@@ -114,23 +123,23 @@ export default function Pedidos() {
                 {activeStatus === "impressao" && (
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button className="bg-novura-primary hover:bg-novura-primary/90">
+                      <Button className="h-12 px-6 rounded-2xl bg-gradient-to-r from-novura-primary to-purple-600 shadow-lg">
                         <Settings className="w-4 h-4 mr-2" />
                         Checkout de Impressão
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
+                    <DialogContent className="max-w-2xl rounded-3xl">
                       <DialogHeader>
-                        <DialogTitle>Checkout de Impressão</DialogTitle>
+                        <DialogTitle className="text-xl">Checkout de Impressão</DialogTitle>
                         <DialogDescription>
                           Configure e processe a impressão dos pedidos
                         </DialogDescription>
                       </DialogHeader>
-                      <div className="space-y-4">
+                      <div className="space-y-6">
                         <div>
                           <label className="text-sm font-medium">Formato de Impressão</label>
                           <Select defaultValue="zebra">
-                            <SelectTrigger>
+                            <SelectTrigger className="mt-2 rounded-xl">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -139,11 +148,12 @@ export default function Pedidos() {
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                          <p className="text-gray-500">Área de bipagem de pedidos</p>
+                        <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center bg-gradient-to-br from-gray-50 to-white">
+                          <Printer className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-500 font-medium">Área de bipagem de pedidos</p>
                           <p className="text-sm text-gray-400 mt-2">Escaneie os códigos dos pedidos aqui</p>
                         </div>
-                        <Button className="w-full bg-green-600 hover:bg-green-700">
+                        <Button className="w-full h-12 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-600">
                           Processar Impressão
                         </Button>
                       </div>
@@ -152,7 +162,7 @@ export default function Pedidos() {
                 )}
                 
                 {activeStatus === "emissao" && (
-                  <Button className="bg-green-600 hover:bg-green-700">
+                  <Button className="h-12 px-6 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-600 shadow-lg">
                     <FileText className="w-4 h-4 mr-2" />
                     Emissão em Massa
                   </Button>
@@ -160,120 +170,87 @@ export default function Pedidos() {
               </div>
 
               {/* Pedidos List */}
-              <Card>
+              <Card className="border-0 shadow-xl rounded-3xl overflow-hidden bg-white/80 backdrop-blur-xl">
                 <CardContent className="p-0">
-                  <div className="space-y-1">
+                  <div className="space-y-0">
                     {currentPedidos.map((pedido) => (
-                      <div key={pedido.id} className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0">
-                        <div className="flex items-center space-x-4">
-                          <div className="flex flex-col items-center">
-                            {pedido.problema && (
-                              <AlertTriangle className="w-4 h-4 text-red-500 mb-1" />
-                            )}
+                      <div key={pedido.id} className="flex items-center justify-between p-6 hover:bg-gradient-to-r hover:from-gray-50/50 hover:to-purple-50/30 transition-all duration-200 border-b border-gray-100/60 last:border-0 group">
+                        <div className="flex items-center space-x-6">
+                          <div className="flex flex-col items-center space-y-2">
                             {pedido.margem > 20 && (
-                              <TrendingUp className="w-4 h-4 text-green-500 mb-1" />
+                              <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                                <TrendingUp className="w-3 h-3 text-white" />
+                              </div>
+                            )}
+                            {pedido.aiSuggestion && (
+                              <div className="w-6 h-6 bg-gradient-to-r from-novura-primary to-purple-600 rounded-full flex items-center justify-center">
+                                <Bot className="w-3 h-3 text-white" />
+                              </div>
                             )}
                           </div>
                           <div>
-                            <div className="flex items-center space-x-2">
-                              <h3 className="font-medium text-gray-900">{pedido.id}</h3>
-                              <Badge variant="outline">{pedido.marketplace}</Badge>
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h3 className="text-2xl font-bold text-gray-900 tracking-tight">{pedido.id}</h3>
+                              <Badge variant="outline" className="bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 border-blue-200/60 px-3 py-1">
+                                {pedido.marketplace}
+                              </Badge>
+                              {pedido.margem > 20 && (
+                                <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1">
+                                  <TrendingUp className="w-3 h-3 mr-1" />
+                                  Alta Margem
+                                </Badge>
+                              )}
+                              {pedido.aiSuggestion && (
+                                <Badge className="bg-gradient-to-r from-novura-primary to-purple-600 text-white px-3 py-1">
+                                  <Sparkles className="w-3 h-3 mr-1" />
+                                  IA
+                                </Badge>
+                              )}
                             </div>
-                            <p className="text-sm text-gray-600">{pedido.produto}</p>
-                            <p className="text-xs text-gray-500">{pedido.cliente}</p>
+                            <p className="text-sm text-gray-900 font-medium mb-1">{pedido.produto}</p>
+                            <p className="text-sm text-gray-600">{pedido.cliente}</p>
+                            {pedido.aiSuggestion && (
+                              <p className="text-xs text-purple-600 bg-purple-50 rounded-lg px-2 py-1 mt-2 inline-block">
+                                💡 {pedido.aiSuggestion}
+                              </p>
+                            )}
                           </div>
                         </div>
                         
-                        <div className="flex items-center space-x-6">
+                        <div className="flex items-center space-x-8">
                           <div className="text-right">
-                            <p className="font-medium text-gray-900">R$ {pedido.valor.toFixed(2)}</p>
+                            <p className="text-2xl font-bold text-gray-900">R$ {pedido.valor.toFixed(2)}</p>
                             <p className="text-sm text-gray-500">{pedido.data}</p>
                           </div>
                           
                           <div className="text-right">
-                            <p className="text-sm font-medium text-novura-primary">{pedido.margem}%</p>
+                            <p className={`text-lg font-bold ${pedido.margem > 20 ? 'text-green-600' : 'text-purple-600'}`}>
+                              {pedido.margem}%
+                            </p>
                             <p className="text-xs text-gray-500">margem</p>
                           </div>
                           
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-3">
                             <Drawer>
                               <DrawerTrigger asChild>
-                                <Button variant="outline" size="sm" onClick={() => setSelectedPedido(pedido)}>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="rounded-2xl border-0 bg-white shadow-md ring-1 ring-gray-200/60 hover:shadow-lg transition-all"
+                                  onClick={() => setSelectedPedido(pedido)}
+                                >
                                   Detalhes
                                 </Button>
                               </DrawerTrigger>
-                              <DrawerContent>
+                              <DrawerContent className="bg-gradient-to-b from-white to-gray-50/50">
                                 <DrawerHeader>
-                                  <DrawerTitle>Detalhes do Pedido {pedido.id}</DrawerTitle>
+                                  <DrawerTitle className="text-2xl">Detalhes do Pedido {pedido.id}</DrawerTitle>
                                   <DrawerDescription>
-                                    Informações completas do pedido
+                                    Informações completas e detalhamento financeiro
                                   </DrawerDescription>
                                 </DrawerHeader>
-                                <div className="p-6 space-y-6">
-                                  <div className="grid grid-cols-2 gap-6">
-                                    <div className="space-y-4">
-                                      <h3 className="font-semibold text-gray-900">Informações do Pedido</h3>
-                                      <div className="space-y-2">
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-600">ID do Pedido:</span>
-                                          <span className="font-medium">{pedido.id}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-600">Marketplace:</span>
-                                          <Badge variant="outline">{pedido.marketplace}</Badge>
-                                        </div>
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-600">Data:</span>
-                                          <span>{pedido.data}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-600">Status:</span>
-                                          <Badge>{pedido.status}</Badge>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="space-y-4">
-                                      <h3 className="font-semibold text-gray-900">Detalhamento Financeiro</h3>
-                                      <div className="space-y-2">
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-600">Valor do Produto:</span>
-                                          <span className="font-medium">R$ {pedido.valor.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-600">Taxa do Marketplace:</span>
-                                          <span className="text-red-600">- R$ {(pedido.valor * 0.12).toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-600">Frete:</span>
-                                          <span>R$ 15.90</span>
-                                        </div>
-                                        <Separator />
-                                        <div className="flex justify-between font-semibold">
-                                          <span>Margem Final:</span>
-                                          <span className="text-green-600">{pedido.margem}%</span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  
-                                  {activeStatus === "vincular" && (
-                                    <div className="space-y-4">
-                                      <h3 className="font-semibold text-gray-900">Vincular Produto</h3>
-                                      <Select>
-                                        <SelectTrigger>
-                                          <SelectValue placeholder="Selecione o produto para vincular" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="prod1">iPhone 15 Pro - SKU: IPH15P-001</SelectItem>
-                                          <SelectItem value="prod2">MacBook Air M2 - SKU: MBA-M2-002</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                      <Button className="w-full bg-novura-primary hover:bg-novura-primary/90">
-                                        Confirmar Vinculação
-                                      </Button>
-                                    </div>
-                                  )}
+                                <div className="p-6 overflow-y-auto max-h-[80vh]">
+                                  <PedidoDetails pedido={pedido} />
                                 </div>
                               </DrawerContent>
                             </Drawer>
@@ -281,11 +258,11 @@ export default function Pedidos() {
                             {activeStatus === "vincular" && (
                               <Dialog>
                                 <DialogTrigger asChild>
-                                  <Button size="sm" className="bg-novura-primary hover:bg-novura-primary/90">
+                                  <Button size="sm" className="rounded-2xl bg-gradient-to-r from-novura-primary to-purple-600 shadow-lg">
                                     Vincular
                                   </Button>
                                 </DialogTrigger>
-                                <DialogContent>
+                                <DialogContent className="rounded-3xl">
                                   <DialogHeader>
                                     <DialogTitle>Vincular Produto</DialogTitle>
                                     <DialogDescription>
@@ -294,16 +271,16 @@ export default function Pedidos() {
                                   </DialogHeader>
                                   <div className="space-y-4">
                                     <Select>
-                                      <SelectTrigger>
+                                      <SelectTrigger className="rounded-2xl">
                                         <SelectValue placeholder="Selecione o produto" />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        <SelectItem value="prod1">iPhone 15 Pro - SKU: IPH15P-001</SelectItem>
-                                        <SelectItem value="prod2">MacBook Air M2 - SKU: MBA-M2-002</SelectItem>
-                                        <SelectItem value="prod3">AirPods Pro - SKU: APP-003</SelectItem>
+                                        <SelectItem value="prod1">iPhone 15 Pro Max - SKU: IPH15PM-001</SelectItem>
+                                        <SelectItem value="prod2">MacBook Air M3 - SKU: MBA-M3-002</SelectItem>
+                                        <SelectItem value="prod3">Samsung Galaxy S24 Ultra - SKU: SGS24U-003</SelectItem>
                                       </SelectContent>
                                     </Select>
-                                    <Button className="w-full bg-novura-primary hover:bg-novura-primary/90">
+                                    <Button className="w-full h-12 rounded-2xl bg-gradient-to-r from-novura-primary to-purple-600">
                                       Confirmar Vinculação
                                     </Button>
                                   </div>

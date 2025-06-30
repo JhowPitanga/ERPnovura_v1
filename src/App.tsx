@@ -13,6 +13,7 @@ import Aplicativos from "./pages/Aplicativos";
 import Estoque from "./pages/Estoque";
 import NotasFiscais from "./pages/NotasFiscais";
 import Pedidos from "./pages/Pedidos";
+import Equipe from "./pages/Equipe";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/produtos/*" element={<Produtos />} />
           <Route path="/anuncios/*" element={<Anuncios />} />
           <Route path="/recursos-seller/*" element={<RecursosSeller />} />
+          <Route path="/equipe/*" element={<Equipe />} />
           <Route path="/aplicativos" element={<Aplicativos />} />
           <Route path="/pedidos" element={<Pedidos />} />
           <Route path="/estoque" element={<Estoque />} />
