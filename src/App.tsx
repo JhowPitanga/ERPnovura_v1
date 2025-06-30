@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import Desempenho from "./pages/Desempenho";
 import Produtos from "./pages/Produtos";
 import Anuncios from "./pages/Anuncios";
+import RecursosSeller from "./pages/RecursosSeller";
+import Aplicativos from "./pages/Aplicativos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,12 +25,12 @@ const App = () => (
           <Route path="/desempenho/*" element={<Desempenho />} />
           <Route path="/produtos/*" element={<Produtos />} />
           <Route path="/anuncios" element={<Anuncios />} />
+          <Route path="/recursos-seller/*" element={<RecursosSeller />} />
+          <Route path="/aplicativos" element={<Aplicativos />} />
           {/* Placeholder routes for other modules */}
           <Route path="/pedidos" element={<div className="p-6"><h1 className="text-2xl font-bold">Módulo Pedidos - Em desenvolvimento</h1></div>} />
           <Route path="/estoque" element={<div className="p-6"><h1 className="text-2xl font-bold">Módulo Estoque - Em desenvolvimento</h1></div>} />
           <Route path="/notas-fiscais" element={<div className="p-6"><h1 className="text-2xl font-bold">Notas Fiscais - Em desenvolvimento</h1></div>} />
-          <Route path="/aplicativos" element={<div className="p-6"><h1 className="text-2xl font-bold">Aplicativos - Em desenvolvimento</h1></div>} />
-          <Route path="/recursos-seller" element={<div className="p-6"><h1 className="text-2xl font-bold">Recursos Seller - Em desenvolvimento</h1></div>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
