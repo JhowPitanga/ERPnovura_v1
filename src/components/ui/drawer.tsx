@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import { Drawer as DrawerPrimitive } from "vaul"
 
@@ -5,10 +6,14 @@ import { cn } from "@/lib/utils"
 
 const Drawer = ({
   shouldScaleBackground = true,
+  direction = "right",
   ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
+}: React.ComponentProps<typeof DrawerPrimitive.Root> & {
+  direction?: "right" | "left" | "top" | "bottom"
+}) => (
   <DrawerPrimitive.Root
     shouldScaleBackground={shouldScaleBackground}
+    direction={direction}
     {...props}
   />
 )
@@ -41,7 +46,7 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
+        "fixed inset-y-0 right-0 z-50 flex h-full w-[60%] flex-col rounded-l-[10px] border bg-background shadow-lg",
         className
       )}
       {...props}
