@@ -1,5 +1,5 @@
 
-import { ArrowRight, Check, Star, Users, TrendingUp, Shield, Zap, BarChart3 } from "lucide-react";
+import { ArrowRight, Check, Star, Users, TrendingUp, Shield, Zap, BarChart3, Package, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
