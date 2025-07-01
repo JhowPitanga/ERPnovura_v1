@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +17,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
 import NotFound from "./pages/NotFound";
+import NovuraAcademy from "./pages/NovuraAcademy";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +44,7 @@ const App = () => (
           <Route path="/pedidos" element={<Pedidos />} />
           <Route path="/estoque" element={<Estoque />} />
           <Route path="/notas-fiscais" element={<NotasFiscais />} />
+          <Route path="/novura-academy/*" element={<NovuraAcademy />} />
           
           {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />
