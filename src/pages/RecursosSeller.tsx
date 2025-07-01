@@ -2,389 +2,286 @@
 import { useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { CleanNavigation } from "@/components/CleanNavigation";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, ShoppingCart, Package, Printer, Mail, Tag, Truck, Plus, Minus } from "lucide-react";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image: string;
-  category: string;
-  inStock: boolean;
-}
-
-interface CartItem extends Product {
-  quantity: number;
-}
-
-interface Order {
-  id: string;
-  date: string;
-  total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered';
-  items: CartItem[];
-}
+import { Badge } from "@/components/ui/badge";
+import { ShoppingBag, CreditCard, MapPin, Plus, Minus } from "lucide-react";
+import { Routes, Route } from "react-router-dom";
 
 const navigationItems = [
-  { title: "Produtos", path: "", description: "Insumos e materiais" },
-  { title: "Pedidos", path: "/pedidos", description: "Histórico de compras" },
+  { title: "Carrinho", path: "", description: "Gestão de carrinho" },
+  { title: "Pedidos", path: "/pedidos", description: "Histórico de pedidos" },
+  { title: "Configurações", path: "/config", description: "Configurações gerais" },
 ];
 
-const products: Product[] = [
-  {
-    id: "1",
-    name: "Fita Adesiva Transparente 48mm",
-    description: "Fita para embalagem de produtos - Rolo com 100m",
-    price: 12.90,
-    image: "/placeholder.svg",
-    category: "fitas",
-    inStock: true,
-  },
-  {
-    id: "2",
-    name: "Impressora Térmica Zebra ZD220",
-    description: "Impressora de etiquetas profissional - USB/Ethernet",
-    price: 899.00,
-    image: "/placeholder.svg",
-    category: "impressoras",
-    inStock: true,
-  },
-  {
-    id: "3",
-    name: "Envelope Plástico 26x36cm",
-    description: "Envelope para envio de produtos - Pacote com 100 unidades",
-    price: 45.90,
-    image: "/placeholder.svg",
-    category: "envelopes",
-    inStock: true,
-  },
-  {
-    id: "4",
-    name: "Etiquetas Adesivas 10x7cm",
-    description: "Etiquetas para produtos - Rolo com 500 unidades",
-    price: 28.50,
-    image: "/placeholder.svg",
-    category: "etiquetas",
-    inStock: false,
-  },
+function Navigation({ items, basePath }: { items: any[], basePath: string }) {
+  return (
+    <div className="bg-white px-6 py-4">
+      <div className="flex space-x-1">
+        {items.map((item) => (
+          <a
+            key={item.path}
+            href={`${basePath}${item.path}`}
+            className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+          >
+            {item.title}
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const carrinhoItems = [
+  { id: 1, nome: "iPhone 15 Pro Max", preco: 8999.99, quantidade: 1, image: "/placeholder.svg" },
+  { id: 2, nome: "AirPods Pro", preco: 2299.99, quantidade: 2, image: "/placeholder.svg" },
 ];
 
-const orders: Order[] = [
-  {
-    id: "ORD001",
-    date: "2024-01-15",
-    total: 157.80,
-    status: "delivered",
-    items: [
-      { ...products[0], quantity: 5 },
-      { ...products[2], quantity: 2 },
-    ],
-  },
-  {
-    id: "ORD002",
-    date: "2024-01-10",
-    total: 899.00,
-    status: "shipped",
-    items: [
-      { ...products[1], quantity: 1 },
-    ],
-  },
+const meiosPagamento = [
+  { id: "pix", nome: "PIX", ativo: true },
+  { id: "cartao", nome: "Cartão de Crédito", ativo: true },
+  { id: "boleto", nome: "Boleto Bancário", ativo: false },
 ];
 
-export default function RecursosSeller() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+function Carrinho() {
+  const [items, setItems] = useState(carrinhoItems);
+  const [enderecoSelecionado, setEnderecoSelecionado] = useState("endereco1");
 
-  const categories = [
-    { id: "all", name: "Todos os Produtos", icon: Package },
-    { id: "fitas", name: "Fitas", icon: Package },
-    { id: "impressoras", name: "Impressoras", icon: Printer },
-    { id: "envelopes", name: "Envelopes", icon: Mail },
-    { id: "etiquetas", name: "Etiquetas", icon: Tag },
-  ];
-
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  const addToCart = (product: Product) => {
-    setCart(prev => {
-      const existingItem = prev.find(item => item.id === product.id);
-      if (existingItem) {
-        return prev.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...prev, { ...product, quantity: 1 }];
-    });
+  const updateQuantidade = (id: number, delta: number) => {
+    setItems(items.map(item => 
+      item.id === id 
+        ? { ...item, quantidade: Math.max(1, item.quantidade + delta) }
+        : item
+    ));
   };
 
-  const updateQuantity = (productId: string, newQuantity: number) => {
-    if (newQuantity === 0) {
-      setCart(prev => prev.filter(item => item.id !== productId));
-    } else {
-      setCart(prev =>
-        prev.map(item =>
-          item.id === productId
-            ? { ...item, quantity: newQuantity }
-            : item
-        )
-      );
-    }
-  };
+  const total = items.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
 
-  const getCartTotal = () => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Carrinho */}
+      <div className="lg:col-span-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Carrinho de Compras</CardTitle>
+            <CardDescription>Gerencie os itens do seu carrinho</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {items.map((item) => (
+              <div key={item.id} className="flex items-center space-x-4 p-4 border rounded-lg">
+                <img 
+                  src={item.image} 
+                  alt={item.nome}
+                  className="w-16 h-16 rounded-lg object-cover bg-gray-100"
+                />
+                <div className="flex-1">
+                  <h4 className="font-medium">{item.nome}</h4>
+                  <p className="text-sm text-gray-600">R$ {item.preco.toFixed(2)}</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => updateQuantidade(item.id, -1)}
+                  >
+                    <Minus className="w-4 h-4" />
+                  </Button>
+                  <span className="w-8 text-center">{item.quantidade}</span>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => updateQuantidade(item.id, 1)}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold">R$ {(item.preco * item.quantidade).toFixed(2)}</p>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
 
-  const getStatusColor = (status: Order['status']) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'processing': return 'bg-blue-100 text-blue-800';
-      case 'shipped': return 'bg-purple-100 text-purple-800';
-      case 'delivered': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+      {/* Resumo e Checkout */}
+      <div className="space-y-6">
+        {/* Endereço de Entrega */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <MapPin className="w-5 h-5" />
+              <span>Endereço de Entrega</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="space-y-2">
+              <label className="flex items-center space-x-2">
+                <input 
+                  type="radio" 
+                  name="endereco" 
+                  value="endereco1"
+                  checked={enderecoSelecionado === "endereco1"}
+                  onChange={(e) => setEnderecoSelecionado(e.target.value)}
+                />
+                <div className="text-sm">
+                  <p className="font-medium">Casa</p>
+                  <p className="text-gray-600">Rua das Flores, 123 - Centro</p>
+                  <p className="text-gray-600">São Paulo, SP - 01234-567</p>
+                </div>
+              </label>
+              
+              <label className="flex items-center space-x-2">
+                <input 
+                  type="radio" 
+                  name="endereco" 
+                  value="endereco2"
+                  checked={enderecoSelecionado === "endereco2"}
+                  onChange={(e) => setEnderecoSelecionado(e.target.value)}
+                />
+                <div className="text-sm">
+                  <p className="font-medium">Trabalho</p>
+                  <p className="text-gray-600">Av. Paulista, 1000 - Bela Vista</p>
+                  <p className="text-gray-600">São Paulo, SP - 01310-100</p>
+                </div>
+              </label>
+            </div>
+            
+            <Button variant="outline" size="sm" className="w-full">
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Novo Endereço
+            </Button>
+          </CardContent>
+        </Card>
 
-  const getStatusText = (status: Order['status']) => {
-    switch (status) {
-      case 'pending': return 'Pendente';
-      case 'processing': return 'Processando';
-      case 'shipped': return 'Enviado';
-      case 'delivered': return 'Entregue';
-      default: return 'Desconhecido';
-    }
-  };
+        {/* Meios de Pagamento */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <CreditCard className="w-5 h-5" />
+              <span>Meio de Pagamento</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {meiosPagamento.map((meio) => (
+              <label key={meio.id} className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <input type="radio" name="pagamento" value={meio.id} disabled={!meio.ativo} />
+                  <span className={meio.ativo ? "text-gray-900" : "text-gray-400"}>
+                    {meio.nome}
+                  </span>
+                </div>
+                {meio.ativo ? (
+                  <Badge variant="default">Disponível</Badge>
+                ) : (
+                  <Badge variant="outline">Indisponível</Badge>
+                )}
+              </label>
+            ))}
+            
+            <Button variant="outline" size="sm" className="w-full">
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Cartão
+            </Button>
+          </CardContent>
+        </Card>
 
+        {/* Resumo do Pedido */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Resumo do Pedido</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span>R$ {total.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Frete</span>
+              <span>R$ 15,90</span>
+            </div>
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>Desconto</span>
+              <span>- R$ 0,00</span>
+            </div>
+            <hr />
+            <div className="flex justify-between font-bold text-lg">
+              <span>Total</span>
+              <span>R$ {(total + 15.90).toFixed(2)}</span>
+            </div>
+            
+            <Button className="w-full bg-novura-primary hover:bg-novura-primary/90 h-12">
+              Finalizar Compra
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function PedidosHistorico() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Histórico de Pedidos</CardTitle>
+        <CardDescription>Seus pedidos realizados</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-gray-600">Nenhum pedido encontrado.</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function Configuracoes() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Configurações</CardTitle>
+        <CardDescription>Gerencie suas preferências</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-gray-600">Configurações em desenvolvimento...</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+const RecursosSeller = () => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gray-50">
         <AppSidebar />
         
         <div className="flex-1 flex flex-col">
+          {/* Header */}
           <header className="h-16 bg-white border-b border-gray-200 flex items-center px-6 shadow-sm">
             <SidebarTrigger className="mr-4" />
-            <div className="flex-1">
-              <h2 className="text-lg font-semibold text-gray-900">Recursos Seller</h2>
+            <div className="flex-1 flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <ShoppingBag className="w-6 h-6 text-novura-primary" />
+                <h2 className="text-lg font-semibold text-gray-900">Recursos Seller</h2>
+              </div>
             </div>
           </header>
 
-          <CleanNavigation items={navigationItems} basePath="/recursos-seller" />
+          {/* Navigation */}
+          <Navigation items={navigationItems} basePath="/recursos-seller" />
 
+          {/* Main Content */}
           <main className="flex-1 p-6 overflow-auto">
-            <Tabs defaultValue="produtos" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="produtos">Produtos</TabsTrigger>
-                <TabsTrigger value="pedidos">Pedidos</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="produtos" className="space-y-6">
-                {/* Search and Cart */}
-                <div className="flex justify-between items-center">
-                  <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                      placeholder="Buscar produtos..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  <Drawer open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
-                    <DrawerTrigger asChild>
-                      <Button className="ml-4 relative">
-                        <ShoppingCart className="w-4 h-4 mr-2" />
-                        Carrinho
-                        {cart.length > 0 && (
-                          <Badge className="absolute -top-2 -right-2 bg-red-500 text-white text-xs">
-                            {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                          </Badge>
-                        )}
-                      </Button>
-                    </DrawerTrigger>
-                    <DrawerContent>
-                      <DrawerHeader>
-                        <DrawerTitle>Carrinho de Compras</DrawerTitle>
-                        <DrawerDescription>
-                          Revise seus itens antes de finalizar a compra
-                        </DrawerDescription>
-                      </DrawerHeader>
-                      <div className="p-4 max-h-96 overflow-auto">
-                        {cart.length === 0 ? (
-                          <p className="text-center text-gray-500 py-8">Carrinho vazio</p>
-                        ) : (
-                          <div className="space-y-4">
-                            {cart.map((item) => (
-                              <div key={item.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                                <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />
-                                <div className="flex-1">
-                                  <h4 className="font-medium">{item.name}</h4>
-                                  <p className="text-sm text-gray-600">R$ {item.price.toFixed(2)}</p>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                  >
-                                    <Minus className="w-3 h-3" />
-                                  </Button>
-                                  <span className="w-8 text-center">{item.quantity}</span>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                  >
-                                    <Plus className="w-3 h-3" />
-                                  </Button>
-                                </div>
-                                <div className="text-right">
-                                  <p className="font-medium">R$ {(item.price * item.quantity).toFixed(2)}</p>
-                                </div>
-                              </div>
-                            ))}
-                            <div className="border-t pt-4 mt-4">
-                              <div className="flex justify-between items-center text-lg font-bold">
-                                <span>Total:</span>
-                                <span>R$ {getCartTotal().toFixed(2)}</span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <DrawerFooter>
-                        <Button 
-                          className="w-full" 
-                          disabled={cart.length === 0}
-                          onClick={() => {
-                            // Simular finalização da compra
-                            alert('Compra finalizada com sucesso!');
-                            setCart([]);
-                            setIsCheckoutOpen(false);
-                          }}
-                        >
-                          Finalizar Compra - R$ {getCartTotal().toFixed(2)}
-                        </Button>
-                        <DrawerClose asChild>
-                          <Button variant="outline">Continuar Comprando</Button>
-                        </DrawerClose>
-                      </DrawerFooter>
-                    </DrawerContent>
-                  </Drawer>
-                </div>
-
-                {/* Categories */}
-                <div className="flex space-x-2 overflow-x-auto pb-2">
-                  {categories.map((category) => (
-                    <Button
-                      key={category.id}
-                      variant={selectedCategory === category.id ? "default" : "outline"}
-                      onClick={() => setSelectedCategory(category.id)}
-                      className="flex items-center space-x-2 whitespace-nowrap"
-                    >
-                      <category.icon className="w-4 h-4" />
-                      <span>{category.name}</span>
-                    </Button>
-                  ))}
-                </div>
-
-                {/* Products Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {filteredProducts.map((product) => (
-                    <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                      <div className="aspect-square bg-gray-100 flex items-center justify-center">
-                        <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                      </div>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm line-clamp-2">{product.name}</CardTitle>
-                        <CardDescription className="text-xs line-clamp-2">{product.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xl font-bold text-novura-primary">R$ {product.price.toFixed(2)}</p>
-                            <Badge variant={product.inStock ? "default" : "secondary"} className="text-xs">
-                              {product.inStock ? "Em estoque" : "Indisponível"}
-                            </Badge>
-                          </div>
-                          <Button
-                            size="sm"
-                            onClick={() => addToCart(product)}
-                            disabled={!product.inStock}
-                          >
-                            <ShoppingCart className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="pedidos" className="space-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Histórico de Pedidos</h3>
-                  {orders.map((order) => (
-                    <Card key={order.id}>
-                      <CardHeader>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <CardTitle className="text-base">Pedido #{order.id}</CardTitle>
-                            <CardDescription>
-                              {new Date(order.date).toLocaleDateString('pt-BR')}
-                            </CardDescription>
-                          </div>
-                          <div className="text-right">
-                            <Badge className={getStatusColor(order.status)}>
-                              {getStatusText(order.status)}
-                            </Badge>
-                            <p className="text-lg font-bold mt-1">R$ {order.total.toFixed(2)}</p>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {order.items.map((item) => (
-                            <div key={item.id} className="flex justify-between items-center text-sm">
-                              <span>{item.name}</span>
-                              <span>Qtd: {item.quantity} - R$ {(item.price * item.quantity).toFixed(2)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </TabsContent>
-            </Tabs>
+            <Routes>
+              <Route path="" element={<Carrinho />} />
+              <Route path="/pedidos" element={<PedidosHistorico />} />
+              <Route path="/config" element={<Configuracoes />} />
+            </Routes>
           </main>
         </div>
       </div>
     </SidebarProvider>
   );
-}
+};
+
+export default RecursosSeller;

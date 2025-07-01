@@ -12,6 +12,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Bell, Users } from "lucide-react";
 import { CriarProduto } from "@/components/produtos/CriarProduto";
 
@@ -25,20 +26,56 @@ const navigationItems = [
 const produtosUnicos = [
   { id: 1, name: "iPhone 15 Pro", sku: "IPH15P-001", price: 7999.99, stock: 25, status: "Ativo", vinculos: "Mercado Livre, Amazon", image: "/placeholder.svg" },
   { id: 2, name: "MacBook Air M2", sku: "MBA-M2-002", price: 9999.99, stock: 12, status: "Ativo", vinculos: "Shopee, Magazine Luiza", image: "/placeholder.svg" },
-  { id: 3, name: "AirPods Pro", sku: "APP-003", price: 2299.99, stock: 8, status: "Baixo Estoque", vinculos: "Americanas", image: "/placeholder.svg" },
-  { id: 4, name: "iPad Air", sku: "IPA-004", price: 4999.99, stock: 15, status: "Ativo", vinculos: "Casas Bahia, Extra", image: "/placeholder.svg" },
-  { id: 5, name: "Apple Watch Series 9", sku: "AWS9-005", price: 3499.99, stock: 20, status: "Ativo", vinculos: "Mercado Livre", image: "/placeholder.svg" },
 ];
 
 const produtosVariacoes = [
-  { id: 6, name: "Camiseta Basic", sku: "CB-VAR-001", price: 89.99, stock: 150, status: "Ativo", vinculos: "Shopee, Mercado Livre", image: "/placeholder.svg" },
-  { id: 7, name: "Tênis Esportivo", sku: "TE-VAR-002", price: 299.99, stock: 75, status: "Ativo", vinculos: "Amazon, Netshoes", image: "/placeholder.svg" },
-  { id: 8, name: "Smartphone Galaxy", sku: "SG-VAR-003", price: 1899.99, stock: 45, status: "Ativo", vinculos: "Magazine Luiza", image: "/placeholder.svg" },
+  {
+    id: 1,
+    name: "Camiseta Basic",
+    sku_base: "CB-001",
+    variacoes: [
+      { sku: "CB-001-P-AZ", tamanho: "P", cor: "Azul", price: 89.99, stock: 50 },
+      { sku: "CB-001-M-AZ", tamanho: "M", cor: "Azul", price: 89.99, stock: 45 },
+      { sku: "CB-001-G-VM", tamanho: "G", cor: "Vermelho", price: 89.99, stock: 35 },
+    ]
+  },
+  {
+    id: 2,
+    name: "Tênis Esportivo",
+    sku_base: "TE-002",
+    variacoes: [
+      { sku: "TE-002-38-PT", tamanho: "38", cor: "Preto", price: 299.99, stock: 25 },
+      { sku: "TE-002-39-PT", tamanho: "39", cor: "Preto", price: 299.99, stock: 30 },
+      { sku: "TE-002-40-BR", tamanho: "40", cor: "Branco", price: 299.99, stock: 20 },
+    ]
+  },
 ];
 
 const produtosKits = [
-  { id: 9, name: "Kit Gamer Completo", sku: "KGC-001", price: 2499.99, stock: 10, status: "Ativo", vinculos: "Kabum, Pichau", image: "/placeholder.svg" },
-  { id: 10, name: "Kit Escritório Home Office", sku: "KEHO-002", price: 899.99, stock: 18, status: "Ativo", vinculos: "Mercado Livre", image: "/placeholder.svg" },
+  {
+    id: 1,
+    name: "Kit Gamer Completo",
+    sku: "KGC-001",
+    produtos: [
+      { name: "Teclado Mecânico", sku: "TM-001", quantidade: 1 },
+      { name: "Mouse Gamer", sku: "MG-001", quantidade: 1 },
+      { name: "Headset", sku: "HS-001", quantidade: 1 },
+    ],
+    price: 2499.99,
+    stock: 10
+  },
+  {
+    id: 2,
+    name: "Kit Escritório Home Office",
+    sku: "KEHO-002",
+    produtos: [
+      { name: "Cadeira Ergonômica", sku: "CE-001", quantidade: 1 },
+      { name: "Mesa Ajustável", sku: "MA-001", quantidade: 1 },
+      { name: "Luminária LED", sku: "LL-001", quantidade: 1 },
+    ],
+    price: 899.99,
+    stock: 18
+  },
 ];
 
 function ProductTable({ products }: { products: any[] }) {
@@ -173,7 +210,58 @@ function ProdutosVariacoes() {
         </Button>
       </div>
 
-      <ProductTable products={produtosVariacoes} />
+      <Card>
+        <CardContent className="p-6">
+          <Accordion type="single" collapsible className="w-full">
+            {produtosVariacoes.map((produto) => (
+              <AccordionItem key={produto.id} value={`item-${produto.id}`}>
+                <AccordionTrigger>
+                  <div className="flex justify-between items-center w-full pr-4">
+                    <span className="font-medium">{produto.name}</span>
+                    <Badge variant="outline">{produto.variacoes.length} variações</Badge>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="pt-4">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>SKU</TableHead>
+                          <TableHead>Tamanho</TableHead>
+                          <TableHead>Cor</TableHead>
+                          <TableHead>Preço</TableHead>
+                          <TableHead>Estoque</TableHead>
+                          <TableHead>Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {produto.variacoes.map((variacao, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell className="font-mono text-sm">{variacao.sku}</TableCell>
+                            <TableCell>{variacao.tamanho}</TableCell>
+                            <TableCell>{variacao.cor}</TableCell>
+                            <TableCell>R$ {variacao.price.toFixed(2)}</TableCell>
+                            <TableCell>
+                              <span className={variacao.stock < 10 ? "text-red-600 font-medium" : "text-gray-900"}>
+                                {variacao.stock}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <Button variant="ghost" size="sm">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -199,7 +287,58 @@ function ProdutosKits() {
         </Button>
       </div>
 
-      <ProductTable products={produtosKits} />
+      <Card>
+        <CardContent className="p-6">
+          <Accordion type="single" collapsible className="w-full">
+            {produtosKits.map((kit) => (
+              <AccordionItem key={kit.id} value={`kit-${kit.id}`}>
+                <AccordionTrigger>
+                  <div className="flex justify-between items-center w-full pr-4">
+                    <div className="text-left">
+                      <span className="font-medium block">{kit.name}</span>
+                      <span className="text-sm text-gray-500">SKU: {kit.sku}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-medium">R$ {kit.price.toFixed(2)}</span>
+                      <Badge variant="outline" className="ml-2">{kit.produtos.length} itens</Badge>
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="pt-4">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Produto</TableHead>
+                          <TableHead>SKU</TableHead>
+                          <TableHead>Quantidade</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {kit.produtos.map((produto, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell className="font-medium">{produto.name}</TableCell>
+                            <TableCell className="font-mono text-sm">{produto.sku}</TableCell>
+                            <TableCell>{produto.quantidade}x</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">Estoque disponível:</span>
+                        <span className={kit.stock < 10 ? "text-red-600 font-medium" : "text-gray-900 font-medium"}>
+                          {kit.stock} kits
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </CardContent>
+      </Card>
     </div>
   );
 }
