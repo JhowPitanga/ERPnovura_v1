@@ -16,6 +16,7 @@ import { TrendingUp, DollarSign, Package, MapPin, Award, Calendar as CalendarIco
 import { Routes, Route } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import type { DateRange } from "react-day-picker";
 
 const navigationItems = [
   { title: "Visão Geral", path: "", description: "Métricas principais" },
@@ -43,8 +44,12 @@ const produtosVendidos = [
 ];
 
 function VisaoGeral() {
-  const [dateRange, setDateRange] = useState({ from: new Date(), to: new Date() });
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({ from: new Date(), to: new Date() });
   const [selectedMarketplace, setSelectedMarketplace] = useState("todos");
+
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDateRange(range);
+  };
 
   return (
     <div className="space-y-6">
@@ -74,7 +79,7 @@ function VisaoGeral() {
               mode="range"
               defaultMonth={dateRange?.from}
               selected={dateRange}
-              onSelect={setDateRange}
+              onSelect={handleDateRangeChange}
               numberOfMonths={2}
             />
           </PopoverContent>

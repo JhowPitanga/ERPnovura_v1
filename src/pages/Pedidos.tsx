@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Search, Filter, Settings, FileText, Printer, Bot, TrendingUp, Zap, Scanner } from "lucide-react";
+import { Search, Filter, Settings, FileText, Printer, Bot, TrendingUp, Zap, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -48,8 +48,9 @@ export default function Pedidos() {
 
   const currentPedidos = mockPedidos[activeStatus] || [];
 
-  const handleSelectPedidoImpressao = (pedidoId: string, checked: boolean) => {
-    if (checked) {
+  const handleSelectPedidoImpressao = (pedidoId: string, checked: boolean | string) => {
+    const isChecked = checked === true;
+    if (isChecked) {
       setSelectedPedidosImpressao([...selectedPedidosImpressao, pedidoId]);
     } else {
       setSelectedPedidosImpressao(selectedPedidosImpressao.filter(id => id !== pedidoId));
@@ -132,7 +133,7 @@ export default function Pedidos() {
                         onClick={() => setScannerOpen(true)}
                         className="h-12 px-6 rounded-2xl bg-novura-primary shadow-lg"
                       >
-                        <Scanner className="w-4 h-4 mr-2" />
+                        <QrCode className="w-4 h-4 mr-2" />
                         Checkout de Impressão
                       </Button>
                       

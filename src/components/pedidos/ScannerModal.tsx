@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Scanner, Package, ShoppingCart } from "lucide-react";
+import { QrCode, Package, ShoppingCart } from "lucide-react";
 
 interface ScannerModalProps {
   open: boolean;
@@ -43,7 +43,7 @@ export function ScannerModal({ open, onOpenChange }: ScannerModalProps) {
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
-            <Scanner className="w-5 h-5" />
+            <QrCode className="w-5 h-5" />
             <span>Scanner de Impressão</span>
           </DialogTitle>
           <DialogDescription>
@@ -98,7 +98,7 @@ export function ScannerModal({ open, onOpenChange }: ScannerModalProps) {
             </div>
 
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
-              <Scanner className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <QrCode className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <Input
                 placeholder={scanMode === "pedido" ? "Código do pedido..." : "SKU do produto..."}
                 value={scannedCode}
