@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingBag, CreditCard, MapPin, Plus, Minus, ShoppingCart, ArrowLeft, ArrowRight, Search, MessageSquare, Truck, Package, Printer } from "lucide-react";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { SuccessModal } from "@/components/recursos/SuccessModal";
+import { ShoppingBag, ShoppingCart, Search } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SuccessModal } from "@/components/recursos/SuccessModal";
+import { ProductGrid } from "@/components/recursos/ProductGrid";
+import { CategoryFilter } from "@/components/recursos/CategoryFilter";
+import { CartDrawer } from "@/components/recursos/CartDrawer";
+import { PurchasesTab } from "@/components/recursos/PurchasesTab";
 
 const categorias = [
   { id: "fitas", nome: "Fitas", count: 24 },
@@ -107,9 +109,6 @@ const RecursosSeller = () => {
   const [enderecoSelecionado, setEnderecoSelecionado] = useState("endereco1");
   const [pagamentoSelecionado, setPagamentoSelecionado] = useState("pix");
   const [successModalOpen, setSuccessModalOpen] = useState(false);
-  const [isTrackingOpen, setIsTrackingOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [selectedStore, setSelectedStore] = useState("");
 
   const produtosCategoria = produtos[categoriaAtiva] || [];
   
@@ -139,25 +138,12 @@ const RecursosSeller = () => {
     ).filter(item => item.quantidade > 0));
   };
 
-  const totalCarrinho = carrinho.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
-
   const finalizarCompra = () => {
     setSuccessModalOpen(true);
     setCarrinhoOpen(false);
     setCarrinho([]);
     setStepAtual(0);
   };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Entregue": return "bg-green-100 text-green-800";
-      case "Em Trânsito": return "bg-blue-100 text-blue-800";
-      case "Processando": return "bg-yellow-100 text-yellow-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const steps = ["Produtos", "Endereço", "Pagamento"];
 
   return (
     <SidebarProvider>
@@ -210,386 +196,43 @@ const RecursosSeller = () => {
                 </div>
 
                 {/* Categories */}
-                <div className="flex space-x-1">
-                  {categorias.map((categoria) => (
-                    <button
-                      key={categoria.id}
-                      onClick={() => setCategoriaAtiva(categoria.id)}
-                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                        categoriaAtiva === categoria.id
-                          ? "bg-novura-primary text-white" 
-                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                      }`}
-                    >
-                      {categoria.nome} ({categoria.count})
-                    </button>
-                  ))}
-                </div>
+                <CategoryFilter
+                  categories={categorias}
+                  activeCategory={categoriaAtiva}
+                  onCategoryChange={setCategoriaAtiva}
+                />
 
                 {/* Products Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {filteredProducts.map((produto) => (
-                    <Card key={produto.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                      <div className="aspect-square overflow-hidden">
-                        <img 
-                          src={produto.image} 
-                          alt={produto.nome}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform"
-                        />
-                      </div>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">{produto.nome}</CardTitle>
-                        <CardDescription>{produto.descricao}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="pt-2">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-2xl font-bold text-novura-primary">
-                            R$ {produto.preco.toFixed(2)}
-                          </span>
-                          <Badge variant="outline" className="text-xs">
-                            {produto.estoque} un.
-                          </Badge>
-                        </div>
-                        <Button 
-                          onClick={() => adicionarAoCarrinho(produto)}
-                          size="sm"
-                          className="w-full bg-novura-primary hover:bg-novura-primary/90"
-                          disabled={produto.estoque === 0}
-                        >
-                          <Plus className="w-4 h-4 mr-1" />
-                          {produto.estoque > 0 ? "Adicionar" : "Sem Estoque"}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                <ProductGrid
+                  products={filteredProducts}
+                  onAddToCart={adicionarAoCarrinho}
+                />
               </TabsContent>
 
               <TabsContent value="compras" className="p-6">
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold">Minhas Compras</h3>
-                  
-                  <div className="space-y-4">
-                    {comprasRealizadas.map((compra) => (
-                      <Card key={compra.id} className="hover:shadow-md transition-shadow">
-                        <CardContent className="p-6">
-                          <div className="flex items-center space-x-4">
-                            <img 
-                              src={compra.image} 
-                              alt={compra.produto}
-                              className="w-16 h-16 rounded-lg object-cover"
-                            />
-                            
-                            <div className="flex-1 grid grid-cols-5 gap-4 items-center">
-                              <div>
-                                <h4 className="font-semibold">{compra.produto}</h4>
-                                <p className="text-sm text-gray-600">Pedido #{compra.id}</p>
-                              </div>
-                              
-                              <div className="text-center">
-                                <p className="font-medium">{compra.quantidade}</p>
-                                <p className="text-sm text-gray-600">Quantidade</p>
-                              </div>
-                              
-                              <div className="text-center">
-                                <Badge 
-                                  className={`${getStatusColor(compra.status)} cursor-pointer`}
-                                  onClick={() => compra.status === "Em Trânsito" && setIsTrackingOpen(true)}
-                                >
-                                  {compra.status}
-                                </Badge>
-                              </div>
-                              
-                              <div>
-                                <p className="font-semibold">{compra.loja}</p>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  onClick={() => {
-                                    setSelectedStore(compra.loja);
-                                    setIsChatOpen(true);
-                                  }}
-                                  className="p-0 h-auto text-blue-600 hover:text-blue-800"
-                                >
-                                  <MessageSquare className="w-3 h-3 mr-1" />
-                                  Mensagem
-                                </Button>
-                              </div>
-                              
-                              <div className="text-right">
-                                <p className="text-lg font-bold text-novura-primary">
-                                  R$ {compra.valor.toFixed(2)}
-                                </p>
-                                <p className="text-xs text-gray-600">{compra.dataCompra}</p>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
+                <PurchasesTab purchases={comprasRealizadas} />
               </TabsContent>
             </Tabs>
           </main>
         </div>
       </div>
 
-      {/* Carrinho Drawer */}
-      <Drawer open={carrinhoOpen} onOpenChange={setCarrinhoOpen} direction="right">
-        <DrawerContent className="h-full w-[500px] fixed right-0">
-          <DrawerHeader className="border-b">
-            <DrawerTitle className="flex items-center justify-between">
-              <span>Carrinho de Compras</span>
-              <div className="flex items-center space-x-2">
-                {stepAtual > 0 && (
-                  <Button variant="outline" size="sm" onClick={() => setStepAtual(stepAtual - 1)}>
-                    <ArrowLeft className="w-4 h-4" />
-                  </Button>
-                )}
-                <div className="flex space-x-2">
-                  {steps.map((step, index) => (
-                    <div
-                      key={step}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                        index === stepAtual 
-                          ? "bg-novura-primary text-white" 
-                          : index < stepAtual 
-                            ? "bg-green-500 text-white" 
-                            : "bg-gray-200 text-gray-600"
-                      }`}
-                    >
-                      {index + 1}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </DrawerTitle>
-          </DrawerHeader>
-
-          <div className="flex-1 p-6 overflow-y-auto">
-            
-            {stepAtual === 0 && (
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg">Produtos no Carrinho</h3>
-                {carrinho.length === 0 ? (
-                  <p className="text-gray-600 text-center py-8">Carrinho vazio</p>
-                ) : (
-                  carrinho.map((item) => (
-                    <div key={item.id} className="flex items-center space-x-4 p-4 border rounded-lg">
-                      <img 
-                        src={item.image} 
-                        alt={item.nome}
-                        className="w-16 h-16 rounded-lg object-cover"
-                      />
-                      <div className="flex-1">
-                        <h4 className="font-medium">{item.nome}</h4>
-                        <p className="text-sm text-gray-600">R$ {item.preco.toFixed(2)}</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => updateQuantidade(item.id, -1)}
-                        >
-                          <Minus className="w-4 h-4" />
-                        </Button>
-                        <span className="w-8 text-center">{item.quantidade}</span>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => updateQuantidade(item.id, 1)}
-                        >
-                          <Plus className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold">R$ {(item.preco * item.quantidade).toFixed(2)}</p>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-
-            {stepAtual === 1 && (
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg flex items-center">
-                  <MapPin className="w-5 h-5 mr-2" />
-                  Endereço de Entrega
-                </h3>
-                <div className="space-y-3">
-                  {enderecos.map((endereco) => (
-                    <label key={endereco.id} className="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                      <input 
-                        type="radio" 
-                        name="endereco" 
-                        value={endereco.id}
-                        checked={enderecoSelecionado === endereco.id}
-                        onChange={(e) => setEnderecoSelecionado(e.target.value)}
-                        className="mt-1"
-                      />
-                      <div>
-                        <p className="font-medium">{endereco.tipo}</p>
-                        <p className="text-sm text-gray-600">{endereco.endereco}</p>
-                        <p className="text-sm text-gray-600">{endereco.cidade}</p>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {stepAtual === 2 && (
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg flex items-center">
-                  <CreditCard className="w-5 h-5 mr-2" />
-                  Meio de Pagamento
-                </h3>
-                <div className="space-y-3">
-                  {meiosPagamento.map((meio) => (
-                    <label key={meio.id} className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                      <div className="flex items-center space-x-3">
-                        <input 
-                          type="radio" 
-                          name="pagamento" 
-                          value={meio.id} 
-                          disabled={!meio.ativo}
-                          checked={pagamentoSelecionado === meio.id}
-                          onChange={(e) => setPagamentoSelecionado(e.target.value)}
-                        />
-                        <span className={meio.ativo ? "text-gray-900" : "text-gray-400"}>
-                          {meio.nome}
-                        </span>
-                      </div>
-                      <Badge variant={meio.ativo ? "default" : "outline"}>
-                        {meio.ativo ? "Disponível" : "Indisponível"}
-                      </Badge>
-                    </label>
-                  ))}
-                </div>
-
-                <div className="border-t pt-4 mt-6">
-                  <h4 className="font-semibold mb-3">Resumo do Pedido</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Subtotal</span>
-                      <span>R$ {totalCarrinho.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Frete</span>
-                      <span>R$ 25,90</span>
-                    </div>
-                    <hr />
-                    <div className="flex justify-between font-bold text-lg">
-                      <span>Total</span>
-                      <span>R$ {(totalCarrinho + 25.90).toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="border-t p-6">
-            {stepAtual < 2 ? (
-              <Button 
-                onClick={() => setStepAtual(stepAtual + 1)}
-                className="w-full bg-novura-primary hover:bg-novura-primary/90"
-                disabled={carrinho.length === 0}
-              >
-                Continuar
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            ) : (
-              <Button 
-                onClick={finalizarCompra}
-                className="w-full bg-green-600 hover:bg-green-700"
-              >
-                Finalizar Compra
-              </Button>
-            )}
-          </div>
-        </DrawerContent>
-      </Drawer>
-
-      {/* Tracking Drawer */}
-      <Drawer open={isTrackingOpen} onOpenChange={setIsTrackingOpen} direction="right">
-        <DrawerContent className="h-full w-[400px] fixed right-0">
-          <DrawerHeader className="border-b">
-            <DrawerTitle className="flex items-center">
-              <Truck className="w-5 h-5 mr-2" />
-              Status do Pedido
-            </DrawerTitle>
-          </DrawerHeader>
-          <div className="p-6">
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3 text-green-600">
-                <div className="w-3 h-3 bg-green-600 rounded-full"></div>
-                <div>
-                  <p className="font-medium">Pedido confirmado</p>
-                  <p className="text-xs text-gray-600">18/01/2024 - 14:30</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3 text-green-600">
-                <div className="w-3 h-3 bg-green-600 rounded-full"></div>
-                <div>
-                  <p className="font-medium">Saiu para entrega</p>
-                  <p className="text-xs text-gray-600">19/01/2024 - 08:15</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3 text-blue-600">
-                <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse"></div>
-                <div>
-                  <p className="font-medium">Em trânsito</p>
-                  <p className="text-xs text-gray-600">Previsão: 22/01/2024</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3 text-gray-400">
-                <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                <div>
-                  <p className="font-medium">Entregue</p>
-                  <p className="text-xs text-gray-600">Aguardando...</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </DrawerContent>
-      </Drawer>
-
-      {/* Chat Drawer */}
-      <Drawer open={isChatOpen} onOpenChange={setIsChatOpen} direction="right">
-        <DrawerContent className="h-full w-[400px] fixed right-0">
-          <DrawerHeader className="border-b">
-            <DrawerTitle className="flex items-center">
-              <MessageSquare className="w-5 h-5 mr-2" />
-              Chat com {selectedStore}
-            </DrawerTitle>
-          </DrawerHeader>
-          <div className="flex-1 p-4 overflow-y-auto">
-            <div className="space-y-4">
-              <div className="bg-gray-100 p-3 rounded-lg">
-                <p className="text-sm">Olá! Como posso ajudá-lo com seu pedido?</p>
-                <p className="text-xs text-gray-600 mt-1">Vendedor - 10:30</p>
-              </div>
-              <div className="bg-blue-100 p-3 rounded-lg ml-8">
-                <p className="text-sm">Gostaria de saber o status do pedido #2</p>
-                <p className="text-xs text-gray-600 mt-1">Você - 10:32</p>
-              </div>
-              <div className="bg-gray-100 p-3 rounded-lg">
-                <p className="text-sm">Seu pedido já saiu para entrega! Chegará em breve.</p>
-                <p className="text-xs text-gray-600 mt-1">Vendedor - 10:35</p>
-              </div>
-            </div>
-          </div>
-          <div className="border-t p-4">
-            <div className="flex space-x-2">
-              <Input placeholder="Digite sua mensagem..." className="flex-1" />
-              <Button size="sm">Enviar</Button>
-            </div>
-          </div>
-        </DrawerContent>
-      </Drawer>
+      {/* Cart Drawer */}
+      <CartDrawer
+        open={carrinhoOpen}
+        onOpenChange={setCarrinhoOpen}
+        cartItems={carrinho}
+        currentStep={stepAtual}
+        addresses={enderecos}
+        paymentMethods={meiosPagamento}
+        selectedAddress={enderecoSelecionado}
+        selectedPayment={pagamentoSelecionado}
+        onStepChange={setStepAtual}
+        onUpdateQuantity={updateQuantidade}
+        onAddressChange={setEnderecoSelecionado}
+        onPaymentChange={setPagamentoSelecionado}
+        onFinalizePurchase={finalizarCompra}
+      />
 
       <SuccessModal open={successModalOpen} onOpenChange={setSuccessModalOpen} />
     </SidebarProvider>
