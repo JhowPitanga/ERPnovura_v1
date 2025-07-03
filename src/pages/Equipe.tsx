@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { MessageSquare, Kanban, Plus, Filter, Users, Trophy, Calendar, CheckSquare, Clock, User, Star, Target, BarChart3, Zap } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -11,6 +10,14 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// Import new task management components
+import { CreateTaskModal } from "@/components/equipe/CreateTaskModal";
+import { TaskBoard } from "@/components/equipe/TaskBoard";
+import { TaskBacklog } from "@/components/equipe/TaskBacklog";
+import { TaskRoadmap } from "@/components/equipe/TaskRoadmap";
+import { TaskViews } from "@/components/equipe/TaskViews";
 
 const navigationItems = [
   { title: "Chat", path: "", description: "Comunicação da equipe" },
@@ -18,22 +25,107 @@ const navigationItems = [
   { title: "Gamificação", path: "/gamificacao", description: "Desempenho da equipe" },
 ];
 
-// Mock data for tasks
-const mockTasks = {
-  todo: [
-    { id: 1, title: "Implementar API de pagamento", assignee: "Ana Silva", priority: "high", dueDate: "Hoje", type: "story", points: 8 },
-    { id: 2, title: "Corrigir bug no checkout", assignee: "Carlos Lima", priority: "high", dueDate: "Amanhã", type: "bug", points: 3 },
-    { id: 3, title: "Atualizar documentação", assignee: "Marina Costa", priority: "medium", dueDate: "Esta semana", type: "task", points: 2 },
-  ],
-  doing: [
-    { id: 4, title: "Desenvolver dashboard analytics", assignee: "João Santos", priority: "high", dueDate: "Hoje", type: "epic", points: 13 },
-    { id: 5, title: "Otimizar performance mobile", assignee: "Ana Silva", priority: "medium", dueDate: "Amanhã", type: "story", points: 5 },
-  ],
-  done: [
-    { id: 6, title: "Setup CI/CD pipeline", assignee: "Carlos Lima", priority: "medium", dueDate: "Ontem", type: "task", points: 8 },
-    { id: 7, title: "Implementar autenticação", assignee: "Marina Costa", priority: "high", dueDate: "Semana passada", type: "story", points: 13 },
-  ]
-};
+// Enhanced mock data for tasks with more detailed information
+const initialTasks = [
+  { 
+    id: 1, 
+    title: "Implementar API de pagamento", 
+    assignee: "Ana Silva", 
+    priority: "high", 
+    dueDate: "2024-01-20", 
+    type: "story", 
+    storyPoints: 8, 
+    status: "todo",
+    sprint: "sprint-1",
+    timeTracked: 120,
+    labels: ["backend", "api"],
+    dependencies: []
+  },
+  { 
+    id: 2, 
+    title: "Corrigir bug no checkout", 
+    assignee: "Carlos Lima", 
+    priority: "high", 
+    dueDate: "2024-01-18", 
+    type: "bug", 
+    storyPoints: 3, 
+    status: "doing",
+    sprint: "sprint-1",
+    timeTracked: 90,
+    labels: ["frontend", "urgente"],
+    dependencies: []
+  },
+  { 
+    id: 3, 
+    title: "Atualizar documentação", 
+    assignee: "Marina Costa", 
+    priority: "medium", 
+    dueDate: "2024-01-25", 
+    type: "task", 
+    storyPoints: 2, 
+    status: "todo",
+    sprint: "sprint-1",
+    timeTracked: 60,
+    labels: ["docs"],
+    dependencies: []
+  },
+  { 
+    id: 4, 
+    title: "Desenvolver dashboard analytics", 
+    assignee: "João Santos", 
+    priority: "high", 
+    dueDate: "2024-01-22", 
+    type: "epic", 
+    storyPoints: 13, 
+    status: "doing",
+    sprint: "sprint-1",
+    timeTracked: 300,
+    labels: ["dashboard", "analytics"],
+    dependencies: [1]
+  },
+  { 
+    id: 5, 
+    title: "Otimizar performance mobile", 
+    assignee: "Ana Silva", 
+    priority: "medium", 
+    dueDate: "2024-01-24", 
+    type: "story", 
+    storyPoints: 5, 
+    status: "todo",
+    sprint: "sprint-2",
+    timeTracked: 45,
+    labels: ["mobile", "performance"],
+    dependencies: []
+  },
+  { 
+    id: 6, 
+    title: "Setup CI/CD pipeline", 
+    assignee: "Carlos Lima", 
+    priority: "medium", 
+    dueDate: "2024-01-15", 
+    type: "task", 
+    storyPoints: 8, 
+    status: "done",
+    sprint: "sprint-1",
+    timeTracked: 480,
+    labels: ["devops", "ci/cd"],
+    dependencies: []
+  },
+  { 
+    id: 7, 
+    title: "Implementar autenticação", 
+    assignee: "Marina Costa", 
+    priority: "high", 
+    dueDate: "2024-01-10", 
+    type: "story", 
+    storyPoints: 13, 
+    status: "done",
+    sprint: "sprint-1",
+    timeTracked: 360,
+    labels: ["auth", "security"],
+    dependencies: []
+  }
+];
 
 // Mock data for gamification
 const teamMembers = [
@@ -99,165 +191,77 @@ const teamMembers = [
   }
 ];
 
-function TaskBoard() {
-  const [selectedSprint, setSelectedSprint] = useState("sprint-1");
-  const [viewMode, setViewMode] = useState("board");
+function TaskManagement() {
+  const [tasks, setTasks] = useState(initialTasks);
+  const [currentTab, setCurrentTab] = useState("board");
 
-  const columns = [
-    { id: "todo", title: "A Fazer", tasks: mockTasks.todo, color: "border-red-200 bg-red-50/30" },
-    { id: "doing", title: "Em Andamento", tasks: mockTasks.doing, color: "border-yellow-200 bg-yellow-50/30" },
-    { id: "done", title: "Concluído", tasks: mockTasks.done, color: "border-green-200 bg-green-50/30" },
-  ];
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "high": return "bg-red-500";
-      case "medium": return "bg-yellow-500";
-      case "low": return "bg-green-500";
-      default: return "bg-gray-500";
-    }
+  const handleCreateTask = (newTask: any) => {
+    setTasks(prev => [...prev, newTask]);
   };
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "story": return "📘";
-      case "bug": return "🐛"; 
-      case "task": return "✅";
-      case "epic": return "🎯";
-      default: return "📝";
-    }
+  const handleUpdateTask = (taskId: number, updates: Partial<typeof initialTasks[0]>) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId ? { ...task, ...updates } : task
+    ));
+  };
+
+  const handleStartTimer = (taskId: number) => {
+    console.log(`Timer iniciado para tarefa ${taskId}`);
+    // Implementar lógica de timer
+  };
+
+  const handleStopTimer = (taskId: number) => {
+    console.log(`Timer parado para tarefa ${taskId}`);
+    // Implementar lógica de parar timer
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Gerenciamento de Projetos</h2>
-          <p className="text-gray-600">Planejamento, organização e acompanhamento de tarefas</p>
+          <h2 className="text-xl font-semibold text-gray-900">Gerenciamento de Tarefas</h2>
+          <p className="text-gray-600">Sistema completo de planejamento e acompanhamento de projetos</p>
         </div>
-        <div className="flex items-center space-x-3">
-          <Select value={selectedSprint} onValueChange={setSelectedSprint}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="sprint-1">Sprint 1</SelectItem>
-              <SelectItem value="sprint-2">Sprint 2</SelectItem>
-              <SelectItem value="backlog">Backlog</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={viewMode} onValueChange={setViewMode}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="board">Board</SelectItem>
-              <SelectItem value="list">Lista</SelectItem>
-              <SelectItem value="calendar">Calendário</SelectItem>
-              <SelectItem value="timeline">Timeline</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button className="bg-gradient-to-r from-novura-primary to-purple-600">
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Tarefa
-          </Button>
-        </div>
+        <CreateTaskModal onCreateTask={handleCreateTask} />
       </div>
 
-      {/* Sprint Info */}
-      <div className="grid grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Target className="w-5 h-5 text-blue-500" />
-              <div>
-                <p className="text-sm text-gray-600">Story Points</p>
-                <p className="text-xl font-bold">34/50</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <CheckSquare className="w-5 h-5 text-green-500" />
-              <div>
-                <p className="text-sm text-gray-600">Tarefas</p>
-                <p className="text-xl font-bold">7/12</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Clock className="w-5 h-5 text-orange-500" />
-              <div>
-                <p className="text-sm text-gray-600">Dias Restantes</p>
-                <p className="text-xl font-bold">5</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <BarChart3 className="w-5 h-5 text-purple-500" />
-              <div>
-                <p className="text-sm text-gray-600">Progresso</p>
-                <Progress value={68} className="w-full mt-1" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="board">Board</TabsTrigger>
+          <TabsTrigger value="backlog">Backlog & Sprints</TabsTrigger>
+          <TabsTrigger value="roadmap">Roadmap</TabsTrigger>
+          <TabsTrigger value="views">Visualizações</TabsTrigger>
+        </TabsList>
 
-      {viewMode === "board" && (
-        <div className="grid grid-cols-3 gap-6">
-          {columns.map((column) => (
-            <div key={column.id} className={`rounded-2xl border-2 border-dashed p-4 ${column.color}`}>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900">{column.title}</h3>
-                <Badge variant="outline" className="text-xs">
-                  {column.tasks.length}
-                </Badge>
-              </div>
-              
-              <div className="space-y-3">
-                {column.tasks.map((task) => (
-                  <Card key={task.id} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer border-0 bg-white/80 backdrop-blur-sm">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-lg">{getTypeIcon(task.type)}</span>
-                          <h4 className="text-sm font-medium text-gray-900 leading-tight">{task.title}</h4>
-                        </div>
-                        <div className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`}></div>
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                        <span>{task.assignee}</span>
-                        <span>{task.dueDate}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Badge variant="outline" className="text-xs">
-                          {task.points} pts
-                        </Badge>
-                        <Badge variant="secondary" className="text-xs">
-                          {task.type}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-              
-              <button className="w-full mt-3 py-2 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-gray-400 hover:text-gray-600 transition-colors text-sm">
-                + Adicionar tarefa
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+        <TabsContent value="board" className="space-y-6">
+          <TaskBoard 
+            tasks={tasks}
+            onUpdateTask={handleUpdateTask}
+            onStartTimer={handleStartTimer}
+            onStopTimer={handleStopTimer}
+          />
+        </TabsContent>
+
+        <TabsContent value="backlog" className="space-y-6">
+          <TaskBacklog 
+            tasks={tasks}
+            onUpdateTask={handleUpdateTask}
+          />
+        </TabsContent>
+
+        <TabsContent value="roadmap" className="space-y-6">
+          <TaskRoadmap tasks={tasks} />
+        </TabsContent>
+
+        <TabsContent value="views" className="space-y-6">
+          <TaskViews 
+            tasks={tasks}
+            onUpdateTask={handleUpdateTask}
+            onStartTimer={handleStartTimer}
+            onStopTimer={handleStopTimer}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
@@ -433,7 +437,7 @@ export default function Equipe() {
   const renderContent = () => {
     switch (currentPath) {
       case "/tasks":
-        return <TaskBoard />;
+        return <TaskManagement />;
       case "/gamificacao":
         return <Gamificacao />;
       default:
