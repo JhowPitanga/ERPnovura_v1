@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Search, Store, Truck, Settings, Check, Plus, ExternalLink } from "lucide-react";
+import { Search, Store, Truck, Settings, Check, Plus, ExternalLink, MessageSquare, Filter, MapPin } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,13 +16,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface App {
   id: string;
   name: string;
   description: string;
   logo: string;
-  category: 'marketplaces' | 'logistics' | 'others';
+  category: 'marketplaces' | 'logistics' | 'dropshipping' | 'others';
   isConnected: boolean;
   price: 'free' | 'paid';
   rating: number;
@@ -64,38 +65,40 @@ const apps: App[] = [
     rating: 4.6,
     installs: 25000,
   },
+
+  // Dropshipping
   {
-    id: "americanas",
-    name: "Americanas",
-    description: "Integração com marketplace das Americanas",
+    id: "oberlo",
+    name: "Oberlo",
+    description: "Encontre produtos para dropshipping facilmente",
     logo: "/placeholder.svg",
-    category: "marketplaces",
+    category: "dropshipping",
     isConnected: false,
     price: "free",
     rating: 4.4,
-    installs: 15000,
+    installs: 18000,
   },
   {
-    id: "magalu",
-    name: "Magazine Luiza",
-    description: "Venda no marketplace do Magazine Luiza",
+    id: "spocket",
+    name: "Spocket",
+    description: "Produtos de dropshipping dos EUA e Europa",
     logo: "/placeholder.svg",
-    category: "marketplaces",
+    category: "dropshipping",
     isConnected: false,
-    price: "free",
+    price: "paid",
     rating: 4.5,
-    installs: 20000,
+    installs: 12000,
   },
   {
-    id: "casasbahia",
-    name: "Casas Bahia",
-    description: "Integração com marketplace Casas Bahia",
+    id: "dsers",
+    name: "DSers",
+    description: "Ferramenta oficial de dropshipping do AliExpress",
     logo: "/placeholder.svg",
-    category: "marketplaces",
+    category: "dropshipping",
     isConnected: false,
     price: "free",
     rating: 4.3,
-    installs: 12000,
+    installs: 22000,
   },
 
   // Logistics
@@ -121,28 +124,6 @@ const apps: App[] = [
     rating: 4.1,
     installs: 18000,
   },
-  {
-    id: "totalexpress",
-    name: "Total Express",
-    description: "Gestão de entregas com Total Express",
-    logo: "/placeholder.svg",
-    category: "logistics",
-    isConnected: false,
-    price: "paid",
-    rating: 4.4,
-    installs: 8000,
-  },
-  {
-    id: "loggi",
-    name: "Loggi",
-    description: "Entregas rápidas com Loggi",
-    logo: "/placeholder.svg",
-    category: "logistics",
-    isConnected: false,
-    price: "paid",
-    rating: 4.5,
-    installs: 15000,
-  },
 
   // Others
   {
@@ -167,39 +148,20 @@ const apps: App[] = [
     rating: 4.7,
     installs: 22000,
   },
-  {
-    id: "contaazul",
-    name: "ContaAzul",
-    description: "Integração contábil e fiscal",
-    logo: "/placeholder.svg",
-    category: "others",
-    isConnected: false,
-    price: "paid",
-    rating: 4.6,
-    installs: 10000,
-  },
-  {
-    id: "mailchimp",
-    name: "Mailchimp",
-    description: "Automação de email marketing",
-    logo: "/placeholder.svg",
-    category: "others",
-    isConnected: false,
-    price: "free",
-    rating: 4.5,
-    installs: 18000,
-  },
 ];
 
 export default function Aplicativos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [connectedFilter, setConnectedFilter] = useState("all");
   const [selectedApp, setSelectedApp] = useState<App | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAddStoreOpen, setIsAddStoreOpen] = useState(false);
 
   const categories = [
     { id: "all", name: "Todos", icon: Settings },
-    { id: "marketplaces", name: "Marketplaces & Hubs", icon: Store },
+    { id: "marketplaces", name: "Marketplaces", icon: Store },
+    { id: "dropshipping", name: "Dropshipping", icon: Truck },
     { id: "logistics", name: "Logística", icon: Truck },
     { id: "others", name: "Outros", icon: Settings },
   ];
@@ -211,7 +173,14 @@ export default function Aplicativos() {
     return matchesSearch && matchesCategory;
   });
 
-  const connectedApps = apps.filter(app => app.isConnected);
+  const connectedApps = apps.filter(app => {
+    const isConnected = app.isConnected;
+    const matchesFilter = connectedFilter === "all" || 
+                         (connectedFilter === "connected" && isConnected) ||
+                         (connectedFilter === "disconnected" && !isConnected);
+    const matchesCategory = selectedCategory === "all" || app.category === selectedCategory;
+    return isConnected && matchesFilter && matchesCategory;
+  });
 
   const handleConnect = (app: App) => {
     setSelectedApp(app);
@@ -220,11 +189,6 @@ export default function Aplicativos() {
 
   const connectApp = () => {
     if (selectedApp) {
-      // Simular conexão
-      const updatedApps = apps.map(app =>
-        app.id === selectedApp.id ? { ...app, isConnected: true } : app
-      );
-      // Aqui você atualizaria o estado real dos apps
       alert(`${selectedApp.name} conectado com sucesso!`);
       setIsDialogOpen(false);
       setSelectedApp(null);
@@ -246,10 +210,12 @@ export default function Aplicativos() {
 
           <main className="flex-1 p-6 overflow-auto">
             <Tabs defaultValue="store" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="store">Loja de Apps</TabsTrigger>
-                <TabsTrigger value="connected">Apps Conectados</TabsTrigger>
-              </TabsList>
+              <div className="flex items-center justify-between mb-6">
+                <TabsList className="grid w-fit grid-cols-2">
+                  <TabsTrigger value="store" className="px-6">Loja de Apps</TabsTrigger>
+                  <TabsTrigger value="connected" className="px-6">Apps Conectados</TabsTrigger>
+                </TabsList>
+              </div>
 
               <TabsContent value="store" className="space-y-6">
                 {/* Search */}
@@ -271,6 +237,7 @@ export default function Aplicativos() {
                       variant={selectedCategory === category.id ? "default" : "outline"}
                       onClick={() => setSelectedCategory(category.id)}
                       className="flex items-center space-x-2 whitespace-nowrap"
+                      size="sm"
                     >
                       <category.icon className="w-4 h-4" />
                       <span>{category.name}</span>
@@ -318,6 +285,7 @@ export default function Aplicativos() {
                           variant={app.isConnected ? "outline" : "default"}
                           onClick={() => !app.isConnected && handleConnect(app)}
                           disabled={app.isConnected}
+                          size="sm"
                         >
                           {app.isConnected ? (
                             <>
@@ -338,59 +306,81 @@ export default function Aplicativos() {
               </TabsContent>
 
               <TabsContent value="connected" className="space-y-6">
-                <div className="space-y-4">
+                <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold">Aplicativos Conectados ({connectedApps.length})</h3>
-                  {connectedApps.length === 0 ? (
-                    <div className="text-center py-12">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Settings className="w-8 h-8 text-gray-400" />
-                      </div>
-                      <p className="text-gray-500">Nenhum aplicativo conectado ainda</p>
-                      <Button className="mt-4" onClick={() => setSelectedCategory("all")}>
-                        Explorar Aplicativos
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {connectedApps.map((app) => (
-                        <Card key={app.id} className="hover:shadow-md transition-shadow">
-                          <CardHeader className="pb-4">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-3">
-                                <div className="w-10 h-10 bg-gradient-to-br from-novura-primary to-purple-600 rounded-lg flex items-center justify-center">
-                                  <img src={app.logo} alt={app.name} className="w-6 h-6 rounded" />
-                                </div>
-                                <div>
-                                  <CardTitle className="text-sm">{app.name}</CardTitle>
-                                  <Badge className="bg-green-100 text-green-800 text-xs">
-                                    <Check className="w-3 h-3 mr-1" />
-                                    Ativo
-                                  </Badge>
-                                </div>
-                              </div>
-                              <Button variant="ghost" size="sm">
-                                <ExternalLink className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="pt-0">
-                            <CardDescription className="text-sm">
-                              {app.description}
-                            </CardDescription>
-                            <div className="flex space-x-2 mt-4">
-                              <Button variant="outline" size="sm" className="flex-1">
-                                Configurar
-                              </Button>
-                              <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                                Desconectar
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
+                  
+                  <div className="flex items-center space-x-3">
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="w-[180px]">
+                        <Filter className="w-4 h-4 mr-2" />
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas Categorias</SelectItem>
+                        <SelectItem value="marketplaces">Marketplaces</SelectItem>
+                        <SelectItem value="dropshipping">Dropshipping</SelectItem>
+                        <SelectItem value="logistics">Logística</SelectItem>
+                        <SelectItem value="others">Outros</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    <Button onClick={() => setIsAddStoreOpen(true)}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar Loja
+                    </Button>
+                  </div>
                 </div>
+                
+                {connectedApps.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Settings className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <p className="text-gray-500">Nenhum aplicativo conectado ainda</p>
+                    <Button className="mt-4" onClick={() => setSelectedCategory("all")}>
+                      Explorar Aplicativos
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {connectedApps.map((app) => (
+                      <Card key={app.id} className="hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 bg-gradient-to-br from-novura-primary to-purple-600 rounded-lg flex items-center justify-center">
+                                <img src={app.logo} alt={app.name} className="w-6 h-6 rounded" />
+                              </div>
+                              <div>
+                                <CardTitle className="text-sm">{app.name}</CardTitle>
+                                <Badge className="bg-green-100 text-green-800 text-xs">
+                                  <Check className="w-3 h-3 mr-1" />
+                                  Ativo
+                                </Badge>
+                              </div>
+                            </div>
+                            <Button variant="ghost" size="sm">
+                              <ExternalLink className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                          <CardDescription className="text-sm mb-4">
+                            {app.description}
+                          </CardDescription>
+                          <div className="flex space-x-2">
+                            <Button variant="outline" size="sm" className="flex-1">
+                              Configurar
+                            </Button>
+                            <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                              Desconectar
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </main>
@@ -436,6 +426,50 @@ export default function Aplicativos() {
             </Button>
             <Button onClick={connectApp}>
               Conectar Agora
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Store Dialog */}
+      <Dialog open={isAddStoreOpen} onOpenChange={setIsAddStoreOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adicionar Nova Loja</DialogTitle>
+            <DialogDescription>
+              Configure uma nova loja para integrar com seus aplicativos conectados.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Nome da Loja</label>
+              <Input placeholder="Digite o nome da loja" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">URL da Loja</label>
+              <Input placeholder="https://minhaloja.com.br" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Plataforma</label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a plataforma" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="shopify">Shopify</SelectItem>
+                  <SelectItem value="woocommerce">WooCommerce</SelectItem>
+                  <SelectItem value="magento">Magento</SelectItem>
+                  <SelectItem value="tray">Tray</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddStoreOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => setIsAddStoreOpen(false)}>
+              Adicionar Loja
             </Button>
           </DialogFooter>
         </DialogContent>
