@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, RotateCcw } from "lucide-react";
 import { TrackingDrawer } from "./TrackingDrawer";
 import { ChatDrawer } from "./ChatDrawer";
 
@@ -36,6 +36,11 @@ export function PurchasesTab({ purchases }: PurchasesTabProps) {
     }
   };
 
+  const handleBuyAgain = (produto: string, quantidade: number) => {
+    console.log(`Comprando novamente: ${produto} - Quantidade: ${quantidade}`);
+    // Aqui seria implementada a lógica para adicionar o produto ao carrinho
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -52,7 +57,7 @@ export function PurchasesTab({ purchases }: PurchasesTabProps) {
                     className="w-16 h-16 rounded-lg object-cover"
                   />
                   
-                  <div className="flex-1 grid grid-cols-5 gap-4 items-center">
+                  <div className="flex-1 grid grid-cols-6 gap-4 items-center">
                     <div>
                       <h4 className="font-semibold">{compra.produto}</h4>
                       <p className="text-sm text-gray-600">Pedido #{compra.id}</p>
@@ -93,6 +98,18 @@ export function PurchasesTab({ purchases }: PurchasesTabProps) {
                         R$ {compra.valor.toFixed(2)}
                       </p>
                       <p className="text-xs text-gray-600">{compra.dataCompra}</p>
+                    </div>
+
+                    <div className="text-center">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleBuyAgain(compra.produto, compra.quantidade)}
+                        className="text-novura-primary border-novura-primary hover:bg-novura-primary hover:text-white"
+                      >
+                        <RotateCcw className="w-4 h-4 mr-1" />
+                        Comprar Novamente
+                      </Button>
                     </div>
                   </div>
                 </div>

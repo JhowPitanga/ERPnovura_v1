@@ -5,9 +5,9 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Play, Clock, Star, TrendingUp, Package, AlertCircle, MessageSquare } from "lucide-react";
-import { ChevronRight } from "lucide-react";
+import { Play, Clock, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 
 const aulasData = [
   {
@@ -36,37 +36,27 @@ const aulasData = [
     avaliacao: 4.9,
     thumbnail: "/placeholder.svg",
     categoria: "Pedidos"
-  },
-  {
-    id: 4,
-    titulo: "Relatórios e Analytics",
-    duracao: "30 min",
-    nivel: "Intermediário",
-    avaliacao: 4.7,
-    thumbnail: "/placeholder.svg",
-    categoria: "Análises"
-  },
-  {
-    id: 5,
-    titulo: "Integrações de Marketplace",
-    duracao: "35 min",
-    nivel: "Avançado",
-    avaliacao: 4.8,
-    thumbnail: "/placeholder.svg",
-    categoria: "Integrações"
-  },
-  {
-    id: 6,
-    titulo: "Controle de Estoque Inteligente",
-    duracao: "22 min",
-    nivel: "Intermediário",
-    avaliacao: 4.9,
-    thumbnail: "/placeholder.svg",
-    categoria: "Estoque"
   }
 ];
 
 const Index = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const itemsPerSlide = 3;
+  const totalSlides = Math.ceil(aulasData.length / itemsPerSlide);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % totalSlides);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+  };
+
+  const visibleItems = aulasData.slice(
+    currentSlide * itemsPerSlide,
+    (currentSlide + 1) * itemsPerSlide
+  );
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gray-50">
@@ -95,10 +85,30 @@ const Index = () => {
 
           {/* Main Content */}
           <main className="flex-1 p-6 overflow-auto">
-            {/* Banner de Ofertas */}
-            <div className="mb-8">
-              <Dashboard />
-            </div>
+            {/* Banner de Ofertas Recursos Seller */}
+            <Card className="mb-8 gradient-purple text-white overflow-hidden relative">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h2 className="text-xl font-bold mb-2">🛍️ Ofertas Especiais - Recursos Seller</h2>
+                    <p className="text-purple-100 mb-4">
+                      Descubra produtos com desconto exclusivo para sellers. Fitas, embalagens, etiquetas e impressoras com preços especiais!
+                    </p>
+                    <Button asChild variant="secondary" className="bg-white text-novura-primary hover:bg-gray-100">
+                      <Link to="/recursos-seller">
+                        Ver Ofertas
+                        <ChevronRight className="w-4 h-4 ml-2" />
+                      </Link>
+                    </Button>
+                  </div>
+                  <div className="hidden md:block">
+                    <div className="w-32 h-32 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm">
+                      <span className="text-4xl">🎯</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
             
             {/* Quadro de Vendas do Dia */}
             <Card className="mb-8 border-0 shadow-lg rounded-xl bg-white">
@@ -196,21 +206,18 @@ const Index = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="text-gray-700 flex items-center">
-                        <MessageSquare className="w-4 h-4 mr-2" />
                         Perguntas
                       </span>
                       <span className="font-semibold text-gray-900">7</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="text-red-600 flex items-center">
-                        <AlertCircle className="w-4 h-4 mr-2" />
                         Reclamações
                       </span>
                       <span className="font-semibold text-red-600">3</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="text-gray-700 flex items-center">
-                        <MessageSquare className="w-4 h-4 mr-2" />
                         Mensagens de Clientes
                       </span>
                       <span className="font-semibold text-gray-900">15</span>
@@ -220,81 +227,100 @@ const Index = () => {
               </Card>
             </div>
             
-            {/* Academia Novura - Carrossel */}
+            {/* Academia Novura - Carrossel Centralizado */}
             <div>
               <div className="mb-6 flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">Academia Novura</h2>
                   <p className="text-gray-600 mt-1">Aprenda a dominar todas as funcionalidades do sistema</p>
                 </div>
-                <div className="flex items-center space-x-4">
-                  <Button asChild variant="outline" size="sm" className="rounded-xl">
-                    <Link to="/novura-academy">
-                      Ver Todos os Cursos
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </Link>
-                  </Button>
-                  <Button variant="ghost" size="sm" className="rounded-xl">
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
+                <Button asChild variant="outline" size="sm" className="rounded-xl">
+                  <Link to="/novura-academy">
+                    Ver Todos os Cursos
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Link>
+                </Button>
               </div>
               
-              <div className="flex space-x-6 overflow-x-auto pb-4">
-                {aulasData.map((aula) => (
-                  <Card key={aula.id} className="flex-shrink-0 w-80 border-0 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer bg-white rounded-xl overflow-hidden group">
-                    <CardContent className="p-0">
-                      <div className="relative">
-                        <img 
-                          src={aula.thumbnail} 
-                          alt={aula.titulo}
-                          className="w-full h-48 object-cover bg-gray-100"
-                        />
-                        <div className="absolute inset-0 bg-black/20"></div>
-                        <div className="absolute top-4 left-4">
-                          <Badge className="bg-novura-primary text-white">
-                            {aula.categoria}
-                          </Badge>
-                        </div>
-                        <div className="absolute top-4 right-4">
-                          <Badge variant="outline" className="bg-white/90 text-gray-700">
-                            {aula.nivel}
-                          </Badge>
-                        </div>
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
-                            <Play className="w-6 h-6 text-novura-primary ml-1" />
+              <div className="relative">
+                <div className="flex justify-center space-x-6">
+                  {visibleItems.map((aula) => (
+                    <Card key={aula.id} className="w-80 border-0 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer bg-white rounded-xl overflow-hidden group">
+                      <CardContent className="p-0">
+                        <div className="relative">
+                          <img 
+                            src={aula.thumbnail} 
+                            alt={aula.titulo}
+                            className="w-full h-48 object-cover bg-gray-100"
+                          />
+                          <div className="absolute inset-0 bg-black/20"></div>
+                          <div className="absolute top-4 left-4">
+                            <Badge className="bg-novura-primary text-white">
+                              {aula.categoria}
+                            </Badge>
                           </div>
-                        </div>
-                      </div>
-                      
-                      <div className="p-6">
-                        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">{aula.titulo}</h3>
-                        
-                        <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-                          <div className="flex items-center space-x-1">
-                            <Clock className="w-4 h-4" />
-                            <span>{aula.duracao}</span>
+                          <div className="absolute top-4 right-4">
+                            <Badge variant="outline" className="bg-white/90 text-gray-700">
+                              {aula.nivel}
+                            </Badge>
                           </div>
-                          <div className="flex items-center space-x-1">
-                            <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                            <span>{aula.avaliacao}</span>
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
+                              <Play className="w-6 h-6 text-novura-primary ml-1" />
+                            </div>
                           </div>
                         </div>
                         
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                          <div 
-                            className="bg-novura-primary h-1.5 rounded-full" 
-                            style={{ width: `${Math.random() * 100}%` }}
-                          ></div>
+                        <div className="p-6">
+                          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">{aula.titulo}</h3>
+                          
+                          <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
+                            <div className="flex items-center space-x-1">
+                              <Clock className="w-4 h-4" />
+                              <span>{aula.duracao}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                              <span>{aula.avaliacao}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="w-full bg-gray-200 rounded-full h-1.5">
+                            <div 
+                              className="bg-novura-primary h-1.5 rounded-full" 
+                              style={{ width: `${Math.random() * 100}%` }}
+                            ></div>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-2">
+                            {Math.floor(Math.random() * 80 + 10)}% concluído
+                          </p>
                         </div>
-                        <p className="text-xs text-gray-500 mt-2">
-                          {Math.floor(Math.random() * 80 + 10)}% concluído
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+                
+                {/* Carousel Navigation */}
+                {totalSlides > 1 && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-lg hover:shadow-xl"
+                      onClick={prevSlide}
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-lg hover:shadow-xl"
+                      onClick={nextSlide}
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </main>

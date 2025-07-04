@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Repeat } from "lucide-react";
 import { CheckoutSteps } from "./CheckoutSteps";
 
 interface CartItem {
@@ -11,6 +11,7 @@ interface CartItem {
   preco: number;
   image: string;
   quantidade: number;
+  categoria?: string;
 }
 
 interface Address {
@@ -40,6 +41,8 @@ interface CartDrawerProps {
   onAddressChange: (addressId: string) => void;
   onPaymentChange: (paymentId: string) => void;
   onFinalizePurchase: () => void;
+  hasEtiquetas?: boolean;
+  onOpenRecurringModal?: () => void;
 }
 
 export function CartDrawer({
@@ -55,7 +58,9 @@ export function CartDrawer({
   onUpdateQuantity,
   onAddressChange,
   onPaymentChange,
-  onFinalizePurchase
+  onFinalizePurchase,
+  hasEtiquetas = false,
+  onOpenRecurringModal
 }: CartDrawerProps) {
   const steps = ["Produtos", "Endereço", "Pagamento"];
   const totalAmount = cartItems.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
@@ -107,7 +112,32 @@ export function CartDrawer({
           />
         </div>
 
-        <div className="border-t p-6">
+        <div className="border-t p-6 space-y-3">
+          {/* Recurring Purchase Suggestion */}
+          {hasEtiquetas && currentStep === 2 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Repeat className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-medium text-blue-900">Compra Recorrente</h4>
+                  <p className="text-sm text-blue-700">
+                    Configure compras automáticas para etiquetas quando o estoque estiver baixo
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={onOpenRecurringModal}
+                  className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                >
+                  Configurar
+                </Button>
+              </div>
+            </div>
+          )}
+
           {currentStep < 2 ? (
             <Button 
               onClick={() => onStepChange(currentStep + 1)}

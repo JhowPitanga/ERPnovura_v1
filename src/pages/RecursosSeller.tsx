@@ -11,6 +11,7 @@ import { ProductGrid } from "@/components/recursos/ProductGrid";
 import { CategoryFilter } from "@/components/recursos/CategoryFilter";
 import { CartDrawer } from "@/components/recursos/CartDrawer";
 import { PurchasesTab } from "@/components/recursos/PurchasesTab";
+import { RecurringPurchaseModal } from "@/components/recursos/RecurringPurchaseModal";
 
 const categorias = [
   { id: "fitas", nome: "Fitas", count: 24 },
@@ -109,6 +110,7 @@ const RecursosSeller = () => {
   const [enderecoSelecionado, setEnderecoSelecionado] = useState("endereco1");
   const [pagamentoSelecionado, setPagamentoSelecionado] = useState("pix");
   const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [recurringModalOpen, setRecurringModalOpen] = useState(false);
 
   const produtosCategoria = produtos[categoriaAtiva] || [];
   
@@ -145,6 +147,8 @@ const RecursosSeller = () => {
     setStepAtual(0);
   };
 
+  const hasEtiquetasInCart = carrinho.some(item => item.categoria === "etiquetas");
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gray-50">
@@ -176,7 +180,7 @@ const RecursosSeller = () => {
 
           <main className="flex-1 overflow-auto">
             <Tabs defaultValue="produtos" className="w-full h-full">
-              <div className="bg-white px-6 py-4 border-b">
+              <div className="bg-white px-6 py-4">
                 <TabsList className="grid w-fit grid-cols-2">
                   <TabsTrigger value="produtos" className="px-6">Produtos</TabsTrigger>
                   <TabsTrigger value="compras" className="px-6">Minhas Compras</TabsTrigger>
@@ -232,9 +236,12 @@ const RecursosSeller = () => {
         onAddressChange={setEnderecoSelecionado}
         onPaymentChange={setPagamentoSelecionado}
         onFinalizePurchase={finalizarCompra}
+        hasEtiquetas={hasEtiquetasInCart}
+        onOpenRecurringModal={() => setRecurringModalOpen(true)}
       />
 
       <SuccessModal open={successModalOpen} onOpenChange={setSuccessModalOpen} />
+      <RecurringPurchaseModal open={recurringModalOpen} onOpenChange={setRecurringModalOpen} />
     </SidebarProvider>
   );
 };
