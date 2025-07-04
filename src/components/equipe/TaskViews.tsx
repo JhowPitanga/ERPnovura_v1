@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Calendar, List, Kanban, Timeline, Clock, User, Tag, Play, Pause, Square } from "lucide-react";
+import { Calendar, List, Kanban, GitBranch, Clock, User, Tag, Play, Pause, Square } from "lucide-react";
 
 interface Task {
   id: number;
@@ -233,7 +231,7 @@ export function TaskViews({ tasks, onUpdateTask, onStartTimer, onStopTimer }: Ta
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
-          <Timeline className="w-5 h-5 mr-2" />
+          <GitBranch className="w-5 h-5 mr-2" />
           Timeline do Projeto
         </CardTitle>
       </CardHeader>
@@ -289,7 +287,7 @@ export function TaskViews({ tasks, onUpdateTask, onStartTimer, onStopTimer }: Ta
               <span>Calendário</span>
             </TabsTrigger>
             <TabsTrigger value="timeline" className="flex items-center space-x-2">
-              <Timeline className="w-4 h-4" />
+              <GitBranch className="w-4 h-4" />
               <span>Timeline</span>
             </TabsTrigger>
           </TabsList>
