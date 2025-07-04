@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { MessageSquare, Kanban, Plus, Filter, Users, Trophy, Calendar, CheckSquare, Clock, User, Star, Target, BarChart3, Zap } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -463,7 +464,11 @@ export default function Equipe() {
           </header>
 
           {/* Navigation */}
-          <CleanNavigation items={navigationItems} basePath="/equipe" />
+          <CleanNavigation 
+            items={navigationItems} 
+            basePath="/equipe" 
+            onNavigate={(path) => setCurrentPath(path)}
+          />
           
           {/* Main Content */}
           <main className="flex-1 overflow-auto">

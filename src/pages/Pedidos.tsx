@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Search, Filter, Settings, FileText, Printer, Bot, TrendingUp, Zap, QrCode, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PedidoDetails } from "@/components/pedidos/PedidoDetails";
 import { ScannerModal } from "@/components/pedidos/ScannerModal";
+import { AIIndicator } from "@/components/equipe/AIIndicator";
 
 const statusBlocks = [
   { id: "todos", title: "Todos", count: 164, description: "Todos os pedidos" },
@@ -26,14 +26,84 @@ const statusBlocks = [
   { id: "devolucoes", title: "Devoluções", count: 3, description: "Devoluções" },
 ];
 
-// Expanded mock data with 35+ orders per status
+// Expanded mock data with 35+ orders per status and AI suggestions
 const mockPedidos = {
   todos: [
-    { id: "PED001", marketplace: "Mercado Livre", produto: "iPhone 15 Pro Max 256GB", sku: "IPH15PM-256", cliente: "João Silva Santos", valor: 8999.99, data: "15/01/2024", status: "Pendente", margem: 22.5, tipoEnvio: "ML Envios", image: "/placeholder.svg" },
-    { id: "PED002", marketplace: "Amazon", produto: "MacBook Air M3 16GB 512GB", sku: "MBA-M3-512", cliente: "Maria Santos Costa", valor: 12999.99, data: "15/01/2024", status: "Pendente", margem: 18.3, tipoEnvio: "Amazon Prime", image: "/placeholder.svg" },
-    { id: "PED003", marketplace: "Shopee", produto: "Samsung Galaxy S24 Ultra", sku: "SGS24U-256", cliente: "Carlos Oliveira", valor: 6999.99, data: "14/01/2024", status: "Enviado", margem: 25.1, tipoEnvio: "Shopee Xpress", image: "/placeholder.svg" },
-    { id: "PED004", marketplace: "Magazine Luiza", produto: "Nintendo Switch OLED", sku: "NSW-OLED", cliente: "Ana Paula Lima", valor: 2299.99, data: "14/01/2024", status: "Coleta", margem: 15.7, tipoEnvio: "Magalu Entrega", image: "/placeholder.svg" },
-    { id: "PED005", marketplace: "Americanas", produto: "iPad Air 5ª Geração", sku: "IPAD-AIR5", cliente: "Roberto Ferreira", valor: 4199.99, data: "13/01/2024", status: "Impressão", margem: 19.8, tipoEnvio: "B2W Entrega", image: "/placeholder.svg" },
+    { 
+      id: "PED001", 
+      marketplace: "Mercado Livre", 
+      produto: "iPhone 15 Pro Max 256GB", 
+      sku: "IPH15PM-256", 
+      cliente: "João Silva Santos", 
+      valor: 8999.99, 
+      data: "15/01/2024", 
+      status: "Pendente", 
+      margem: 22.5, 
+      tipoEnvio: "ML Envios", 
+      image: "/placeholder.svg",
+      aiSuggestion: {
+        type: "high_margin",
+        suggestion: "Margem alta detectada",
+        details: "Este pedido tem uma margem de 22.5%, considerada alta. Considere priorizar o processamento e verificar se há oportunidade de otimização adicional."
+      }
+    },
+    { 
+      id: "PED002", 
+      marketplace: "Amazon", 
+      produto: "MacBook Air M3 16GB 512GB", 
+      sku: "MBA-M3-512", 
+      cliente: "Maria Santos Costa", 
+      valor: 12999.99, 
+      data: "15/01/2024", 
+      status: "Pendente", 
+      margem: 18.3, 
+      tipoEnvio: "Amazon Prime", 
+      image: "/placeholder.svg",
+      aiSuggestion: {
+        type: "low_stock",
+        suggestion: "Estoque baixo detectado",
+        details: "Apenas 3 unidades restantes em estoque. Considere reabastecer para evitar rupturas e manter a disponibilidade."
+      }
+    },
+    { 
+      id: "PED003", 
+      marketplace: "Shopee", 
+      produto: "Samsung Galaxy S24 Ultra", 
+      sku: "SGS24U-256", 
+      cliente: "Carlos Oliveira", 
+      valor: 6999.99, 
+      data: "14/01/2024", 
+      status: "Enviado", 
+      margem: 25.1, 
+      tipoEnvio: "Shopee Xpress", 
+      image: "/placeholder.svg"
+    },
+    { 
+      id: "PED004", 
+      marketplace: "Magazine Luiza", 
+      produto: "Nintendo Switch OLED", 
+      sku: "NSW-OLED", 
+      cliente: "Ana Paula Lima", 
+      valor: 2299.99, 
+      data: "14/01/2024", 
+      status: "Coleta", 
+      margem: 15.7, 
+      tipoEnvio: "Magalu Entrega", 
+      image: "/placeholder.svg"
+    },
+    { 
+      id: "PED005", 
+      marketplace: "Americanas", 
+      produto: "iPad Air 5ª Geração", 
+      sku: "IPAD-AIR5", 
+      cliente: "Roberto Ferreira", 
+      valor: 4199.99, 
+      data: "13/01/2024", 
+      status: "Impressão", 
+      margem: 19.8, 
+      tipoEnvio: "B2W Entrega", 
+      image: "/placeholder.svg"
+    },
     // ... adicionar mais 30 pedidos variados
   ],
   vincular: Array.from({ length: 35 }, (_, i) => ({
@@ -47,7 +117,14 @@ const mockPedidos = {
     status: "Pendente",
     margem: 15 + (i % 20),
     tipoEnvio: ["ML Envios", "Amazon Prime", "Shopee Xpress", "Magalu Entrega"][i % 4],
-    image: "/placeholder.svg"
+    image: "/placeholder.svg",
+    ...(i % 5 === 0 && {
+      aiSuggestion: {
+        type: "profit_opportunity",
+        suggestion: "Oportunidade de lucro",
+        details: "Produto com potencial de aumento de margem baseado em análise de mercado."
+      }
+    })
   })),
   emissao: Array.from({ length: 35 }, (_, i) => ({
     id: `PED${String(i + 200).padStart(3, '0')}`,
@@ -73,7 +150,14 @@ const mockPedidos = {
     status: "NF Emitida",
     margem: 20 + (i % 18),
     tipoEnvio: ["Shopee Xpress", "Magalu Entrega", "B2W Entrega"][i % 3],
-    image: "/placeholder.svg"
+    image: "/placeholder.svg",
+    ...(i % 4 === 0 && {
+      aiSuggestion: {
+        type: "delayed_print",
+        suggestion: "Impressão atrasada",
+        details: "Este pedido está há mais de 24h aguardando impressão. Considere priorizar para manter o SLA."
+      }
+    })
   })),
   coleta: Array.from({ length: 35 }, (_, i) => ({
     id: `PED${String(i + 400).padStart(3, '0')}`,
@@ -135,8 +219,13 @@ export default function Pedidos() {
   const [selectedPedido, setSelectedPedido] = useState(null);
   const [selectedPedidosImpressao, setSelectedPedidosImpressao] = useState<string[]>([]);
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [shippingTypeFilter, setShippingTypeFilter] = useState("all");
+  const [selectAll, setSelectAll] = useState(false);
 
   const currentPedidos = mockPedidos[activeStatus] || [];
+  const filteredPedidos = activeStatus === "impressao" && shippingTypeFilter !== "all" 
+    ? currentPedidos.filter(pedido => pedido.tipoEnvio === shippingTypeFilter)
+    : currentPedidos;
 
   const handleSelectPedidoImpressao = (pedidoId: string, checked: boolean | string) => {
     const isChecked = checked === true;
@@ -146,6 +235,25 @@ export default function Pedidos() {
       setSelectedPedidosImpressao(selectedPedidosImpressao.filter(id => id !== pedidoId));
     }
   };
+
+  const handleSelectAll = (checked: boolean | string) => {
+    const isChecked = checked === true;
+    setSelectAll(isChecked);
+    if (isChecked) {
+      setSelectedPedidosImpressao(filteredPedidos.map(pedido => pedido.id));
+    } else {
+      setSelectedPedidosImpressao([]);
+    }
+  };
+
+  const shippingTypes = [
+    { value: "all", label: "Todos os tipos" },
+    { value: "Shopee Xpress", label: "Shopee Xpress" },
+    { value: "Magalu Entrega", label: "Magalu Entrega" },
+    { value: "B2W Entrega", label: "B2W Entrega" },
+    { value: "ML Envios", label: "ML Envios" },
+    { value: "Amazon Prime", label: "Amazon Prime" }
+  ];
 
   return (
     <TooltipProvider>
@@ -218,6 +326,19 @@ export default function Pedidos() {
                   
                   {activeStatus === "impressao" && (
                     <>
+                      <Select value={shippingTypeFilter} onValueChange={setShippingTypeFilter}>
+                        <SelectTrigger className="w-48 h-12 rounded-2xl border-0 bg-white shadow-lg ring-1 ring-gray-200/60">
+                          <SelectValue placeholder="Tipo de Envio" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {shippingTypes.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      
                       <Button 
                         onClick={() => setScannerOpen(true)}
                         className="h-12 px-6 rounded-2xl bg-novura-primary shadow-lg"
@@ -226,12 +347,16 @@ export default function Pedidos() {
                         Checkout de Impressão
                       </Button>
                       
-                      {selectedPedidosImpressao.length > 0 && (
-                        <Button variant="outline" className="h-12 px-6 rounded-2xl bg-white shadow-lg">
-                          <FileText className="w-4 h-4 mr-2" />
-                          Lista de Separação ({selectedPedidosImpressao.length})
-                        </Button>
-                      )}
+                      <Button 
+                        variant="outline" 
+                        className={`h-12 px-6 rounded-2xl bg-white shadow-lg transition-opacity ${
+                          selectedPedidosImpressao.length === 0 ? 'opacity-50' : 'opacity-100'
+                        }`}
+                        disabled={selectedPedidosImpressao.length === 0}
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Lista de Separação ({selectedPedidosImpressao.length})
+                      </Button>
                     </>
                   )}
                   
@@ -246,8 +371,20 @@ export default function Pedidos() {
                 {/* Pedidos List */}
                 <Card className="border-0 shadow-xl rounded-3xl overflow-hidden bg-white">
                   <CardContent className="p-0">
+                    {activeStatus === "impressao" && (
+                      <div className="flex items-center space-x-4 p-4 bg-gray-50 border-b border-gray-100">
+                        <Checkbox
+                          checked={selectAll}
+                          onCheckedChange={handleSelectAll}
+                        />
+                        <span className="text-sm font-medium text-gray-700">
+                          Selecionar todos ({filteredPedidos.length} pedidos)
+                        </span>
+                      </div>
+                    )}
+                    
                     <div className="space-y-0">
-                      {currentPedidos.map((pedido) => (
+                      {filteredPedidos.map((pedido) => (
                         <div key={pedido.id} className="flex items-center justify-between p-3 hover:bg-gray-50 transition-all duration-200 border-b border-gray-100 last:border-0 group">
                           <div className="flex items-center space-x-4 flex-1">
                             {activeStatus === "impressao" && (
@@ -271,6 +408,13 @@ export default function Pedidos() {
                                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                                   {pedido.tipoEnvio}
                                 </Badge>
+                                {pedido.aiSuggestion && (
+                                  <AIIndicator
+                                    type={pedido.aiSuggestion.type}
+                                    suggestion={pedido.aiSuggestion.suggestion}
+                                    details={pedido.aiSuggestion.details}
+                                  />
+                                )}
                               </div>
                               <p className="text-sm text-gray-900 font-medium truncate">{pedido.produto}</p>
                               <p className="text-xs text-gray-500">SKU: {pedido.sku}</p>
