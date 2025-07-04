@@ -10,9 +10,17 @@ interface NavigationItem {
 interface CleanNavigationProps {
   items: NavigationItem[];
   basePath?: string;
+  onNavigate?: (path: string) => void;
 }
 
-export function CleanNavigation({ items, basePath = "" }: CleanNavigationProps) {
+export function CleanNavigation({ items, basePath = "", onNavigate }: CleanNavigationProps) {
+  const handleClick = (path: string, e: React.MouseEvent) => {
+    if (onNavigate) {
+      e.preventDefault();
+      onNavigate(path);
+    }
+  };
+
   return (
     <nav className="border-b border-gray-200 bg-white">
       <div className="flex items-center space-x-8 px-6 py-4">
@@ -20,9 +28,10 @@ export function CleanNavigation({ items, basePath = "" }: CleanNavigationProps) 
           <NavLink
             key={item.path}
             to={`${basePath}${item.path}`}
+            onClick={(e) => handleClick(item.path, e)}
             className={({ isActive }) =>
               `relative flex flex-col items-start pb-4 transition-colors duration-200 ${
-                isActive
+                isActive && !onNavigate
                   ? "text-novura-primary"
                   : "text-gray-600 hover:text-gray-900"
               } group`
@@ -38,7 +47,7 @@ export function CleanNavigation({ items, basePath = "" }: CleanNavigationProps) 
                 )}
                 <div
                   className={`absolute bottom-0 left-0 h-0.5 bg-novura-primary transition-all duration-200 ${
-                    isActive ? "w-full" : "w-0 group-hover:w-full"
+                    (isActive && !onNavigate) ? "w-full" : "w-0 group-hover:w-full"
                   }`}
                 />
               </>
