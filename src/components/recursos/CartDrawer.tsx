@@ -67,11 +67,11 @@ export function CartDrawer({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} direction="right">
-      <DrawerContent className="h-full w-[500px] fixed right-0">
-        <DrawerHeader className="border-b">
+      <DrawerContent className="h-full w-[500px] fixed right-0 bg-gray-50">
+        <DrawerHeader className="border-b bg-white">
           <DrawerTitle className="flex items-center justify-between">
-            <span>Carrinho de Compras</span>
-            <div className="flex items-center space-x-2">
+            <span className="text-gray-900">Carrinho de Compras</span>
+            <div className="flex items-center space-x-3">
               {currentStep > 0 && (
                 <Button variant="outline" size="sm" onClick={() => onStepChange(currentStep - 1)}>
                   <ArrowLeft className="w-4 h-4" />
@@ -81,11 +81,11 @@ export function CartDrawer({
                 {steps.map((step, index) => (
                   <div
                     key={step}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
                       index === currentStep 
-                        ? "bg-novura-primary text-white" 
+                        ? "bg-novura-primary text-white shadow-lg" 
                         : index < currentStep 
-                          ? "bg-green-500 text-white" 
+                          ? "bg-purple-500 text-white" 
                           : "bg-gray-200 text-gray-600"
                     }`}
                   >
@@ -112,17 +112,17 @@ export function CartDrawer({
           />
         </div>
 
-        <div className="border-t p-6 space-y-3">
+        <div className="border-t bg-white p-6 space-y-3">
           {/* Recurring Purchase Suggestion */}
           {hasEtiquetas && currentStep === 2 && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-4">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Repeat className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                  <Repeat className="w-5 h-5 text-novura-primary" />
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-medium text-blue-900">Compra Recorrente</h4>
-                  <p className="text-sm text-blue-700">
+                  <h4 className="font-medium text-gray-900">Compra Recorrente</h4>
+                  <p className="text-sm text-gray-600">
                     Configure compras automáticas para etiquetas quando o estoque estiver baixo
                   </p>
                 </div>
@@ -130,7 +130,7 @@ export function CartDrawer({
                   variant="outline" 
                   size="sm"
                   onClick={onOpenRecurringModal}
-                  className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                  className="border-purple-300 text-novura-primary hover:bg-purple-50"
                 >
                   Configurar
                 </Button>
@@ -150,7 +150,7 @@ export function CartDrawer({
           ) : (
             <Button 
               onClick={onFinalizePurchase}
-              className="w-full bg-green-600 hover:bg-green-700"
+              className="w-full bg-novura-primary hover:bg-novura-primary/90"
             >
               Finalizar Compra
             </Button>

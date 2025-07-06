@@ -5,13 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingBag, ShoppingCart, Search } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { SuccessModal } from "@/components/recursos/SuccessModal";
 import { ProductGrid } from "@/components/recursos/ProductGrid";
 import { CategoryFilter } from "@/components/recursos/CategoryFilter";
 import { CartDrawer } from "@/components/recursos/CartDrawer";
 import { PurchasesTab } from "@/components/recursos/PurchasesTab";
 import { RecurringPurchaseModal } from "@/components/recursos/RecurringPurchaseModal";
+import { ShopBanner } from "@/components/recursos/ShopBanner";
+import { ModernTabs } from "@/components/recursos/ModernTabs";
 
 const categorias = [
   { id: "fitas", nome: "Fitas", count: 24 },
@@ -111,6 +113,7 @@ const RecursosSeller = () => {
   const [pagamentoSelecionado, setPagamentoSelecionado] = useState("pix");
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [recurringModalOpen, setRecurringModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("produtos");
 
   const produtosCategoria = produtos[categoriaAtiva] || [];
   
@@ -179,15 +182,13 @@ const RecursosSeller = () => {
           </header>
 
           <main className="flex-1 overflow-auto">
-            <Tabs defaultValue="produtos" className="w-full h-full">
-              <div className="bg-white px-6 py-4">
-                <TabsList className="grid w-fit grid-cols-2">
-                  <TabsTrigger value="produtos" className="px-6">Produtos</TabsTrigger>
-                  <TabsTrigger value="compras" className="px-6">Minhas Compras</TabsTrigger>
-                </TabsList>
-              </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
+              <ModernTabs value={activeTab} onValueChange={setActiveTab} />
 
               <TabsContent value="produtos" className="p-6 space-y-6">
+                {/* Shop Banner */}
+                <ShopBanner />
+
                 {/* Search Bar */}
                 <div className="relative max-w-md">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -195,7 +196,7 @@ const RecursosSeller = () => {
                     placeholder="Buscar produtos..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 border-gray-300 focus:border-novura-primary focus:ring-novura-primary"
                   />
                 </div>
 
