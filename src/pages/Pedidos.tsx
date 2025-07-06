@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { Search, Filter, Settings, FileText, Printer, Bot, TrendingUp, Zap, QrCode, Check } from "lucide-react";
+import { Search, Filter, Settings, FileText, Printer, Bot, TrendingUp, Zap, QrCode, Check, Calendar, Download, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,9 +12,16 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { PedidoDetails } from "@/components/pedidos/PedidoDetails";
 import { ScannerModal } from "@/components/pedidos/ScannerModal";
+import { VincularPedidoModal } from "@/components/pedidos/VincularPedidoModal";
+import { EmissaoNFDrawer } from "@/components/pedidos/EmissaoNFDrawer";
+import { PrintConfigModal } from "@/components/pedidos/PrintConfigModal";
 import { AIIndicator } from "@/components/equipe/AIIndicator";
+import { getStatusBadge } from "@/utils/estoqueUtils";
+import { format } from "date-fns";
 
 const statusBlocks = [
   { id: "todos", title: "Todos", count: 164, description: "Todos os pedidos" },
@@ -218,14 +226,37 @@ export default function Pedidos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPedido, setSelectedPedido] = useState(null);
   const [selectedPedidosImpressao, setSelectedPedidosImpressao] = useState<string[]>([]);
+  const [selectedPedidosEmissao, setSelectedPedidosEmissao] = useState<string[]>([]);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [shippingTypeFilter, setShippingTypeFilter] = useState("all");
+  const [situacaoFilter, setSituacaoFilter] = useState("all");
   const [selectAll, setSelectAll] = useState(false);
+  const [selectAllEmissao, setSelectAllEmissao] = useState(false);
+  const [dateRange, setDateRange] = useState<Date | undefined>(undefined);
+  const [orderNumberFilter, setOrderNumberFilter] = useState("");
+  const [vincularModalOpen, setVincularModalOpen] = useState(false);
+  const [selectedPedidoVincular, setSelectedPedidoVincular] = useState(null);
+  const [emissaoDrawerOpen, setEmissaoDrawerOpen] = useState(false);
+  const [printConfigOpen, setPrintConfigOpen] = useState(false);
 
   const currentPedidos = mockPedidos[activeStatus] || [];
-  const filteredPedidos = activeStatus === "impressao" && shippingTypeFilter !== "all" 
-    ? currentPedidos.filter(pedido => pedido.tipoEnvio === shippingTypeFilter)
-    : currentPedidos;
+  
+  let filteredPedidos = currentPedidos;
+  
+  // Apply filters
+  if (activeStatus === "impressao" && shippingTypeFilter !== "all") {
+    filteredPedidos = filteredPedidos.filter(pedido => pedido.tipoEnvio === shippingTypeFilter);
+  }
+  
+  if (situacaoFilter !== "all") {
+    filteredPedidos = filteredPedidos.filter(pedido => pedido.status === situacaoFilter);
+  }
+  
+  if (orderNumberFilter) {
+    filteredPedidos = filteredPedidos.filter(pedido => 
+      pedido.id.toLowerCase().includes(orderNumberFilter.toLowerCase())
+    );
+  }
 
   const handleSelectPedidoImpressao = (pedidoId: string, checked: boolean | string) => {
     const isChecked = checked === true;
@@ -233,6 +264,15 @@ export default function Pedidos() {
       setSelectedPedidosImpressao([...selectedPedidosImpressao, pedidoId]);
     } else {
       setSelectedPedidosImpressao(selectedPedidosImpressao.filter(id => id !== pedidoId));
+    }
+  };
+
+  const handleSelectPedidoEmissao = (pedidoId: string, checked: boolean | string) => {
+    const isChecked = checked === true;
+    if (isChecked) {
+      setSelectedPedidosEmissao([...selectedPedidosEmissao, pedidoId]);
+    } else {
+      setSelectedPedidosEmissao(selectedPedidosEmissao.filter(id => id !== pedidoId));
     }
   };
 
@@ -246,6 +286,25 @@ export default function Pedidos() {
     }
   };
 
+  const handleSelectAllEmissao = (checked: boolean | string) => {
+    const isChecked = checked === true;
+    setSelectAllEmissao(isChecked);
+    if (isChecked) {
+      setSelectedPedidosEmissao(filteredPedidos.map(pedido => pedido.id));
+    } else {
+      setSelectedPedidosEmissao([]);
+    }
+  };
+
+  const handleVincularPedido = (pedido: any) => {
+    setSelectedPedidoVincular(pedido);
+    setVincularModalOpen(true);
+  };
+
+  const handleEmitirNF = (type: 'single' | 'selected' | 'mass') => {
+    setEmissaoDrawerOpen(true);
+  };
+
   const shippingTypes = [
     { value: "all", label: "Todos os tipos" },
     { value: "Shopee Xpress", label: "Shopee Xpress" },
@@ -254,6 +313,21 @@ export default function Pedidos() {
     { value: "ML Envios", label: "ML Envios" },
     { value: "Amazon Prime", label: "Amazon Prime" }
   ];
+
+  const situacaoOptions = {
+    todos: [
+      { value: "all", label: "Todas as situações" },
+      { value: "Pendente", label: "Pendente" },
+      { value: "Enviado", label: "Enviado" },
+      { value: "Cancelado", label: "Cancelado" }
+    ],
+    emissao: [
+      { value: "all", label: "Todas as situações" },
+      { value: "Falha na emissão", label: "Falha na emissão" },
+      { value: "Emitindo", label: "Emitindo" },
+      { value: "Falha ao enviar", label: "Falha ao enviar" }
+    ]
+  };
 
   return (
     <TooltipProvider>
@@ -310,35 +384,91 @@ export default function Pedidos() {
 
                 {/* Search and Actions */}
                 <div className="flex items-center space-x-4 mb-6">
-                  <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  {/* Order Number Filter - for all tabs */}
+                  <div className="relative max-w-xs">
                     <Input
-                      placeholder="Buscar pedidos..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-12 h-12 rounded-2xl border-0 bg-white shadow-lg ring-1 ring-gray-200/60"
+                      placeholder="Número do pedido..."
+                      value={orderNumberFilter}
+                      onChange={(e) => setOrderNumberFilter(e.target.value)}
+                      className="h-12 rounded-2xl border-0 bg-white shadow-lg ring-1 ring-gray-200/60"
                     />
                   </div>
-                  <Button variant="outline" size="sm" className="h-12 px-6 rounded-2xl border-0 bg-white shadow-lg ring-1 ring-gray-200/60">
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filtros
-                  </Button>
-                  
+
+                  {/* Situation Filter - for Todos and Emissao tabs */}
+                  {(activeStatus === "todos" || activeStatus === "emissao") && (
+                    <Select value={situacaoFilter} onValueChange={setSituacaoFilter}>
+                      <SelectTrigger className="w-48 h-12 rounded-2xl border-0 bg-white shadow-lg ring-1 ring-gray-200/60">
+                        <SelectValue placeholder="Situação" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border shadow-lg">
+                        {(situacaoOptions[activeStatus] || situacaoOptions.todos).map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+
+                  {/* Date Filter - for Todos tab */}
+                  {activeStatus === "todos" && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="h-12 px-6 rounded-2xl border-0 bg-white shadow-lg ring-1 ring-gray-200/60"
+                        >
+                          <Calendar className="w-4 h-4 mr-2" />
+                          {dateRange ? format(dateRange, "dd/MM/yyyy") : "Período"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 bg-white border shadow-lg" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={dateRange}
+                          onSelect={setDateRange}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  )}
+
+                  {/* Export Button - for Todos tab */}
+                  {activeStatus === "todos" && (
+                    <Button className="h-12 px-6 rounded-2xl bg-novura-primary shadow-lg">
+                      <Download className="w-4 h-4 mr-2" />
+                      Exportar Pedidos
+                    </Button>
+                  )}
+
+                  {/* Shipping Type Filter - for Impressao tab */}
                   {activeStatus === "impressao" && (
                     <>
-                      <Select value={shippingTypeFilter} onValueChange={setShippingTypeFilter}>
-                        <SelectTrigger className="w-48 h-12 rounded-2xl border-0 bg-white shadow-lg ring-1 ring-gray-200/60">
-                          <SelectValue placeholder="Tipo de Envio" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {shippingTypes.map((type) => (
-                            <SelectItem key={type.value} value={type.value}>
-                              {type.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex flex-col">
+                        <span className="text-xs text-gray-600 mb-1">Tipo de envio</span>
+                        <Select value={shippingTypeFilter} onValueChange={setShippingTypeFilter}>
+                          <SelectTrigger className="w-48 h-12 rounded-2xl border-0 bg-white shadow-lg ring-1 ring-gray-200/60">
+                            <SelectValue placeholder="Tipo de Envio" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white border shadow-lg">
+                            {shippingTypes.map((type) => (
+                              <SelectItem key={type.value} value={type.value}>
+                                {type.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                       
+                      <Button 
+                        onClick={() => setPrintConfigOpen(true)}
+                        variant="outline"
+                        className="h-12 px-6 rounded-2xl border-0 bg-white shadow-lg ring-1 ring-gray-200/60"
+                      >
+                        <Settings className="w-4 h-4 mr-2" />
+                        Configurações
+                      </Button>
+
                       <Button 
                         onClick={() => setScannerOpen(true)}
                         className="h-12 px-6 rounded-2xl bg-novura-primary shadow-lg"
@@ -360,22 +490,39 @@ export default function Pedidos() {
                     </>
                   )}
                   
+                  {/* Emissao NF Actions */}
                   {activeStatus === "emissao" && (
-                    <Button className="h-12 px-6 rounded-2xl bg-green-600 shadow-lg">
-                      <FileText className="w-4 h-4 mr-2" />
-                      Emissão em Massa
-                    </Button>
+                    <>
+                      <Button 
+                        className={`h-12 px-6 rounded-2xl bg-green-600 shadow-lg transition-opacity ${
+                          selectedPedidosEmissao.length === 0 ? 'opacity-50' : 'opacity-100'
+                        }`}
+                        disabled={selectedPedidosEmissao.length === 0}
+                        onClick={() => handleEmitirNF('selected')}
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Emitir Selecionados ({selectedPedidosEmissao.length})
+                      </Button>
+                      
+                      <Button 
+                        className="h-12 px-6 rounded-2xl bg-green-600 shadow-lg"
+                        onClick={() => handleEmitirNF('mass')}
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Emissão em Massa
+                      </Button>
+                    </>
                   )}
                 </div>
 
                 {/* Pedidos List */}
                 <Card className="border-0 shadow-xl rounded-3xl overflow-hidden bg-white">
                   <CardContent className="p-0">
-                    {activeStatus === "impressao" && (
+                    {(activeStatus === "impressao" || activeStatus === "emissao") && (
                       <div className="flex items-center space-x-4 p-4 bg-gray-50 border-b border-gray-100">
                         <Checkbox
-                          checked={selectAll}
-                          onCheckedChange={handleSelectAll}
+                          checked={activeStatus === "impressao" ? selectAll : selectAllEmissao}
+                          onCheckedChange={activeStatus === "impressao" ? handleSelectAll : handleSelectAllEmissao}
                         />
                         <span className="text-sm font-medium text-gray-700">
                           Selecionar todos ({filteredPedidos.length} pedidos)
@@ -387,10 +534,17 @@ export default function Pedidos() {
                       {filteredPedidos.map((pedido) => (
                         <div key={pedido.id} className="flex items-center justify-between p-3 hover:bg-gray-50 transition-all duration-200 border-b border-gray-100 last:border-0 group">
                           <div className="flex items-center space-x-4 flex-1">
-                            {activeStatus === "impressao" && (
+                            {(activeStatus === "impressao" || activeStatus === "emissao") && (
                               <Checkbox
-                                checked={selectedPedidosImpressao.includes(pedido.id)}
-                                onCheckedChange={(checked) => handleSelectPedidoImpressao(pedido.id, checked)}
+                                checked={activeStatus === "impressao" 
+                                  ? selectedPedidosImpressao.includes(pedido.id)
+                                  : selectedPedidosEmissao.includes(pedido.id)
+                                }
+                                onCheckedChange={(checked) => 
+                                  activeStatus === "impressao" 
+                                    ? handleSelectPedidoImpressao(pedido.id, checked)
+                                    : handleSelectPedidoEmissao(pedido.id, checked)
+                                }
                               />
                             )}
                             
@@ -408,6 +562,7 @@ export default function Pedidos() {
                                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                                   {pedido.tipoEnvio}
                                 </Badge>
+                                {getStatusBadge(pedido.status)}
                                 {pedido.aiSuggestion && (
                                   <AIIndicator
                                     type={pedido.aiSuggestion.type}
@@ -473,36 +628,23 @@ export default function Pedidos() {
                               )}
                               
                               {activeStatus === "vincular" && (
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <Button size="sm" className="rounded-2xl bg-novura-primary shadow-lg">
-                                      Vincular
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="rounded-3xl">
-                                    <DialogHeader>
-                                      <DialogTitle>Vincular Produto</DialogTitle>
-                                      <DialogDescription>
-                                        Selecione o produto para vincular ao pedido {pedido.id}
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="space-y-4">
-                                      <Select>
-                                        <SelectTrigger className="rounded-2xl">
-                                          <SelectValue placeholder="Selecione o produto" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="prod1">iPhone 15 Pro Max - SKU: IPH15PM-001</SelectItem>
-                                          <SelectItem value="prod2">MacBook Air M3 - SKU: MBA-M3-002</SelectItem>
-                                          <SelectItem value="prod3">Samsung Galaxy S24 Ultra - SKU: SGS24U-003</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                      <Button className="w-full h-12 rounded-2xl bg-novura-primary">
-                                        Confirmar Vinculação
-                                      </Button>
-                                    </div>
-                                  </DialogContent>
-                                </Dialog>
+                                <Button 
+                                  size="sm" 
+                                  className="rounded-2xl bg-novura-primary shadow-lg"
+                                  onClick={() => handleVincularPedido(pedido)}
+                                >
+                                  Vincular
+                                </Button>
+                              )}
+
+                              {activeStatus === "emissao" && (
+                                <Button 
+                                  size="sm" 
+                                  className="rounded-2xl bg-green-600 shadow-lg"
+                                  onClick={() => handleEmitirNF('single')}
+                                >
+                                  Emitir NF
+                                </Button>
                               )}
                             </div>
                           </div>
@@ -517,6 +659,19 @@ export default function Pedidos() {
         </div>
 
         <ScannerModal open={scannerOpen} onOpenChange={setScannerOpen} />
+        <VincularPedidoModal 
+          open={vincularModalOpen} 
+          onOpenChange={setVincularModalOpen}
+          pedido={selectedPedidoVincular}
+        />
+        <EmissaoNFDrawer 
+          open={emissaoDrawerOpen} 
+          onOpenChange={setEmissaoDrawerOpen}
+        />
+        <PrintConfigModal 
+          open={printConfigOpen} 
+          onOpenChange={setPrintConfigOpen}
+        />
       </SidebarProvider>
     </TooltipProvider>
   );
