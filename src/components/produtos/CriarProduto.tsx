@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Package, Layers, Package2, Plus, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Package, Layers, Package2, Plus, X, Link, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { useNavigate } from "react-router-dom";
 
 const steps = [
@@ -13,6 +14,7 @@ const steps = [
   { id: 2, title: "Informações Principais", description: "Dados básicos do produto" },
   { id: 3, title: "Preços e Estoque", description: "Definições comerciais" },
   { id: 4, title: "Detalhes Técnicos", description: "Dimensões e classificações" },
+  { id: 5, title: "Vincular Anúncios", description: "Conecte aos marketplaces" },
 ];
 
 export function CriarProduto() {
@@ -20,6 +22,7 @@ export function CriarProduto() {
   const [currentStep, setCurrentStep] = useState(1);
   const [productType, setProductType] = useState("");
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [productSaved, setProductSaved] = useState(false);
   const [formData, setFormData] = useState({
     tipo: "",
     nome: "",
@@ -42,7 +45,14 @@ export function CriarProduto() {
   });
 
   const nextStep = () => {
-    if (currentStep < 4) setCurrentStep(currentStep + 1);
+    if (currentStep < 5) {
+      if (currentStep === 4 && !productSaved) {
+        // Salvar produto no passo 4
+        setProductSaved(true);
+        console.log("Produto salvo:", formData);
+      }
+      setCurrentStep(currentStep + 1);
+    }
   };
 
   const prevStep = () => {
@@ -66,8 +76,18 @@ export function CriarProduto() {
   };
 
   const handleSave = () => {
-    // Salvar produto e voltar para a lista
+    // Finalizar processo e voltar para a lista
     navigate('/produtos');
+  };
+
+  const handleVincularAnuncio = () => {
+    // Lógica será implementada quando o drawer for aberto
+    console.log("Vincular anúncio");
+  };
+
+  const handleCriarAnuncio = () => {
+    // Navegar para a Central de Anúncios
+    navigate('/anuncios');
   };
 
   return (
@@ -450,6 +470,86 @@ export function CriarProduto() {
                 </div>
               </div>
             )}
+
+            {currentStep === 5 && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Vincular Anúncios</h3>
+                  <p className="text-gray-600 mb-6">
+                    Seu produto foi salvo com sucesso! Agora você pode vinculá-lo aos marketplaces ou criar novos anúncios.
+                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Card 1: Vincular Anúncio */}
+                    <Drawer>
+                      <DrawerTrigger asChild>
+                        <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-novura-primary">
+                          <CardContent className="p-6 text-center">
+                            <Link className="w-16 h-16 text-novura-primary mx-auto mb-4" />
+                            <h4 className="text-xl font-semibold mb-2">Vincular Anúncio</h4>
+                            <p className="text-gray-600">
+                              Conecte este produto a anúncios existentes nos marketplaces
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </DrawerTrigger>
+                      <DrawerContent>
+                        <DrawerHeader>
+                          <DrawerTitle>Vincular Anúncio</DrawerTitle>
+                          <DrawerDescription>
+                            Selecione os anúncios existentes para vincular a este produto
+                          </DrawerDescription>
+                        </DrawerHeader>
+                        <div className="p-6">
+                          <div className="space-y-4">
+                            <div className="flex gap-4">
+                              <div className="flex-1">
+                                <Label>Marketplace</Label>
+                                <Select>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o marketplace" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="mercadolivre">Mercado Livre</SelectItem>
+                                    <SelectItem value="amazon">Amazon</SelectItem>
+                                    <SelectItem value="shopee">Shopee</SelectItem>
+                                    <SelectItem value="magazineluiza">Magazine Luiza</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="flex-1">
+                                <Label>Pesquisar</Label>
+                                <Input placeholder="Buscar por SKU, ID ou descrição..." />
+                              </div>
+                            </div>
+                            
+                            <div className="border rounded-lg p-4 bg-gray-50">
+                              <p className="text-center text-gray-500">
+                                Selecione um marketplace e faça uma pesquisa para encontrar anúncios
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </DrawerContent>
+                    </Drawer>
+
+                    {/* Card 2: Criar Anúncio */}
+                    <Card 
+                      className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-novura-primary"
+                      onClick={handleCriarAnuncio}
+                    >
+                      <CardContent className="p-6 text-center">
+                        <ExternalLink className="w-16 h-16 text-novura-primary mx-auto mb-4" />
+                        <h4 className="text-xl font-semibold mb-2">Criar Anúncio</h4>
+                        <p className="text-gray-600">
+                          Crie um novo anúncio para este produto nos marketplaces
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -470,10 +570,15 @@ export function CriarProduto() {
                 Próximo
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
-            ) : (
-              <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700">
+            ) : currentStep === 4 ? (
+              <Button onClick={nextStep} className="bg-green-600 hover:bg-green-700">
                 <Check className="w-4 h-4 mr-2" />
-                Salvar Produto
+                Salvar e Continuar
+              </Button>
+            ) : (
+              <Button onClick={handleSave} className="bg-novura-primary hover:bg-novura-primary/90">
+                <Check className="w-4 h-4 mr-2" />
+                Finalizar
               </Button>
             )}
           </div>
