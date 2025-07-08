@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Plus, Search, Filter, MoreHorizontal, Edit, Eye, Trash2, Copy, Package, Link } from "lucide-react";
 import { Routes, Route } from "react-router-dom";
@@ -11,6 +12,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Bell, Users } from "lucide-react";
 import { CriarProduto } from "@/components/produtos/CriarProduto";
 import { EditarProduto } from "@/components/produtos/EditarProduto";
