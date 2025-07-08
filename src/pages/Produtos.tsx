@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { Plus, Search, Filter, MoreHorizontal, Edit, Eye, Trash2, Copy, Package } from "lucide-react";
+import { Plus, Search, Filter, MoreHorizontal, Edit, Eye, Trash2, Copy, Package, Link } from "lucide-react";
 import { Routes, Route } from "react-router-dom";
 import { CleanNavigation } from "@/components/CleanNavigation";
 import { Button } from "@/components/ui/button";
@@ -11,10 +10,10 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Bell, Users } from "lucide-react";
 import { CriarProduto } from "@/components/produtos/CriarProduto";
+import { EditarProduto } from "@/components/produtos/EditarProduto";
 
 const navigationItems = [
   { title: "Únicos", path: "", description: "Produtos únicos" },
@@ -22,10 +21,38 @@ const navigationItems = [
   { title: "Kits", path: "/kits", description: "Kits e combos" },
 ];
 
-// Mock data for different product types
+// Mock data for different product types - updated structure
 const produtosUnicos = [
-  { id: 1, name: "iPhone 15 Pro", sku: "IPH15P-001", price: 7999.99, stock: 25, status: "Ativo", vinculos: "Mercado Livre, Amazon", image: "/placeholder.svg" },
-  { id: 2, name: "MacBook Air M2", sku: "MBA-M2-002", price: 9999.99, stock: 12, status: "Ativo", vinculos: "Shopee, Magazine Luiza", image: "/placeholder.svg" },
+  { 
+    id: 1, 
+    name: "iPhone 15 Pro", 
+    sku: "IPH15P-001", 
+    custoBuyPrice: 6500.99, 
+    stock: 25, 
+    categoria: "Eletrônicos",
+    vinculos: 3,
+    image: "/placeholder.svg" 
+  },
+  { 
+    id: 2, 
+    name: "MacBook Air M2", 
+    sku: "MBA-M2-002", 
+    custoBuyPrice: 8500.99, 
+    stock: 12, 
+    categoria: "Computadores",
+    vinculos: 2,
+    image: "/placeholder.svg" 
+  },
+  { 
+    id: 3, 
+    name: "Samsung Galaxy S24", 
+    sku: "SGS24-003", 
+    custoBuyPrice: 4200.99, 
+    stock: 18, 
+    categoria: "Eletrônicos",
+    vinculos: 4,
+    image: "/placeholder.svg" 
+  },
 ];
 
 const produtosVariacoes = [
@@ -87,16 +114,20 @@ function ProductTable({ products }: { products: any[] }) {
             <TableRow className="border-b border-gray-100">
               <TableHead className="w-20">Imagem</TableHead>
               <TableHead>Produto</TableHead>
-              <TableHead>Preço</TableHead>
+              <TableHead>Categoria</TableHead>
+              <TableHead>Custo de Compra</TableHead>
               <TableHead>Estoque</TableHead>
-              <TableHead>Status</TableHead>
               <TableHead>Vínculos</TableHead>
               <TableHead className="w-20">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {products.map((product) => (
-              <TableRow key={product.id} className="hover:bg-gray-50/50">
+              <TableRow 
+                key={product.id} 
+                className="hover:bg-gray-50/50 cursor-pointer"
+                onClick={() => window.location.href = `/produtos/editar/${product.id}`}
+              >
                 <TableCell>
                   <img
                     src={product.image}
@@ -111,7 +142,10 @@ function ProductTable({ products }: { products: any[] }) {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <span className="font-medium">R$ {product.price.toFixed(2)}</span>
+                  <Badge variant="outline">{product.categoria}</Badge>
+                </TableCell>
+                <TableCell>
+                  <span className="font-medium">R$ {product.custoBuyPrice.toFixed(2)}</span>
                 </TableCell>
                 <TableCell>
                   <span className={product.stock < 10 ? "text-red-600 font-medium" : "text-gray-900"}>
@@ -119,26 +153,32 @@ function ProductTable({ products }: { products: any[] }) {
                   </span>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={product.status === "Ativo" ? "default" : "destructive"}>
-                    {product.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm text-gray-600">{product.vinculos}</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-blue-600 hover:text-blue-800"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // TODO: Open vinculos modal
+                    }}
+                  >
+                    <Link className="w-4 h-4 mr-1" />
+                    {product.vinculos} vínculos
+                  </Button>
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                       <Button variant="ghost" size="sm">
                         <MoreHorizontal className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-40">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => window.location.href = `/produtos/editar/${product.id}`}>
                         <Eye className="w-4 h-4 mr-2" />
                         Visualizar
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => window.location.href = `/produtos/editar/${product.id}`}>
                         <Edit className="w-4 h-4 mr-2" />
                         Editar
                       </DropdownMenuItem>
@@ -415,6 +455,7 @@ export default function Produtos() {
                 <Route path="/variacoes" element={<ProdutosVariacoes />} />
                 <Route path="/kits" element={<ProdutosKits />} />
                 <Route path="/criar" element={<CriarProduto />} />
+                <Route path="/editar/:id" element={<EditarProduto />} />
               </Routes>
             </div>
           </main>

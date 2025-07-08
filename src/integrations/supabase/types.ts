@@ -14,7 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      pedidos: {
+        Row: {
+          created_at: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
+      pedidos_produtos: {
+        Row: {
+          id: number
+          pedido_id: number
+          produto_id: string | null
+        }
+        Insert: {
+          id?: number
+          pedido_id: number
+          produto_id?: string | null
+        }
+        Update: {
+          id?: number
+          pedido_id?: number
+          produto_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedidos_produtos_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedidos_produtos_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          cost_proce: number | null
+          id: string
+          name: string
+        }
+        Insert: {
+          cost_proce?: number | null
+          id?: string
+          name: string
+        }
+        Update: {
+          cost_proce?: number | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
