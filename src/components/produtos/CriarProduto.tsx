@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { X, Link, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,7 +20,7 @@ import { TaxForm } from "./criar/TaxForm";
 import { NavigationButtons } from "./criar/NavigationButtons";
 import { CloseConfirmationDialog } from "./criar/CloseConfirmationDialog";
 import { stepsUnico, stepsVariacoes } from "./criar/constants";
-import { FormData, Variacao } from "./criar/types";
+import { FormData, Variacao, TipoVariacao } from "./criar/types";
 import { VariationDimensionsForm } from "./criar/VariationDimensionsForm";
 import { VariationTaxForm } from "./criar/VariationTaxForm";
 
@@ -33,6 +32,11 @@ export function CriarProduto() {
   const [productSaved, setProductSaved] = useState(false);
   const [variacoes, setVariacoes] = useState<Variacao[]>([]);
   const [showCloseDialog, setShowCloseDialog] = useState(false);
+  
+  // New state for variation form
+  const [variationEtapa, setVariationEtapa] = useState<"tipos" | "opcoes" | "configuracao">("tipos");
+  const [tiposVariacao, setTiposVariacao] = useState<TipoVariacao[]>([]);
+  
   const [formData, setFormData] = useState<FormData>({
     tipo: "",
     nome: "",
@@ -97,6 +101,39 @@ export function CriarProduto() {
 
   const handleConfirmClose = () => {
     navigate('/produtos');
+  };
+
+  // New handlers for variation navigation
+  const handleVariationNext = () => {
+    if (variationEtapa === "tipos") {
+      setVariationEtapa("opcoes");
+    } else if (variationEtapa === "opcoes") {
+      // Variations will be generated in VariationForm component
+      // and etapa will be set to "configuracao"
+    } else if (variationEtapa === "configuracao") {
+      nextStep(); // Move to next main step
+    }
+  };
+
+  const handleVariationBack = () => {
+    if (variationEtapa === "opcoes") {
+      setVariationEtapa("tipos");
+    } else if (variationEtapa === "configuracao") {
+      setVariationEtapa("opcoes");
+    } else if (variationEtapa === "tipos") {
+      backStep(); // Go back to previous main step
+    }
+  };
+
+  const canProceedVariation = () => {
+    if (variationEtapa === "tipos") {
+      return tiposVariacao.length > 0;
+    }
+    if (variationEtapa === "opcoes") {
+      const totalOpcoes = tiposVariacao.reduce((total, tipo) => total + tipo.opcoes.length, 0);
+      return totalOpcoes > 0;
+    }
+    return true; // configuracao step
   };
 
   const currentSteps = getCurrentSteps();
@@ -164,7 +201,14 @@ export function CriarProduto() {
             )}
 
             {currentStep === 3 && productType === "variacao" && (
-              <VariationForm variacoes={variacoes} onVariacoesChange={setVariacoes} />
+              <VariationForm 
+                variacoes={variacoes} 
+                onVariacoesChange={setVariacoes}
+                etapaAtual={variationEtapa}
+                onEtapaChange={setVariationEtapa}
+                tiposVariacao={tiposVariacao}
+                onTiposVariacaoChange={setTiposVariacao}
+              />
             )}
 
             {currentStep === 4 && productType === "unico" && (
@@ -324,8 +368,10 @@ export function CriarProduto() {
           currentStep={currentStep}
           maxSteps={getMaxSteps()}
           productType={productType}
-          onNext={nextStep}
-          onBack={backStep}
+          variationEtapa={variationEtapa}
+          canProceedVariation={canProceedVariation}
+          onNext={currentStep === 3 && productType === "variacao" ? handleVariationNext : nextStep}
+          onBack={currentStep === 3 && productType === "variacao" ? handleVariationBack : backStep}
           onSave={handleSave}
         />
 

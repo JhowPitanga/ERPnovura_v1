@@ -6,6 +6,8 @@ interface NavigationButtonsProps {
   currentStep: number;
   maxSteps: number;
   productType: string;
+  variationEtapa?: "tipos" | "opcoes" | "configuracao";
+  canProceedVariation?: () => boolean;
   onNext: () => void;
   onBack: () => void;
   onSave: () => void;
@@ -15,6 +17,8 @@ export function NavigationButtons({
   currentStep, 
   maxSteps, 
   productType, 
+  variationEtapa,
+  canProceedVariation,
   onNext, 
   onBack,
   onSave 
@@ -23,47 +27,32 @@ export function NavigationButtons({
   const canProceed = () => {
     if (currentStep === 1 && !productType) return false;
     
-    // For variation products in step 3, check if we can proceed through variation form
-    if (currentStep === 3 && productType === "variacao") {
-      const handlers = (window as any).variationFormHandlers;
-      return handlers ? handlers.canProceed() : false;
+    // For variation products in step 3, use the specific variation logic
+    if (currentStep === 3 && productType === "variacao" && canProceedVariation) {
+      return canProceedVariation();
     }
     
     return true;
   };
 
-  const handleNext = () => {
-    // For variation products in step 3, use the variation form's handler
+  // Determine if we should show back button
+  const shouldShowBackButton = () => {
+    if (currentStep === 1) return false;
+    
+    // For variation step 3, show back button unless we're on the first sub-step
     if (currentStep === 3 && productType === "variacao") {
-      const handlers = (window as any).variationFormHandlers;
-      if (handlers && handlers.currentStep !== "configuracao") {
-        handlers.handleNext();
-        return;
-      }
+      return variationEtapa !== "tipos";
     }
     
-    onNext();
-  };
-
-  const handleBack = () => {
-    // For variation products in step 3, use the variation form's handler if not on first sub-step
-    if (currentStep === 3 && productType === "variacao") {
-      const handlers = (window as any).variationFormHandlers;
-      if (handlers && handlers.currentStep !== "tipos") {
-        handlers.handleBack();
-        return;
-      }
-    }
-    
-    onBack();
+    return currentStep > 1;
   };
 
   return (
     <div className="flex justify-between items-center pt-4">
-      {/* Back Button - Only show after step 1 or when in variation sub-steps */}
-      {(currentStep > 1 || (currentStep === 3 && productType === "variacao" && (window as any).variationFormHandlers?.currentStep !== "tipos")) && (
+      {/* Back Button */}
+      {shouldShowBackButton() && (
         <Button 
-          onClick={handleBack} 
+          onClick={onBack} 
           variant="outline"
           size="lg"
         >
@@ -77,7 +66,7 @@ export function NavigationButtons({
       {/* Next/Save Buttons */}
       {currentStep < 5 ? (
         <Button 
-          onClick={handleNext} 
+          onClick={onNext} 
           className="bg-novura-primary hover:bg-novura-primary/90"
           size="lg"
           disabled={!canProceed()}

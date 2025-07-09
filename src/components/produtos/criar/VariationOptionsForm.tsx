@@ -4,12 +4,12 @@ import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { TipoVariacao, Variacao } from "./types";
+import { TipoVariacao } from "./types";
 
 interface VariationOptionsFormProps {
   tiposVariacao: TipoVariacao[];
   onTiposChange: (tipos: TipoVariacao[]) => void;
-  onVariacoesGenerate: (variacoes: Variacao[]) => void;
+  onVariacoesGenerate: () => void;
 }
 
 export function VariationOptionsForm({ 
