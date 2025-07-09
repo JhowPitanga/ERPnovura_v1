@@ -145,7 +145,6 @@ export function VariationForm({ variacoes, onVariacoesChange }: VariationFormPro
       <VariationTypeSelector
         tiposSelecionados={tiposVariacao}
         onTiposChange={setTiposVariacao}
-        onNext={handleNext}
       />
     );
   }
@@ -156,8 +155,6 @@ export function VariationForm({ variacoes, onVariacoesChange }: VariationFormPro
         tiposVariacao={tiposVariacao}
         onTiposChange={setTiposVariacao}
         onVariacoesGenerate={onVariacoesChange}
-        onNext={handleNext}
-        onBack={handleBack}
       />
     );
   }
