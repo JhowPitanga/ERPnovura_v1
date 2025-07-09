@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { Plus, Search, Filter, MoreHorizontal, Edit, Eye, Trash2, Copy, Package, Link } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Edit, Eye, Trash2, Copy, Package, Link } from "lucide-react";
 import { Routes, Route } from "react-router-dom";
 import { CleanNavigation } from "@/components/CleanNavigation";
 import { Button } from "@/components/ui/button";
@@ -16,11 +15,33 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, Dr
 import { Bell, Users } from "lucide-react";
 import { CriarProduto } from "@/components/produtos/CriarProduto";
 import { EditarProduto } from "@/components/produtos/EditarProduto";
+import { CategoryDropdown } from "@/components/produtos/CategoryDropdown";
 
 const navigationItems = [
   { title: "Únicos", path: "", description: "Produtos únicos" },
   { title: "Variações", path: "/variacoes", description: "Produtos com variações" },
   { title: "Kits", path: "/kits", description: "Kits e combos" },
+];
+
+// Mock data for categories
+const mockCategories = [
+  { 
+    id: "1", 
+    name: "Eletrônicos",
+    children: [
+      { id: "11", name: "Celulares", parent_id: "1" },
+      { id: "12", name: "Computadores", parent_id: "1" },
+    ]
+  },
+  { 
+    id: "2", 
+    name: "Roupas",
+    children: [
+      { id: "21", name: "Camisetas", parent_id: "2" },
+      { id: "22", name: "Calças", parent_id: "2" },
+    ]
+  },
+  { id: "3", name: "Casa e Jardim" },
 ];
 
 // Mock data for different product types - updated structure
@@ -32,6 +53,7 @@ const produtosUnicos = [
     custoBuyPrice: 6500.99, 
     stock: 25, 
     categoria: "Eletrônicos",
+    categoryId: "1",
     vinculos: 3,
     image: "/placeholder.svg" 
   },
@@ -42,6 +64,7 @@ const produtosUnicos = [
     custoBuyPrice: 8500.99, 
     stock: 12, 
     categoria: "Computadores",
+    categoryId: "12",
     vinculos: 2,
     image: "/placeholder.svg" 
   },
@@ -52,6 +75,7 @@ const produtosUnicos = [
     custoBuyPrice: 4200.99, 
     stock: 18, 
     categoria: "Eletrônicos",
+    categoryId: "1",
     vinculos: 4,
     image: "/placeholder.svg" 
   },
@@ -206,6 +230,51 @@ function ProductTable({ products }: { products: any[] }) {
 
 function ProdutosUnicos() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [categories, setCategories] = useState(mockCategories);
+  
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+  };
+
+  const handleAddCategory = (newCategory: { name: string; parent_id?: string }) => {
+    const newId = Date.now().toString();
+    
+    if (newCategory.parent_id) {
+      // Adicionar categoria filha
+      setCategories(prev => prev.map(cat => {
+        if (cat.id === newCategory.parent_id) {
+          return {
+            ...cat,
+            children: [
+              ...(cat.children || []),
+              { id: newId, name: newCategory.name, parent_id: newCategory.parent_id }
+            ]
+          };
+        }
+        return cat;
+      }));
+    } else {
+      // Adicionar categoria pai
+      setCategories(prev => [
+        ...prev,
+        { id: newId, name: newCategory.name, children: [] }
+      ]);
+    }
+  };
+
+  // Filtrar produtos pela categoria selecionada
+  const filteredProducts = selectedCategory 
+    ? produtosUnicos.filter(product => {
+        // Verificar se é categoria pai ou filha
+        const isDirectMatch = product.categoryId === selectedCategory;
+        const isChildMatch = categories.some(cat => 
+          cat.id === selectedCategory && 
+          cat.children?.some(child => child.id === product.categoryId)
+        );
+        return isDirectMatch || isChildMatch;
+      })
+    : produtosUnicos;
   
   return (
     <div className="space-y-6">
@@ -220,13 +289,15 @@ function ProdutosUnicos() {
             className="pl-10"
           />
         </div>
-        <Button variant="outline" size="sm">
-          <Filter className="w-4 h-4 mr-2" />
-          Filtros
-        </Button>
+        <CategoryDropdown
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategoryChange={handleCategoryChange}
+          onAddCategory={handleAddCategory}
+        />
       </div>
 
-      <ProductTable products={produtosUnicos} />
+      <ProductTable products={filteredProducts} />
     </div>
   );
 }
