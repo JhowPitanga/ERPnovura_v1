@@ -262,7 +262,7 @@ export function CriarProduto() {
                   </div>
                   <div className="mt-4">
                     <Label>Imagens do Produto (até 8 fotos)</Label>
-                    <div className="grid grid-cols-4 gap-4 mt-2">
+                    <div className="grid grid-cols-6 gap-3 mt-2">
                       {/* Imagens selecionadas */}
                       {selectedImages.map((file, index) => (
                         <div key={index} className="relative">
@@ -276,9 +276,9 @@ export function CriarProduto() {
                           <button
                             type="button"
                             onClick={() => removeImage(index)}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
+                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center hover:bg-red-600 transition-colors text-xs"
                           >
-                            <X className="w-3 h-3" />
+                            <X className="w-2 h-2" />
                           </button>
                         </div>
                       ))}
@@ -298,9 +298,9 @@ export function CriarProduto() {
                             htmlFor={`image-upload-${index}`}
                             className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors bg-gray-50"
                           >
-                            <Plus className="w-8 h-8 text-gray-400 mb-2" />
-                            <span className="text-xs text-gray-500 text-center">
-                              Adicionar foto
+                            <Plus className="w-5 h-5 text-gray-400 mb-1" />
+                            <span className="text-xs text-gray-500 text-center px-1">
+                              Adicionar
                             </span>
                           </label>
                         </div>
