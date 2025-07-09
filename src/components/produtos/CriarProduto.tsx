@@ -129,7 +129,8 @@ export function CriarProduto() {
     } else if (variationEtapa === "configuracao") {
       setVariationEtapa("opcoes");
     } else if (variationEtapa === "tipos") {
-      backStep(); // Go back to previous main step
+      // Go back to previous main step (step 2)
+      backStep();
     }
   };
 
@@ -274,7 +275,6 @@ export function CriarProduto() {
                 onEtapaChange={setVariationEtapa}
                 tiposVariacao={tiposVariacao}
                 onTiposVariacaoChange={setTiposVariacao}
-                onVariacoesGenerate={generateVariations}
               />
             )}
 

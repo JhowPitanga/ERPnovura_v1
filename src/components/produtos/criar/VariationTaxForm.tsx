@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Variacao } from "./types";
+import { BulkTaxForm } from "./BulkTaxForm";
 
 interface VariationTaxFormProps {
   variacoes: Variacao[];
@@ -23,6 +24,8 @@ export function VariationTaxForm({ variacoes, onVariacoesChange }: VariationTaxF
         <h3 className="text-xl font-semibold mb-2">Informações Fiscais por Variação</h3>
         <p className="text-gray-600">Configure as informações fiscais para cada variação</p>
       </div>
+
+      <BulkTaxForm variacoes={variacoes} onVariacoesChange={onVariacoesChange} />
 
       {variacoes.length > 0 && (
         <Accordion type="single" collapsible className="space-y-4">

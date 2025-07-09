@@ -37,11 +37,9 @@ export function NavigationButtons({
 
   // Determine if we should show back button
   const shouldShowBackButton = () => {
-    if (currentStep === 1) return false;
-    
-    // For variation step 3, show back button unless we're on the first sub-step
+    // Always show back button for step 3 variations, even in the first sub-step
     if (currentStep === 3 && productType === "variacao") {
-      return variationEtapa !== "tipos";
+      return true;
     }
     
     return currentStep > 1;
@@ -87,7 +85,7 @@ export function NavigationButtons({
       ) : currentStep === 5 ? (
         <Button 
           onClick={onNext} 
-          className="bg-green-600 hover:bg-green-700"
+          className="bg-novura-primary hover:bg-novura-primary/90"
           size="lg"
         >
           <Check className="w-5 h-5 mr-2" />

@@ -55,63 +55,6 @@ export function VariationForm({
     ));
   };
 
-  const generateVariations = () => {
-    const tiposComOpcoes = tiposVariacao.filter(tipo => tipo.opcoes.length > 0);
-    
-    if (tiposComOpcoes.length === 0) return;
-
-    const gerarCombinacoes = (arrays: string[][]): string[][] => {
-      if (arrays.length === 0) return [[]];
-      if (arrays.length === 1) return arrays[0].map(item => [item]);
-      
-      const [first, ...rest] = arrays;
-      const restCombinations = gerarCombinacoes(rest);
-      
-      return first.flatMap(item =>
-        restCombinations.map(combination => [item, ...combination])
-      );
-    };
-
-    const opcoesPorTipo = tiposComOpcoes.map(tipo => tipo.opcoes);
-    const combinacoes = gerarCombinacoes(opcoesPorTipo);
-
-    const variacoes: Variacao[] = combinacoes.map((combinacao, index) => {
-      const nomeVariacao = combinacao.join(" - ");
-      const variacao: Variacao = {
-        id: `var_${Date.now()}_${index}`,
-        nome: nomeVariacao,
-        sku: "",
-        ean: "",
-        precoCusto: "",
-        imagens: [],
-      };
-
-      tiposComOpcoes.forEach((tipo, tipoIndex) => {
-        const valor = combinacao[tipoIndex];
-        switch (tipo.id) {
-          case "cor":
-            variacao.cor = valor;
-            break;
-          case "tamanho":
-            variacao.tamanho = valor;
-            break;
-          case "voltagem":
-            variacao.voltagem = valor;
-            break;
-          default:
-            variacao.tipoPersonalizado = tipo.nome;
-            variacao.valorPersonalizado = valor;
-            break;
-        }
-      });
-
-      return variacao;
-    });
-
-    onVariacoesChange(variacoes);
-    onEtapaChange("configuracao");
-  };
-
   if (etapaAtual === "tipos") {
     return (
       <VariationTypeSelector
@@ -126,7 +69,6 @@ export function VariationForm({
       <VariationOptionsForm
         tiposVariacao={tiposVariacao}
         onTiposChange={onTiposVariacaoChange}
-        onVariacoesGenerate={generateVariations}
       />
     );
   }
