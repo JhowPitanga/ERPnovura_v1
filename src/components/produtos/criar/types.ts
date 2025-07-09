@@ -2,13 +2,31 @@
 export interface Variacao {
   id: string;
   nome: string;
-  cor: string;
-  tamanho: string;
-  nomePersonalizado: string;
+  cor?: string;
+  tamanho?: string;
+  voltagem?: string;
+  tipoPersonalizado?: string;
+  valorPersonalizado?: string;
   sku: string;
   ean: string;
   precoCusto: string;
-  imagem?: File;
+  imagens: File[];
+  altura?: string;
+  largura?: string;
+  comprimento?: string;
+  peso?: string;
+  ncm?: string;
+  cest?: string;
+  codigoBarras?: string;
+  unidade?: string;
+  origem?: string;
+}
+
+export interface TipoVariacao {
+  id: string;
+  nome: string;
+  icon: string;
+  opcoes: string[];
 }
 
 export interface FormData {

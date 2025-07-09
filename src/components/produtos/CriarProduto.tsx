@@ -22,6 +22,8 @@ import { NavigationButtons } from "./criar/NavigationButtons";
 import { CloseConfirmationDialog } from "./criar/CloseConfirmationDialog";
 import { stepsUnico, stepsVariacoes } from "./criar/constants";
 import { FormData, Variacao } from "./criar/types";
+import { VariationDimensionsForm } from "./criar/VariationDimensionsForm";
+import { VariationTaxForm } from "./criar/VariationTaxForm";
 
 export function CriarProduto() {
   const navigate = useNavigate();
@@ -165,8 +167,12 @@ export function CriarProduto() {
               <VariationForm variacoes={variacoes} onVariacoesChange={setVariacoes} />
             )}
 
-            {currentStep === 4 && (
+            {currentStep === 4 && productType === "unico" && (
               <DimensionsForm formData={formData} onInputChange={handleInputChange} />
+            )}
+
+            {currentStep === 4 && productType === "variacao" && (
+              <VariationDimensionsForm variacoes={variacoes} onVariacoesChange={setVariacoes} />
             )}
 
             {currentStep === 5 && productType === "unico" && (
@@ -174,29 +180,7 @@ export function CriarProduto() {
             )}
 
             {currentStep === 5 && productType === "variacao" && (
-              <div className="space-y-8">
-                <div>
-                  <h3 className="text-xl font-semibold mb-6">Informações Fiscais por Variação</h3>
-                  {variacoes.length > 0 ? (
-                    <Accordion type="single" collapsible className="space-y-4">
-                      {variacoes.map((variacao) => (
-                        <AccordionItem key={variacao.id} value={variacao.id} className="border rounded-lg">
-                          <AccordionTrigger className="px-4">
-                            <span className="font-medium">{variacao.nome}</span>
-                          </AccordionTrigger>
-                          <AccordionContent className="px-4 pb-4">
-                            <TaxForm formData={formData} onInputChange={handleInputChange} />
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                  ) : (
-                    <p className="text-gray-500 text-center py-8">
-                      Adicione variações na etapa anterior para configurar as informações fiscais.
-                    </p>
-                  )}
-                </div>
-              </div>
+              <VariationTaxForm variacoes={variacoes} onVariacoesChange={setVariacoes} />
             )}
 
             {currentStep === 6 && (
@@ -221,7 +205,7 @@ export function CriarProduto() {
                           </CardContent>
                         </Card>
                       </DrawerTrigger>
-                      <DrawerContent>
+                      <DrawerContent className="max-h-[80vh]">
                         <DrawerHeader>
                           <DrawerTitle>Vincular Anúncio</DrawerTitle>
                           <DrawerDescription>
@@ -231,10 +215,11 @@ export function CriarProduto() {
                             }
                           </DrawerDescription>
                         </DrawerHeader>
-                        <div className="p-6">
-                          <div className="space-y-4">
-                            <div className="flex gap-4">
-                              <div className="flex-1">
+                        <div className="p-6 overflow-y-auto">
+                          <div className="space-y-6">
+                            {/* Filtros */}
+                            <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                              <div>
                                 <Label>Marketplace</Label>
                                 <Select>
                                   <SelectTrigger className="mt-2">
@@ -248,38 +233,66 @@ export function CriarProduto() {
                                   </SelectContent>
                                 </Select>
                               </div>
-                              <div className="flex-1">
+                              <div>
                                 <Label>Pesquisar</Label>
                                 <Input placeholder="Buscar por SKU, ID ou descrição..." className="mt-2" />
                               </div>
                             </div>
                             
                             {productType === "variacao" && variacoes.length > 0 && (
-                              <div className="mt-6">
-                                <Label>Vincular por Variação</Label>
-                                <div className="mt-2 space-y-2">
+                              <div>
+                                <Label className="text-base font-medium">Vincular por Variação</Label>
+                                <div className="mt-4 space-y-3">
                                   {variacoes.map((variacao) => (
-                                    <div key={variacao.id} className="flex items-center justify-between p-3 border rounded">
-                                      <span className="font-medium">{variacao.nome}</span>
-                                      <Select>
-                                        <SelectTrigger className="w-48">
-                                          <SelectValue placeholder="Selecione anúncio" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="anuncio1">Anúncio 1</SelectItem>
-                                          <SelectItem value="anuncio2">Anúncio 2</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
+                                    <Card key={variacao.id} className="p-4">
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-3">
+                                          {variacao.cor && (
+                                            <div
+                                              className="w-8 h-8 rounded-full border-2 border-gray-300"
+                                              style={{ backgroundColor: variacao.cor.toLowerCase() }}
+                                            />
+                                          )}
+                                          <div>
+                                            <span className="font-medium">{variacao.nome}</span>
+                                            <p className="text-sm text-gray-500">SKU: {variacao.sku}</p>
+                                          </div>
+                                        </div>
+                                        <Select>
+                                          <SelectTrigger className="w-64">
+                                            <SelectValue placeholder="Selecione anúncio" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="anuncio1">Produto Similar - ML123456</SelectItem>
+                                            <SelectItem value="anuncio2">Produto Teste - AMZ789012</SelectItem>
+                                            <SelectItem value="anuncio3">Produto Exemplo - SHP345678</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                    </Card>
                                   ))}
                                 </div>
                               </div>
                             )}
                             
-                            <div className="border rounded-lg p-6 bg-gray-50 mt-6">
-                              <p className="text-center text-gray-500">
-                                Selecione um marketplace e faça uma pesquisa para encontrar anúncios
-                              </p>
+                            <div className="border rounded-lg p-8 bg-gray-50">
+                              <div className="text-center">
+                                <p className="text-gray-500 mb-4">
+                                  Selecione um marketplace e faça uma pesquisa para encontrar anúncios
+                                </p>
+                                <Button variant="outline" className="text-blue-600 border-blue-200">
+                                  Buscar Anúncios
+                                </Button>
+                              </div>
+                            </div>
+
+                            <div className="flex gap-3 pt-4 border-t">
+                              <Button variant="outline" className="flex-1">
+                                Cancelar
+                              </Button>
+                              <Button className="flex-1 bg-blue-600 hover:bg-blue-700">
+                                Confirmar Vínculos
+                              </Button>
                             </div>
                           </div>
                         </div>
