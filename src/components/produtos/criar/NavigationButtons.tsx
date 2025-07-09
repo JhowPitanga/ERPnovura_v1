@@ -47,6 +47,16 @@ export function NavigationButtons({
     return currentStep > 1;
   };
 
+  // Get the next button text based on current state
+  const getNextButtonText = () => {
+    if (currentStep === 3 && productType === "variacao") {
+      if (variationEtapa === "tipos") return "Próximo";
+      if (variationEtapa === "opcoes") return "Gerar Variações";
+      if (variationEtapa === "configuracao") return "Próximo";
+    }
+    return "Próximo";
+  };
+
   return (
     <div className="flex justify-between items-center pt-4">
       {/* Back Button */}
@@ -71,7 +81,7 @@ export function NavigationButtons({
           size="lg"
           disabled={!canProceed()}
         >
-          Próximo
+          {getNextButtonText()}
           <ArrowRight className="w-5 h-5 ml-2" />
         </Button>
       ) : currentStep === 5 ? (

@@ -106,12 +106,20 @@ export function CriarProduto() {
   // New handlers for variation navigation
   const handleVariationNext = () => {
     if (variationEtapa === "tipos") {
-      setVariationEtapa("opcoes");
+      if (tiposVariacao.length > 0) {
+        setVariationEtapa("opcoes");
+      }
     } else if (variationEtapa === "opcoes") {
-      // Variations will be generated in VariationForm component
-      // and etapa will be set to "configuracao"
+      // Check if we have options to generate variations
+      const hasOptions = tiposVariacao.some(tipo => tipo.opcoes.length > 0);
+      if (hasOptions) {
+        // Generate variations and move to configuration
+        generateVariations();
+        setVariationEtapa("configuracao");
+      }
     } else if (variationEtapa === "configuracao") {
-      nextStep(); // Move to next main step
+      // Move to next main step (step 4)
+      nextStep();
     }
   };
 
@@ -125,15 +133,73 @@ export function CriarProduto() {
     }
   };
 
+  const generateVariations = () => {
+    const tiposComOpcoes = tiposVariacao.filter(tipo => tipo.opcoes.length > 0);
+    
+    if (tiposComOpcoes.length === 0) return;
+
+    const gerarCombinacoes = (arrays: string[][]): string[][] => {
+      if (arrays.length === 0) return [[]];
+      if (arrays.length === 1) return arrays[0].map(item => [item]);
+      
+      const [first, ...rest] = arrays;
+      const restCombinations = gerarCombinacoes(rest);
+      
+      return first.flatMap(item =>
+        restCombinations.map(combination => [item, ...combination])
+      );
+    };
+
+    const opcoesPorTipo = tiposComOpcoes.map(tipo => tipo.opcoes);
+    const combinacoes = gerarCombinacoes(opcoesPorTipo);
+
+    const novasVariacoes: Variacao[] = combinacoes.map((combinacao, index) => {
+      const nomeVariacao = combinacao.join(" - ");
+      const variacao: Variacao = {
+        id: `var_${Date.now()}_${index}`,
+        nome: nomeVariacao,
+        sku: "",
+        ean: "",
+        precoCusto: "",
+        imagens: [],
+      };
+
+      tiposComOpcoes.forEach((tipo, tipoIndex) => {
+        const valor = combinacao[tipoIndex];
+        switch (tipo.id) {
+          case "cor":
+            variacao.cor = valor;
+            break;
+          case "tamanho":
+            variacao.tamanho = valor;
+            break;
+          case "voltagem":
+            variacao.voltagem = valor;
+            break;
+          default:
+            variacao.tipoPersonalizado = tipo.nome;
+            variacao.valorPersonalizado = valor;
+            break;
+        }
+      });
+
+      return variacao;
+    });
+
+    setVariacoes(novasVariacoes);
+  };
+
   const canProceedVariation = () => {
     if (variationEtapa === "tipos") {
       return tiposVariacao.length > 0;
     }
     if (variationEtapa === "opcoes") {
-      const totalOpcoes = tiposVariacao.reduce((total, tipo) => total + tipo.opcoes.length, 0);
-      return totalOpcoes > 0;
+      return tiposVariacao.some(tipo => tipo.opcoes.length > 0);
     }
-    return true; // configuracao step
+    if (variationEtapa === "configuracao") {
+      return variacoes.length > 0;
+    }
+    return true;
   };
 
   const currentSteps = getCurrentSteps();
@@ -208,6 +274,7 @@ export function CriarProduto() {
                 onEtapaChange={setVariationEtapa}
                 tiposVariacao={tiposVariacao}
                 onTiposVariacaoChange={setTiposVariacao}
+                onVariacoesGenerate={generateVariations}
               />
             )}
 
