@@ -10,16 +10,12 @@ interface VariationOptionsFormProps {
   tiposVariacao: TipoVariacao[];
   onTiposChange: (tipos: TipoVariacao[]) => void;
   onVariacoesGenerate: (variacoes: Variacao[]) => void;
-  onNext: () => void;
-  onBack: () => void;
 }
 
 export function VariationOptionsForm({ 
   tiposVariacao, 
   onTiposChange, 
-  onVariacoesGenerate, 
-  onNext, 
-  onBack 
+  onVariacoesGenerate
 }: VariationOptionsFormProps) {
   const [novaOpcao, setNovaOpcao] = useState<{ [key: string]: string }>({});
 
@@ -55,63 +51,6 @@ export function VariationOptionsForm({
     onTiposChange(tiposAtualizados);
   };
 
-  const gerarVariacoes = () => {
-    const tiposComOpcoes = tiposVariacao.filter(tipo => tipo.opcoes.length > 0);
-    
-    if (tiposComOpcoes.length === 0) return;
-
-    const gerarCombinacoes = (arrays: string[][]): string[][] => {
-      if (arrays.length === 0) return [[]];
-      if (arrays.length === 1) return arrays[0].map(item => [item]);
-      
-      const [first, ...rest] = arrays;
-      const restCombinations = gerarCombinacoes(rest);
-      
-      return first.flatMap(item =>
-        restCombinations.map(combination => [item, ...combination])
-      );
-    };
-
-    const opcoesPorTipo = tiposComOpcoes.map(tipo => tipo.opcoes);
-    const combinacoes = gerarCombinacoes(opcoesPorTipo);
-
-    const variacoes: Variacao[] = combinacoes.map((combinacao, index) => {
-      const nomeVariacao = combinacao.join(" - ");
-      const variacao: Variacao = {
-        id: `var_${Date.now()}_${index}`,
-        nome: nomeVariacao,
-        sku: "",
-        ean: "",
-        precoCusto: "",
-        imagens: [],
-      };
-
-      tiposComOpcoes.forEach((tipo, tipoIndex) => {
-        const valor = combinacao[tipoIndex];
-        switch (tipo.id) {
-          case "cor":
-            variacao.cor = valor;
-            break;
-          case "tamanho":
-            variacao.tamanho = valor;
-            break;
-          case "voltagem":
-            variacao.voltagem = valor;
-            break;
-          default:
-            variacao.tipoPersonalizado = tipo.nome;
-            variacao.valorPersonalizado = valor;
-            break;
-        }
-      });
-
-      return variacao;
-    });
-
-    onVariacoesGenerate(variacoes);
-    onNext();
-  };
-
   return (
     <div className="space-y-6">
       <div>
@@ -120,15 +59,13 @@ export function VariationOptionsForm({
 
       <div className="space-y-6">
         {tiposVariacao.map((tipo) => {
-          const IconComponent = typeof tipo.icon === 'string' ? 
-            () => <span className="text-2xl">{tipo.icon}</span> : 
-            tipo.icon;
+          const IconComponent = tipo.icon;
           
           return (
             <Card key={tipo.id}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <IconComponent />
+                  <IconComponent className="w-5 h-5" />
                   {tipo.nome}
                 </CardTitle>
               </CardHeader>

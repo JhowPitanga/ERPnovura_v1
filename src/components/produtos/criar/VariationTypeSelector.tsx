@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label";
 interface VariationTypeSelectorProps {
   tiposSelecionados: TipoVariacao[];
   onTiposChange: (tipos: TipoVariacao[]) => void;
-  onNext: () => void;
 }
 
 const tiposVariacao = [
@@ -22,8 +21,7 @@ const tiposVariacao = [
 
 export function VariationTypeSelector({ 
   tiposSelecionados, 
-  onTiposChange,
-  onNext 
+  onTiposChange
 }: VariationTypeSelectorProps) {
   const [customType, setCustomType] = useState("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -143,9 +141,7 @@ export function VariationTypeSelector({
           <h4 className="font-medium">Tipos selecionados:</h4>
           <div className="flex flex-wrap gap-2">
             {tiposSelecionados.map((tipo) => {
-              const IconComponent = typeof tipo.icon === 'string' ? 
-                () => <span className="text-sm">{tipo.icon}</span> : 
-                tipo.icon;
+              const IconComponent = tipo.icon;
               
               return (
                 <div key={tipo.id} className="flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full">

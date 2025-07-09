@@ -1,4 +1,6 @@
 
+import { LucideIcon } from "lucide-react";
+
 export interface Variacao {
   id: string;
   nome: string;
@@ -25,7 +27,7 @@ export interface Variacao {
 export interface TipoVariacao {
   id: string;
   nome: string;
-  icon: string;
+  icon: LucideIcon;
   opcoes: string[];
 }
 
