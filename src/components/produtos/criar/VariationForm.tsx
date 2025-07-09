@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -128,7 +127,7 @@ export function VariationForm({ variacoes, onVariacoesChange }: VariationFormPro
                             <X className="w-3 h-3" />
                           </button>
                           {index === 0 && (
-                            <div className="absolute bottom-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                            <div className="absolute bottom-1 left-1 bg-primary text-white text-xs px-2 py-1 rounded">
                               Capa
                             </div>
                           )}

@@ -2,11 +2,8 @@ import { useState } from "react";
 import { X, Link, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useNavigate } from "react-router-dom";
 
 // Import refactored components
@@ -195,9 +192,9 @@ export function CriarProduto() {
                     {/* Card 1: Vincular Anúncio */}
                     <Drawer>
                       <DrawerTrigger asChild>
-                        <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-novura-primary">
+                        <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary">
                           <CardContent className="p-8 text-center">
-                            <Link className="w-20 h-20 text-novura-primary mx-auto mb-6" />
+                            <Link className="w-20 h-20 text-primary mx-auto mb-6" />
                             <h4 className="text-xl font-semibold mb-3">Vincular Anúncio</h4>
                             <p className="text-gray-600">
                               Conecte este produto a anúncios existentes nos marketplaces
@@ -301,11 +298,11 @@ export function CriarProduto() {
 
                     {/* Card 2: Criar Anúncio */}
                     <Card 
-                      className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-novura-primary"
+                      className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary"
                       onClick={() => navigate('/anuncios')}
                     >
                       <CardContent className="p-8 text-center">
-                        <ExternalLink className="w-20 h-20 text-novura-primary mx-auto mb-6" />
+                        <ExternalLink className="w-20 h-20 text-primary mx-auto mb-6" />
                         <h4 className="text-xl font-semibold mb-3">Criar Anúncio</h4>
                         <p className="text-gray-600">
                           Crie um novo anúncio para este produto nos marketplaces
