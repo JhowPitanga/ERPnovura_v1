@@ -1,0 +1,18 @@
+
+import { Step } from "./types";
+
+export const stepsUnico: Step[] = [
+  { id: 1, title: "Tipo de Produto", description: "Escolha o tipo de produto" },
+  { id: 2, title: "Informações Principais", description: "Dados básicos do produto" },
+  { id: 3, title: "Preços e Estoque", description: "Definições comerciais" },
+  { id: 4, title: "Detalhes Técnicos", description: "Dimensões e classificações" },
+  { id: 5, title: "Vincular Anúncios", description: "Conecte aos marketplaces" },
+];
+
+export const stepsVariacoes: Step[] = [
+  { id: 1, title: "Tipo de Produto", description: "Escolha o tipo de produto" },
+  { id: 2, title: "Informações Básicas", description: "Dados básicos do produto" },
+  { id: 3, title: "Variações", description: "Configure as variações" },
+  { id: 4, title: "Detalhes Técnicos", description: "Dimensões por variação" },
+  { id: 5, title: "Vincular Anúncios", description: "Conecte por variação" },
+];
