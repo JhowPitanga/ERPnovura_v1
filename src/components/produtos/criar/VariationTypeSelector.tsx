@@ -1,12 +1,12 @@
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Palette, Ruler, Zap, Plus } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import { Button } from "@/components/ui/button";
+import { TipoVariacao } from "./types";
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TipoVariacao } from "./types";
-import { ArrowRight, Circle, Square, Zap, Plus } from "lucide-react";
 
 interface VariationTypeSelectorProps {
   tiposSelecionados: TipoVariacao[];
@@ -14,32 +14,27 @@ interface VariationTypeSelectorProps {
   onNext: () => void;
 }
 
+const tiposVariacao = [
+  { id: "cor", nome: "Cor", icon: Palette },
+  { id: "tamanho", nome: "Tamanho", icon: Ruler },
+  { id: "voltagem", nome: "Voltagem", icon: Zap },
+];
+
 export function VariationTypeSelector({ 
   tiposSelecionados, 
-  onTiposChange, 
+  onTiposChange,
   onNext 
 }: VariationTypeSelectorProps) {
   const [customType, setCustomType] = useState("");
-  const [showCustomDrawer, setShowCustomDrawer] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const tiposDisponiveis = [
-    { id: "cor", nome: "Cor", icon: Circle },
-    { id: "tamanho", nome: "Tamanho", icon: Square },
-    { id: "voltagem", nome: "Voltagem", icon: Zap },
-  ];
-
-  const toggleTipo = (tipo: { id: string; nome: string; icon: any }) => {
-    const jaExiste = tiposSelecionados.find(t => t.id === tipo.id);
+  const toggleTipo = (tipo: typeof tiposVariacao[0]) => {
+    const tipoExiste = tiposSelecionados.find(t => t.id === tipo.id);
     
-    if (jaExiste) {
+    if (tipoExiste) {
       onTiposChange(tiposSelecionados.filter(t => t.id !== tipo.id));
     } else {
-      onTiposChange([...tiposSelecionados, { 
-        id: tipo.id, 
-        nome: tipo.nome, 
-        icon: tipo.icon,
-        opcoes: [] 
-      }]);
+      onTiposChange([...tiposSelecionados, { ...tipo, opcoes: [] }]);
     }
   };
 
@@ -47,34 +42,29 @@ export function VariationTypeSelector({
     if (!customType.trim()) return;
     
     const customId = `custom_${Date.now()}`;
-    onTiposChange([...tiposSelecionados, {
+    const newType: TipoVariacao = {
       id: customId,
-      nome: customType,
-      icon: "⚙️",
+      nome: customType.trim(),
+      icon: Plus,
       opcoes: []
-    }]);
+    };
     
+    onTiposChange([...tiposSelecionados, newType]);
     setCustomType("");
-    setShowCustomDrawer(false);
+    setIsDrawerOpen(false);
   };
-
-  const removeCustomType = (id: string) => {
-    onTiposChange(tiposSelecionados.filter(t => t.id !== id));
-  };
-
-  const canProceed = tiposSelecionados.length > 0;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h3 className="text-xl font-semibold mb-2">Tipos de Variação</h3>
-        <p className="text-gray-600">Selecione os tipos de variação do seu produto</p>
+        <h3 className="text-xl font-semibold mb-2">Selecionar tipos de variação</h3>
+        <p className="text-gray-600">Escolha os tipos de variação para este produto</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
-        {tiposDisponiveis.map((tipo) => {
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {tiposVariacao.map((tipo) => {
+          const isSelected = tiposSelecionados.some(t => t.id === tipo.id);
           const IconComponent = tipo.icon;
-          const isSelected = tiposSelecionados.find(t => t.id === tipo.id);
           
           return (
             <Card
@@ -87,49 +77,55 @@ export function VariationTypeSelector({
               onClick={() => toggleTipo(tipo)}
             >
               <CardContent className="p-6 text-center">
-                <IconComponent className={`w-12 h-12 mx-auto mb-4 ${
-                  isSelected ? "text-primary" : "text-gray-400"
+                <IconComponent className={`w-8 h-8 mx-auto mb-3 ${
+                  isSelected ? "text-primary" : "text-gray-600"
                 }`} />
-                <h4 className="font-medium text-gray-900">{tipo.nome}</h4>
+                <h4 className={`font-medium ${
+                  isSelected ? "text-primary" : "text-gray-900"
+                }`}>
+                  {tipo.nome}
+                </h4>
               </CardContent>
             </Card>
           );
         })}
 
-        {/* Card de Mais Opções */}
-        <Drawer open={showCustomDrawer} onOpenChange={setShowCustomDrawer}>
+        <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
           <DrawerTrigger asChild>
             <Card className="cursor-pointer transition-all border-2 border-dashed border-gray-300 hover:border-gray-400">
               <CardContent className="p-6 text-center">
-                <Plus className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                <Plus className="w-8 h-8 mx-auto mb-3 text-gray-600" />
                 <h4 className="font-medium text-gray-900">Mais opções</h4>
               </CardContent>
             </Card>
           </DrawerTrigger>
           <DrawerContent>
             <DrawerHeader>
-              <DrawerTitle>Criar Tipo de Variação Personalizada</DrawerTitle>
+              <DrawerTitle>Adicionar tipo personalizado</DrawerTitle>
+              <DrawerDescription>
+                Digite o nome do tipo de variação personalizada
+              </DrawerDescription>
             </DrawerHeader>
             <div className="p-6 space-y-4">
               <div>
-                <Label htmlFor="custom-type">Nome do tipo de variação</Label>
+                <Label htmlFor="custom-type">Nome do tipo</Label>
                 <Input
                   id="custom-type"
                   value={customType}
                   onChange={(e) => setCustomType(e.target.value)}
-                  placeholder="Ex: Material, Sabor, Modelo..."
+                  placeholder="Ex: Material, Modelo, etc."
                   className="mt-2"
                 />
               </div>
               <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowCustomDrawer(false)}
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsDrawerOpen(false)}
                   className="flex-1"
                 >
                   Cancelar
                 </Button>
-                <Button
+                <Button 
                   onClick={addCustomType}
                   disabled={!customType.trim()}
                   className="flex-1"
@@ -142,37 +138,23 @@ export function VariationTypeSelector({
         </Drawer>
       </div>
 
-      {/* Tipos personalizados selecionados */}
-      {tiposSelecionados.filter(t => t.id.startsWith('custom_')).length > 0 && (
+      {tiposSelecionados.length > 0 && (
         <div className="space-y-3">
-          <h4 className="font-medium">Tipos personalizados:</h4>
+          <h4 className="font-medium">Tipos selecionados:</h4>
           <div className="flex flex-wrap gap-2">
-            {tiposSelecionados
-              .filter(t => t.id.startsWith('custom_'))
-              .map((tipo) => (
-                <div
-                  key={tipo.id}
-                  className="flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full"
-                >
-                  <span className="text-sm">{tipo.nome}</span>
-                  <button
-                    onClick={() => removeCustomType(tipo.id)}
-                    className="hover:text-primary/70"
-                  >
-                    ×
-                  </button>
+            {tiposSelecionados.map((tipo) => {
+              const IconComponent = typeof tipo.icon === 'string' ? 
+                () => <span className="text-sm">{tipo.icon}</span> : 
+                tipo.icon;
+              
+              return (
+                <div key={tipo.id} className="flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full">
+                  <IconComponent className="w-4 h-4" />
+                  <span className="text-sm font-medium">{tipo.nome}</span>
                 </div>
-              ))}
+              );
+            })}
           </div>
-        </div>
-      )}
-
-      {canProceed && (
-        <div className="flex justify-end">
-          <Button onClick={onNext} size="lg">
-            Continuar para definir opções
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Button>
         </div>
       )}
     </div>

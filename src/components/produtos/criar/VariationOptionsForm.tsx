@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { Plus, X, ArrowRight } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -111,9 +112,6 @@ export function VariationOptionsForm({
     onNext();
   };
 
-  const totalOpcoes = tiposVariacao.reduce((total, tipo) => total + tipo.opcoes.length, 0);
-  const podeProsseguir = totalOpcoes > 0;
-
   return (
     <div className="space-y-6">
       <div>
@@ -184,15 +182,6 @@ export function VariationOptionsForm({
           );
         })}
       </div>
-
-      {podeProsseguir && (
-        <div className="flex justify-end">
-          <Button onClick={gerarVariacoes} size="lg">
-            Confirmar variações e continuar
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

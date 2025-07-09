@@ -47,12 +47,105 @@ export function VariationForm({ variacoes, onVariacoesChange }: VariationFormPro
     ));
   };
 
+  // Check if we can proceed to next step based on current etapa
+  const canProceed = () => {
+    if (etapa === "tipos") {
+      return tiposVariacao.length > 0;
+    }
+    if (etapa === "opcoes") {
+      const totalOpcoes = tiposVariacao.reduce((total, tipo) => total + tipo.opcoes.length, 0);
+      return totalOpcoes > 0;
+    }
+    return true;
+  };
+
+  const handleNext = () => {
+    if (etapa === "tipos" && canProceed()) {
+      setEtapa("opcoes");
+    } else if (etapa === "opcoes" && canProceed()) {
+      // Generate variations when moving from options to configuration
+      const tiposComOpcoes = tiposVariacao.filter(tipo => tipo.opcoes.length > 0);
+      
+      if (tiposComOpcoes.length === 0) return;
+
+      const gerarCombinacoes = (arrays: string[][]): string[][] => {
+        if (arrays.length === 0) return [[]];
+        if (arrays.length === 1) return arrays[0].map(item => [item]);
+        
+        const [first, ...rest] = arrays;
+        const restCombinations = gerarCombinacoes(rest);
+        
+        return first.flatMap(item =>
+          restCombinations.map(combination => [item, ...combination])
+        );
+      };
+
+      const opcoesPorTipo = tiposComOpcoes.map(tipo => tipo.opcoes);
+      const combinacoes = gerarCombinacoes(opcoesPorTipo);
+
+      const variacoes: Variacao[] = combinacoes.map((combinacao, index) => {
+        const nomeVariacao = combinacao.join(" - ");
+        const variacao: Variacao = {
+          id: `var_${Date.now()}_${index}`,
+          nome: nomeVariacao,
+          sku: "",
+          ean: "",
+          precoCusto: "",
+          imagens: [],
+        };
+
+        tiposComOpcoes.forEach((tipo, tipoIndex) => {
+          const valor = combinacao[tipoIndex];
+          switch (tipo.id) {
+            case "cor":
+              variacao.cor = valor;
+              break;
+            case "tamanho":
+              variacao.tamanho = valor;
+              break;
+            case "voltagem":
+              variacao.voltagem = valor;
+              break;
+            default:
+              variacao.tipoPersonalizado = tipo.nome;
+              variacao.valorPersonalizado = valor;
+              break;
+          }
+        });
+
+        return variacao;
+      });
+
+      onVariacoesChange(variacoes);
+      setEtapa("configuracao");
+    }
+  };
+
+  const handleBack = () => {
+    if (etapa === "opcoes") {
+      setEtapa("tipos");
+    } else if (etapa === "configuracao") {
+      setEtapa("opcoes");
+    }
+  };
+
+  // Expose these functions to be called by NavigationButtons
+  // We'll use a ref or callback pattern in the parent component
+  if (typeof window !== 'undefined') {
+    (window as any).variationFormHandlers = {
+      canProceed,
+      handleNext,
+      handleBack,
+      currentStep: etapa
+    };
+  }
+
   if (etapa === "tipos") {
     return (
       <VariationTypeSelector
         tiposSelecionados={tiposVariacao}
         onTiposChange={setTiposVariacao}
-        onNext={() => setEtapa("opcoes")}
+        onNext={handleNext}
       />
     );
   }
@@ -63,8 +156,8 @@ export function VariationForm({ variacoes, onVariacoesChange }: VariationFormPro
         tiposVariacao={tiposVariacao}
         onTiposChange={setTiposVariacao}
         onVariacoesGenerate={onVariacoesChange}
-        onNext={() => setEtapa("configuracao")}
-        onBack={() => setEtapa("tipos")}
+        onNext={handleNext}
+        onBack={handleBack}
       />
     );
   }
