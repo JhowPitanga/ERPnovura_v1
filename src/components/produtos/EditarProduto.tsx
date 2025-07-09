@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, Plus, Search, Filter, ExternalLink } from "lucide-react";
+import { ArrowLeft, Save, Plus, Search, Filter, ExternalLink, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -20,15 +20,21 @@ const mockProduct = {
   sku: "IPH15P-001",
   descricao: "iPhone 15 Pro com 128GB de armazenamento",
   categoria: "Eletrônicos",
+  marca: "Apple",
   custoBuyPrice: 6500.99,
-  precoVenda: 7999.99,
   estoque: 25,
-  peso: 0.2,
+  armazem: "Principal",
+  peso: 200, // em gramas
   dimensoes: {
     altura: 14.7,
     largura: 7.1,
-    profundidade: 0.8
+    comprimento: 0.8
   },
+  codigoBarras: "7891000123456",
+  ncm: "85171231",
+  cest: "0123456",
+  unidade: "UN",
+  origem: "0",
   imagens: ["/placeholder.svg"],
   vinculos: [
     { id: 1, marketplace: "Mercado Livre", sku: "MLB123456789", status: "Ativo", link: "https://mercadolivre.com" },
@@ -66,27 +72,27 @@ export function EditarProduto() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" onClick={handleVoltar}>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Editar Produto</h1>
+          <p className="text-gray-600">SKU: {produto.sku}</p>
+        </div>
+        <div className="flex items-center space-x-3">
+          <Button variant="outline" onClick={handleVoltar}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Editar Produto</h1>
-            <p className="text-gray-600">SKU: {produto.sku}</p>
-          </div>
+          <Button onClick={handleSalvar} className="bg-novura-primary hover:bg-novura-primary/90">
+            <Save className="w-4 h-4 mr-2" />
+            Salvar Alterações
+          </Button>
         </div>
-        <Button onClick={handleSalvar} className="bg-novura-primary hover:bg-novura-primary/90">
-          <Save className="w-4 h-4 mr-2" />
-          Salvar Alterações
-        </Button>
       </div>
 
       {/* Accordion Form */}
       <Card>
         <CardContent className="p-6">
           <Accordion type="single" collapsible defaultValue="informacoes-basicas" className="w-full">
-            {/* Informações Básicas */}
+            {/* Passo 1 - Informações Básicas */}
             <AccordionItem value="informacoes-basicas">
               <AccordionTrigger>
                 <div className="flex items-center space-x-2">
@@ -97,7 +103,7 @@ export function EditarProduto() {
               <AccordionContent className="pt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="nome">Nome do Produto</Label>
+                    <Label htmlFor="nome">Nome do Produto *</Label>
                     <Input
                       id="nome"
                       value={produto.nome}
@@ -105,7 +111,7 @@ export function EditarProduto() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="sku">SKU</Label>
+                    <Label htmlFor="sku">SKU *</Label>
                     <Input
                       id="sku"
                       value={produto.sku}
@@ -113,7 +119,7 @@ export function EditarProduto() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="categoria">Categoria</Label>
+                    <Label htmlFor="categoria">Categoria *</Label>
                     <Input
                       id="categoria"
                       value={produto.categoria}
@@ -121,12 +127,11 @@ export function EditarProduto() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="estoque">Estoque</Label>
+                    <Label htmlFor="marca">Marca</Label>
                     <Input
-                      id="estoque"
-                      type="number"
-                      value={produto.estoque}
-                      onChange={(e) => setProduto({...produto, estoque: parseInt(e.target.value)})}
+                      id="marca"
+                      value={produto.marca}
+                      onChange={(e) => setProduto({...produto, marca: e.target.value})}
                     />
                   </div>
                   <div className="col-span-full space-y-2">
@@ -142,18 +147,48 @@ export function EditarProduto() {
               </AccordionContent>
             </AccordionItem>
 
-            {/* Preços */}
-            <AccordionItem value="precos">
+            {/* Passo 2 - Fotos */}
+            <AccordionItem value="fotos">
               <AccordionTrigger>
                 <div className="flex items-center space-x-2">
                   <span className="flex items-center justify-center w-8 h-8 bg-novura-primary text-white rounded-full text-sm font-medium">2</span>
-                  <span className="font-medium">Preços</span>
+                  <span className="font-medium">Fotos do Produto</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pt-4">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                  <p className="text-gray-500">Clique para adicionar fotos ou arraste e solte aqui</p>
+                  <p className="text-sm text-gray-400 mt-2">PNG, JPG até 10MB cada</p>
+                  <div className="mt-4 flex flex-wrap gap-4">
+                    {produto.imagens.map((img, index) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={img}
+                          alt={`Produto ${index + 1}`}
+                          className="w-24 h-24 object-cover rounded-lg border"
+                        />
+                        <button className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Passo 3 - Preço de Custo */}
+            <AccordionItem value="preco-custo">
+              <AccordionTrigger>
+                <div className="flex items-center space-x-2">
+                  <span className="flex items-center justify-center w-8 h-8 bg-novura-primary text-white rounded-full text-sm font-medium">3</span>
+                  <span className="font-medium">Preço de Custo</span>
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="custoBuyPrice">Custo de Compra</Label>
+                    <Label htmlFor="custoBuyPrice">Custo de Compra *</Label>
                     <Input
                       id="custoBuyPrice"
                       type="number"
@@ -163,31 +198,43 @@ export function EditarProduto() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="precoVenda">Preço de Venda</Label>
+                    <Label htmlFor="estoque">Estoque Inicial *</Label>
                     <Input
-                      id="precoVenda"
+                      id="estoque"
                       type="number"
-                      step="0.01"
-                      value={produto.precoVenda}
-                      onChange={(e) => setProduto({...produto, precoVenda: parseFloat(e.target.value)})}
+                      value={produto.estoque}
+                      onChange={(e) => setProduto({...produto, estoque: parseInt(e.target.value)})}
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="armazem">Armazém</Label>
+                    <Select value={produto.armazem} onValueChange={(value) => setProduto({...produto, armazem: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o armazém" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="principal">Principal</SelectItem>
+                        <SelectItem value="secundario">Secundário</SelectItem>
+                        <SelectItem value="deposito">Depósito</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </AccordionContent>
             </AccordionItem>
 
-            {/* Dimensões e Peso */}
+            {/* Passo 4 - Dimensões e Peso */}
             <AccordionItem value="dimensoes">
               <AccordionTrigger>
                 <div className="flex items-center space-x-2">
-                  <span className="flex items-center justify-center w-8 h-8 bg-novura-primary text-white rounded-full text-sm font-medium">3</span>
-                  <span className="font-medium">Dimensões e Peso</span>
+                  <span className="flex items-center justify-center w-8 h-8 bg-novura-primary text-white rounded-full text-sm font-medium">4</span>
+                  <span className="font-medium">Dimensões e Peso do Pacote</span>
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pt-4">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="altura">Altura (cm)</Label>
+                    <Label htmlFor="altura">Altura (cm) *</Label>
                     <Input
                       id="altura"
                       type="number"
@@ -200,7 +247,7 @@ export function EditarProduto() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="largura">Largura (cm)</Label>
+                    <Label htmlFor="largura">Largura (cm) *</Label>
                     <Input
                       id="largura"
                       type="number"
@@ -213,37 +260,101 @@ export function EditarProduto() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="profundidade">Profundidade (cm)</Label>
+                    <Label htmlFor="comprimento">Comprimento (cm) *</Label>
                     <Input
-                      id="profundidade"
+                      id="comprimento"
                       type="number"
                       step="0.1"
-                      value={produto.dimensoes.profundidade}
+                      value={produto.dimensoes.comprimento}
                       onChange={(e) => setProduto({
                         ...produto,
-                        dimensoes: {...produto.dimensoes, profundidade: parseFloat(e.target.value)}
+                        dimensoes: {...produto.dimensoes, comprimento: parseFloat(e.target.value)}
                       })}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="peso">Peso (kg)</Label>
+                    <Label htmlFor="peso">Peso (gramas) *</Label>
                     <Input
                       id="peso"
                       type="number"
-                      step="0.01"
                       value={produto.peso}
-                      onChange={(e) => setProduto({...produto, peso: parseFloat(e.target.value)})}
+                      onChange={(e) => setProduto({...produto, peso: parseInt(e.target.value)})}
                     />
                   </div>
                 </div>
               </AccordionContent>
             </AccordionItem>
 
-            {/* Mapeamento */}
+            {/* Passo 5 - Informações Fiscais */}
+            <AccordionItem value="fiscais">
+              <AccordionTrigger>
+                <div className="flex items-center space-x-2">
+                  <span className="flex items-center justify-center w-8 h-8 bg-novura-primary text-white rounded-full text-sm font-medium">5</span>
+                  <span className="font-medium">Informações Fiscais</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="codigoBarras">Código de Barras *</Label>
+                    <Input
+                      id="codigoBarras"
+                      value={produto.codigoBarras}
+                      onChange={(e) => setProduto({...produto, codigoBarras: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="ncm">NCM *</Label>
+                    <Input
+                      id="ncm"
+                      value={produto.ncm}
+                      onChange={(e) => setProduto({...produto, ncm: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cest">CEST</Label>
+                    <Input
+                      id="cest"
+                      value={produto.cest}
+                      onChange={(e) => setProduto({...produto, cest: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="unidade">Unidade de Medida</Label>
+                    <Select value={produto.unidade} onValueChange={(value) => setProduto({...produto, unidade: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a unidade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="UN">UN - Unidade</SelectItem>
+                        <SelectItem value="KG">KG - Quilograma</SelectItem>
+                        <SelectItem value="MT">MT - Metro</SelectItem>
+                        <SelectItem value="LT">LT - Litro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="origem">Origem</Label>
+                    <Select value={produto.origem} onValueChange={(value) => setProduto({...produto, origem: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a origem" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">0 - Nacional</SelectItem>
+                        <SelectItem value="1">1 - Estrangeira - Importação direta</SelectItem>
+                        <SelectItem value="2">2 - Estrangeira - Adquirida no mercado interno</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Passo 6 - Mapeamento */}
             <AccordionItem value="mapeamento">
               <AccordionTrigger>
                 <div className="flex items-center space-x-2">
-                  <span className="flex items-center justify-center w-8 h-8 bg-novura-primary text-white rounded-full text-sm font-medium">4</span>
+                  <span className="flex items-center justify-center w-8 h-8 bg-novura-primary text-white rounded-full text-sm font-medium">6</span>
                   <span className="font-medium">Mapeamento de Anúncios</span>
                 </div>
               </AccordionTrigger>
