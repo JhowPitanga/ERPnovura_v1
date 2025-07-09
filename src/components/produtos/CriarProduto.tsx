@@ -15,7 +15,11 @@ import { ProductTypeSelector } from "./criar/ProductTypeSelector";
 import { ProductForm } from "./criar/ProductForm";
 import { ImageUpload } from "./criar/ImageUpload";
 import { VariationForm } from "./criar/VariationForm";
+import { StockForm } from "./criar/StockForm";
+import { DimensionsForm } from "./criar/DimensionsForm";
+import { TaxForm } from "./criar/TaxForm";
 import { NavigationButtons } from "./criar/NavigationButtons";
+import { CloseConfirmationDialog } from "./criar/CloseConfirmationDialog";
 import { stepsUnico, stepsVariacoes } from "./criar/constants";
 import { FormData, Variacao } from "./criar/types";
 
@@ -26,6 +30,7 @@ export function CriarProduto() {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [productSaved, setProductSaved] = useState(false);
   const [variacoes, setVariacoes] = useState<Variacao[]>([]);
+  const [showCloseDialog, setShowCloseDialog] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     tipo: "",
     nome: "",
@@ -33,7 +38,6 @@ export function CriarProduto() {
     categoria: "",
     marca: "",
     descricao: "",
-    precoVenda: "",
     precoCusto: "",
     estoque: "",
     armazem: "",
@@ -41,6 +45,7 @@ export function CriarProduto() {
     largura: "",
     comprimento: "",
     peso: "",
+    codigoBarras: "",
     ncm: "",
     cest: "",
     unidade: "",
@@ -52,16 +57,22 @@ export function CriarProduto() {
   };
 
   const getMaxSteps = () => {
-    return productType === "variacao" ? 5 : 5;
+    return 6;
   };
 
   const nextStep = () => {
     if (currentStep < getMaxSteps()) {
-      if (currentStep === 4 && !productSaved) {
+      if (currentStep === 5 && !productSaved) {
         setProductSaved(true);
         console.log("Produto salvo:", formData);
       }
       setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const backStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
     }
   };
 
@@ -78,7 +89,11 @@ export function CriarProduto() {
     navigate('/produtos');
   };
 
-  const handleClose = () => {
+  const handleCloseRequest = () => {
+    setShowCloseDialog(true);
+  };
+
+  const handleConfirmClose = () => {
     navigate('/produtos');
   };
 
@@ -86,14 +101,14 @@ export function CriarProduto() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto p-8 space-y-8">
+      <div className="max-w-7xl mx-auto p-8 space-y-8">
         {/* Header with Close Button */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Criar Novo Produto</h1>
             <p className="text-gray-600 text-lg">Siga os passos para cadastrar seu produto</p>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleClose}>
+          <Button variant="ghost" size="sm" onClick={handleCloseRequest}>
             <X className="w-5 h-5 mr-2" />
             Fechar
           </Button>
@@ -104,7 +119,7 @@ export function CriarProduto() {
 
         {/* Step Content */}
         <Card className="shadow-lg">
-          <CardContent className="p-8">
+          <CardContent className="p-10">
             {currentStep === 1 && (
               <ProductTypeSelector 
                 productType={productType} 
@@ -143,179 +158,25 @@ export function CriarProduto() {
             )}
 
             {currentStep === 3 && productType === "unico" && (
-              <div className="space-y-8">
-                <div>
-                  <h3 className="text-xl font-semibold mb-6">Preços e Estoque</h3>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="precoVenda">Preço de Venda *</Label>
-                      <Input
-                        id="precoVenda"
-                        type="number"
-                        step="0.01"
-                        value={formData.precoVenda}
-                        onChange={(e) => handleInputChange("precoVenda", e.target.value)}
-                        placeholder="0,00"
-                        className="mt-2"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="precoCusto">Preço de Custo</Label>
-                      <Input
-                        id="precoCusto"
-                        type="number"
-                        step="0.01"
-                        value={formData.precoCusto}
-                        onChange={(e) => handleInputChange("precoCusto", e.target.value)}
-                        placeholder="0,00"
-                        className="mt-2"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="estoque">Quantidade em Estoque</Label>
-                      <Input
-                        id="estoque"
-                        type="number"
-                        value={formData.estoque}
-                        onChange={(e) => handleInputChange("estoque", e.target.value)}
-                        placeholder="0"
-                        className="mt-2"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="armazem">Armazém</Label>
-                      <Select value={formData.armazem} onValueChange={(value) => handleInputChange("armazem", value)}>
-                        <SelectTrigger className="mt-2">
-                          <SelectValue placeholder="Selecione o armazém" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="principal">Armazém Principal</SelectItem>
-                          <SelectItem value="secundario">Armazém Secundário</SelectItem>
-                          <SelectItem value="externo">Armazém Externo</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <StockForm formData={formData} onInputChange={handleInputChange} />
             )}
 
             {currentStep === 3 && productType === "variacao" && (
               <VariationForm variacoes={variacoes} onVariacoesChange={setVariacoes} />
             )}
 
-            {currentStep === 4 && productType === "unico" && (
-              <div className="space-y-8">
-                <div>
-                  <h3 className="text-xl font-semibold mb-6">Detalhes Técnicos</h3>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="altura">Altura (cm)</Label>
-                      <Input
-                        id="altura"
-                        type="number"
-                        step="0.1"
-                        value={formData.altura}
-                        onChange={(e) => handleInputChange("altura", e.target.value)}
-                        placeholder="0.0"
-                        className="mt-2"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="largura">Largura (cm)</Label>
-                      <Input
-                        id="largura"
-                        type="number"
-                        step="0.1"
-                        value={formData.largura}
-                        onChange={(e) => handleInputChange("largura", e.target.value)}
-                        placeholder="0.0"
-                        className="mt-2"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="comprimento">Comprimento (cm)</Label>
-                      <Input
-                        id="comprimento"
-                        type="number"
-                        step="0.1"
-                        value={formData.comprimento}
-                        onChange={(e) => handleInputChange("comprimento", e.target.value)}
-                        placeholder="0.0"
-                        className="mt-2"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="peso">Peso (kg)</Label>
-                      <Input
-                        id="peso"
-                        type="number"
-                        step="0.001"
-                        value={formData.peso}
-                        onChange={(e) => handleInputChange("peso", e.target.value)}
-                        placeholder="0.000"
-                        className="mt-2"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="ncm">NCM *</Label>
-                      <Input
-                        id="ncm"
-                        value={formData.ncm}
-                        onChange={(e) => handleInputChange("ncm", e.target.value)}
-                        placeholder="00000000"
-                        className="mt-2"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="cest">CEST (Opcional)</Label>
-                      <Input
-                        id="cest"
-                        value={formData.cest}
-                        onChange={(e) => handleInputChange("cest", e.target.value)}
-                        placeholder="0000000"
-                        className="mt-2"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="unidade">Unidade</Label>
-                      <Select value={formData.unidade} onValueChange={(value) => handleInputChange("unidade", value)}>
-                        <SelectTrigger className="mt-2">
-                          <SelectValue placeholder="Selecione a unidade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="un">Unidade</SelectItem>
-                          <SelectItem value="kg">Quilograma</SelectItem>
-                          <SelectItem value="g">Grama</SelectItem>
-                          <SelectItem value="l">Litro</SelectItem>
-                          <SelectItem value="ml">Mililitro</SelectItem>
-                          <SelectItem value="m">Metro</SelectItem>
-                          <SelectItem value="cm">Centímetro</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="origem">Origem</Label>
-                      <Select value={formData.origem} onValueChange={(value) => handleInputChange("origem", value)}>
-                        <SelectTrigger className="mt-2">
-                          <SelectValue placeholder="Selecione a origem" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="0">0 - Nacional</SelectItem>
-                          <SelectItem value="1">1 - Estrangeira - Importação direta</SelectItem>
-                          <SelectItem value="2">2 - Estrangeira - Adquirida no mercado interno</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            {currentStep === 4 && (
+              <DimensionsForm formData={formData} onInputChange={handleInputChange} />
             )}
 
-            {currentStep === 4 && productType === "variacao" && (
+            {currentStep === 5 && productType === "unico" && (
+              <TaxForm formData={formData} onInputChange={handleInputChange} />
+            )}
+
+            {currentStep === 5 && productType === "variacao" && (
               <div className="space-y-8">
                 <div>
-                  <h3 className="text-xl font-semibold mb-6">Detalhes Técnicos por Variação</h3>
+                  <h3 className="text-xl font-semibold mb-6">Informações Fiscais por Variação</h3>
                   {variacoes.length > 0 ? (
                     <Accordion type="single" collapsible className="space-y-4">
                       {variacoes.map((variacao) => (
@@ -324,46 +185,21 @@ export function CriarProduto() {
                             <span className="font-medium">{variacao.nome}</span>
                           </AccordionTrigger>
                           <AccordionContent className="px-4 pb-4">
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <Label>Altura (cm)</Label>
-                                <Input type="number" step="0.1" placeholder="0.0" className="mt-2" />
-                              </div>
-                              <div>
-                                <Label>Largura (cm)</Label>
-                                <Input type="number" step="0.1" placeholder="0.0" className="mt-2" />
-                              </div>
-                              <div>
-                                <Label>Comprimento (cm)</Label>
-                                <Input type="number" step="0.1" placeholder="0.0" className="mt-2" />
-                              </div>
-                              <div>
-                                <Label>Peso (kg)</Label>
-                                <Input type="number" step="0.001" placeholder="0.000" className="mt-2" />
-                              </div>
-                              <div>
-                                <Label>NCM *</Label>
-                                <Input placeholder="00000000" className="mt-2" />
-                              </div>
-                              <div>
-                                <Label>CEST (Opcional)</Label>
-                                <Input placeholder="0000000" className="mt-2" />
-                              </div>
-                            </div>
+                            <TaxForm formData={formData} onInputChange={handleInputChange} />
                           </AccordionContent>
                         </AccordionItem>
                       ))}
                     </Accordion>
                   ) : (
                     <p className="text-gray-500 text-center py-8">
-                      Adicione variações na etapa anterior para configurar os detalhes técnicos.
+                      Adicione variações na etapa anterior para configurar as informações fiscais.
                     </p>
                   )}
                 </div>
               </div>
             )}
 
-            {currentStep === 5 && (
+            {currentStep === 6 && (
               <div className="space-y-8">
                 <div>
                   <h3 className="text-xl font-semibold mb-6">Vincular Anúncios</h3>
@@ -476,7 +312,15 @@ export function CriarProduto() {
           maxSteps={getMaxSteps()}
           productType={productType}
           onNext={nextStep}
+          onBack={backStep}
           onSave={handleSave}
+        />
+
+        {/* Close Confirmation Dialog */}
+        <CloseConfirmationDialog
+          open={showCloseDialog}
+          onOpenChange={setShowCloseDialog}
+          onConfirm={handleConfirmClose}
         />
       </div>
     </div>

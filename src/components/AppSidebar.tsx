@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { 
   Home, 
@@ -48,44 +49,44 @@ export function AppSidebar() {
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path + "/");
 
   return (
-    <Sidebar className="border-r-0 bg-white" collapsible="icon">
+    <Sidebar className="border-r-0 bg-white w-60" collapsible="icon">
       <SidebarContent className="bg-white">
         {/* Header with Logo */}
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-novura-primary rounded-xl flex items-center justify-center shadow-lg">
-              <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-novura-primary rounded-full"></div>
+        <div className="p-8 border-b border-gray-100">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-novura-primary rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
+                <div className="w-3 h-3 bg-novura-primary rounded-full"></div>
               </div>
             </div>
             {!isCollapsed && (
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Novura</h1>
-                <p className="text-xs text-gray-500 font-medium">ERP Inteligente</p>
+                <h1 className="text-2xl font-bold text-gray-900">Novura</h1>
+                <p className="text-sm text-gray-500 font-medium">ERP Inteligente</p>
               </div>
             )}
           </div>
         </div>
 
-        <SidebarGroup className="mt-6 px-4">
+        <SidebarGroup className="mt-8 px-6">
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-2">
+            <SidebarMenu className="space-y-3">
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden ${
+                      className={`flex items-center space-x-4 px-5 py-4 rounded-xl transition-all duration-300 group relative overflow-hidden ${
                         isActive(item.url)
                           ? "bg-novura-primary text-white shadow-lg"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                       }`}
                     >
-                      <item.icon className={`w-5 h-5 flex-shrink-0 ${
+                      <item.icon className={`w-6 h-6 flex-shrink-0 ${
                         isActive(item.url) ? "text-white" : "text-gray-500 group-hover:text-novura-primary"
                       }`} />
                       {!isCollapsed && (
-                        <span className="font-medium text-sm">{item.title}</span>
+                        <span className="font-medium text-base">{item.title}</span>
                       )}
                     </NavLink>
                   </SidebarMenuButton>
@@ -97,20 +98,20 @@ export function AppSidebar() {
 
         {/* User Profile */}
         {!isCollapsed && (
-          <div className="p-4 mt-auto">
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+          <div className="p-6 mt-auto">
+            <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-novura-primary rounded-xl flex items-center justify-center shadow-lg">
-                    <User className="w-5 h-5 text-white" />
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-novura-primary rounded-xl flex items-center justify-center shadow-lg">
+                    <User className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <span className="text-sm font-semibold text-gray-900">João Silva</span>
-                    <p className="text-xs text-gray-600">Admin</p>
+                    <span className="text-base font-semibold text-gray-900">João Silva</span>
+                    <p className="text-sm text-gray-600">Admin</p>
                   </div>
                 </div>
-                <button className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm border border-gray-100 hover:bg-gray-50 transition-colors">
-                  <Settings className="w-4 h-4 text-gray-600" />
+                <button className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-gray-100 hover:bg-gray-50 transition-colors">
+                  <Settings className="w-5 h-5 text-gray-600" />
                 </button>
               </div>
             </div>

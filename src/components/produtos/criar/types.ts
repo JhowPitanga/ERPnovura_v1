@@ -18,7 +18,6 @@ export interface FormData {
   categoria: string;
   marca: string;
   descricao: string;
-  precoVenda: string;
   precoCusto: string;
   estoque: string;
   armazem: string;
@@ -26,6 +25,7 @@ export interface FormData {
   largura: string;
   comprimento: string;
   peso: string;
+  codigoBarras: string;
   ncm: string;
   cest: string;
   unidade: string;
