@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Plus, Search, MoreHorizontal, Edit, Eye, Trash2, Copy, Package, Link, Filter } from "lucide-react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { CleanNavigation } from "@/components/CleanNavigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -458,6 +458,11 @@ function ProdutosKits() {
 }
 
 export default function Produtos() {
+  const location = useLocation();
+  
+  // Check if we're on create or edit pages
+  const isCreateOrEditPage = location.pathname.includes('/criar') || location.pathname.includes('/editar');
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gray-50">
@@ -503,25 +508,29 @@ export default function Produtos() {
             </div>
           </header>
 
-          {/* Navigation */}
-          <CleanNavigation items={navigationItems} basePath="/produtos" />
+          {/* Navigation - Only show on main listing pages */}
+          {!isCreateOrEditPage && (
+            <CleanNavigation items={navigationItems} basePath="/produtos" />
+          )}
           
           {/* Main Content */}
           <main className="flex-1 overflow-auto">
             <div className="p-6">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Gestão de Produtos</h1>
-                  <p className="text-gray-600">Gerencie seus produtos de forma inteligente</p>
+              {/* Header - Only show on main listing pages */}
+              {!isCreateOrEditPage && (
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-900">Gestão de Produtos</h1>
+                    <p className="text-gray-600">Gerencie seus produtos de forma inteligente</p>
+                  </div>
+                  <Button className="bg-novura-primary hover:bg-novura-primary/90" asChild>
+                    <a href="/produtos/criar">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Novo Produto
+                    </a>
+                  </Button>
                 </div>
-                <Button className="bg-novura-primary hover:bg-novura-primary/90" asChild>
-                  <a href="/produtos/criar">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Novo Produto
-                  </a>
-                </Button>
-              </div>
+              )}
 
               {/* Routes */}
               <Routes>
