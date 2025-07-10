@@ -213,6 +213,28 @@ export function EditKitWrapper() {
     }
   };
 
+  const formDataPT = {
+    tipo: formData.type,
+    nome: formData.name,
+    sku: formData.sku,
+    categoria: formData.category,
+    marca: formData.brand,
+    descricao: formData.description,
+    precoCusto: formData.costPrice,
+    precoVenda: formData.sellPrice,
+    estoque: formData.stock,
+    armazem: formData.warehouse,
+    altura: formData.height,
+    largura: formData.width,
+    comprimento: formData.length,
+    peso: formData.weight,
+    tipoUnidade: formData.unitType,
+    codigoBarras: formData.barcode,
+    ncm: formData.ncm,
+    cest: formData.cest,
+    origem: formData.origin,
+  };
+
   const handleInputChangePT = (field: string, value: string) => {
     // Convert Portuguese field names to English
     const fieldMap: Record<string, string> = {
@@ -238,6 +260,15 @@ export function EditKitWrapper() {
     const englishField = fieldMap[field] || field;
     handleInputChange(englishField, value);
   };
+
+  const kitItemsPT = kitItems.map(item => ({
+    id: item.id,
+    nome: item.name,
+    sku: item.sku,
+    tipo: item.type,
+    quantidade: item.quantity,
+    imagem: item.image
+  }));
 
   const handleKitItemsChange = (items: any[]) => {
     // Convert back to English format
@@ -312,7 +343,7 @@ export function EditKitWrapper() {
               </AccordionTrigger>
               <AccordionContent className="pt-4">
                 <ProductForm 
-                  formData={formData} 
+                  formData={formDataPT} 
                   onInputChange={handleInputChangePT} 
                   includeSku={true} 
                 />
@@ -345,11 +376,11 @@ export function EditKitWrapper() {
               </AccordionTrigger>
               <AccordionContent className="pt-4">
                 <KitForm 
-                  formData={formData} 
+                  formData={formDataPT} 
                   onInputChange={handleInputChangePT}
                   etapaAtual={kitEtapa}
                   onEtapaChange={setKitEtapa}
-                  kitItems={kitItems}
+                  kitItems={kitItemsPT}
                   onKitItemsChange={handleKitItemsChange}
                   editMode={true}
                 />
