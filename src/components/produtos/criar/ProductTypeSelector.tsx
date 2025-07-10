@@ -15,7 +15,7 @@ export function ProductTypeSelector({ productType, onProductTypeChange }: Produc
       description: "Produto simples sem variações"
     },
     {
-      id: "variacao",
+      id: "variacao", 
       icon: Layers,
       title: "Com Variações",
       description: "Produto com cores, tamanhos, etc."
@@ -27,6 +27,11 @@ export function ProductTypeSelector({ productType, onProductTypeChange }: Produc
       description: "Conjunto de produtos vendidos juntos"
     }
   ];
+
+  const handleTypeSelect = (typeId: string) => {
+    console.log("Product type selected:", typeId);
+    onProductTypeChange(typeId);
+  };
 
   return (
     <div className="space-y-8">
@@ -43,7 +48,15 @@ export function ProductTypeSelector({ productType, onProductTypeChange }: Produc
                     ? "border-novura-primary bg-novura-primary/5"
                     : "border-gray-200 hover:border-gray-300"
                 }`}
-                onClick={() => onProductTypeChange(type.id)}
+                onClick={() => handleTypeSelect(type.id)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleTypeSelect(type.id);
+                  }
+                }}
               >
                 <IconComponent className="w-10 h-10 text-novura-primary mb-4" />
                 <h4 className="font-semibold mb-2 text-lg">{type.title}</h4>

@@ -27,6 +27,7 @@ export function VariationTypeSelector({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const toggleTipo = (tipo: typeof tiposVariacao[0]) => {
+    console.log("Toggling variation type:", tipo.id);
     const tipoExiste = tiposSelecionados.find(t => t.id === tipo.id);
     
     if (tipoExiste) {
@@ -37,8 +38,12 @@ export function VariationTypeSelector({
   };
 
   const addCustomType = () => {
-    if (!customType.trim()) return;
+    if (!customType.trim()) {
+      console.log("Custom type is empty, not adding");
+      return;
+    }
     
+    console.log("Adding custom type:", customType.trim());
     const customId = `custom_${Date.now()}`;
     const newType: TipoVariacao = {
       id: customId,
