@@ -18,3 +18,10 @@ export const stepsVariacoes: Step[] = [
   { id: 5, title: "Informações Fiscais", description: "Dados fiscais por variação" },
   { id: 6, title: "Vincular Anúncios", description: "Conecte por variação" },
 ];
+
+export const stepsKit: Step[] = [
+  { id: 1, title: "Tipo de Produto", description: "Escolha o tipo de produto" },
+  { id: 2, title: "Informações do Kit", description: "Dados básicos do kit" },
+  { id: 3, title: "Produtos do Kit", description: "Adicione produtos ao kit" },
+  { id: 4, title: "Vincular Anúncios", description: "Conecte aos marketplaces" },
+];

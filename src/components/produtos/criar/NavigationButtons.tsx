@@ -12,6 +12,7 @@ interface NavigationButtonsProps {
   onNext: () => void;
   onBack: () => void;
   onSave: () => void;
+  kitEtapa?: "info" | "produtos";
 }
 
 export function NavigationButtons({ 
@@ -23,7 +24,8 @@ export function NavigationButtons({
   loading = false,
   onNext, 
   onBack,
-  onSave 
+  onSave,
+  kitEtapa
 }: NavigationButtonsProps) {
   // Check if we can proceed based on current step and product type
   const canProceed = () => {
@@ -34,6 +36,11 @@ export function NavigationButtons({
       return canProceedVariation();
     }
     
+    // For kit products in step 3, always allow navigation
+    if (currentStep === 3 && productType === "kit") {
+      return true;
+    }
+    
     return true;
   };
 
@@ -41,6 +48,11 @@ export function NavigationButtons({
   const shouldShowBackButton = () => {
     // Always show back button for step 3 variations, even in the first sub-step
     if (currentStep === 3 && productType === "variacao") {
+      return true;
+    }
+    
+    // For kit products in step 3 produtos sub-step, show back button
+    if (currentStep === 3 && productType === "kit" && kitEtapa === "produtos") {
       return true;
     }
     
@@ -54,6 +66,12 @@ export function NavigationButtons({
       if (variationEtapa === "opcoes") return "Gerar Variações";
       if (variationEtapa === "configuracao") return "Próximo";
     }
+    
+    if (currentStep === 3 && productType === "kit") {
+      if (kitEtapa === "info") return "Próximo";
+      if (kitEtapa === "produtos") return "Próximo";
+    }
+    
     return "Próximo";
   };
 
@@ -74,7 +92,7 @@ export function NavigationButtons({
       <div className="flex-1" />
 
       {/* Next/Save Buttons */}
-      {currentStep < 5 ? (
+      {(currentStep < 5 && productType !== "kit") || (currentStep < 4 && productType === "kit") ? (
         <Button 
           onClick={onNext} 
           className="bg-novura-primary hover:bg-novura-primary/90"
@@ -84,7 +102,7 @@ export function NavigationButtons({
           {getNextButtonText()}
           <ArrowRight className="w-5 h-5 ml-2" />
         </Button>
-      ) : currentStep === 5 ? (
+      ) : (currentStep === 5 && productType !== "kit") ? (
         <Button 
           onClick={onNext} 
           className="bg-novura-primary hover:bg-novura-primary/90"

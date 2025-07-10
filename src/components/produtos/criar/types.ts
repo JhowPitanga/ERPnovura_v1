@@ -58,3 +58,12 @@ export interface Step {
   title: string;
   description: string;
 }
+
+export interface KitItem {
+  id: string;
+  name: string;
+  sku: string;
+  type: "unico" | "variacao";
+  quantidade: number;
+  image?: string;
+}

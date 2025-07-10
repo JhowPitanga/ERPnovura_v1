@@ -21,8 +21,9 @@ import { DimensionsForm } from "./criar/DimensionsForm";
 import { TaxForm } from "./criar/TaxForm";
 import { NavigationButtons } from "./criar/NavigationButtons";
 import { CloseConfirmationDialog } from "./criar/CloseConfirmationDialog";
-import { stepsUnico, stepsVariacoes } from "./criar/constants";
-import { FormData, Variacao, TipoVariacao } from "./criar/types";
+import { stepsUnico, stepsVariacoes, stepsKit } from "./criar/constants";
+import { FormData, Variacao, TipoVariacao, KitItem } from "./criar/types";
+import { KitForm } from "./criar/KitForm";
 import { VariationDimensionsForm } from "./criar/VariationDimensionsForm";
 import { VariationTaxForm } from "./criar/VariationTaxForm";
 
@@ -40,6 +41,10 @@ export function CriarProduto() {
   // New state for variation form
   const [variationEtapa, setVariationEtapa] = useState<"tipos" | "opcoes" | "configuracao">("tipos");
   const [tiposVariacao, setTiposVariacao] = useState<TipoVariacao[]>([]);
+  
+  // Kit state
+  const [kitEtapa, setKitEtapa] = useState<"info" | "produtos">("info");
+  const [kitItems, setKitItems] = useState<KitItem[]>([]);
   
   const [formData, setFormData] = useState<FormData>({
     tipo: "",
@@ -64,16 +69,26 @@ export function CriarProduto() {
   });
 
   const getCurrentSteps = () => {
-    return productType === "variacao" ? stepsVariacoes : stepsUnico;
+    if (productType === "variacao") return stepsVariacoes;
+    if (productType === "kit") return stepsKit;
+    return stepsUnico;
   };
 
   const getMaxSteps = () => {
+    if (productType === "kit") return 4;
     return 6;
   };
 
   const nextStep = async () => {
     if (currentStep < getMaxSteps()) {
-      if (currentStep === 5 && !productSaved) {
+      // For kits, handle step 3 (products) progression
+      if (productType === "kit" && currentStep === 3) {
+        if (kitEtapa === "info") {
+          setKitEtapa("produtos");
+        } else if (kitEtapa === "produtos") {
+          setCurrentStep(currentStep + 1);
+        }
+      } else if (currentStep === 5 && !productSaved && productType !== "kit") {
         await handleCreateProduct();
       } else {
         setCurrentStep(currentStep + 1);
@@ -143,7 +158,10 @@ export function CriarProduto() {
   };
 
   const backStep = () => {
-    if (currentStep > 1) {
+    // For kits, handle step 3 (products) back navigation
+    if (productType === "kit" && currentStep === 3 && kitEtapa === "produtos") {
+      setKitEtapa("info");
+    } else if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
   };
@@ -329,6 +347,23 @@ export function CriarProduto() {
               </div>
             )}
 
+            {currentStep === 2 && productType === "kit" && (
+              <div className="space-y-8">
+                <div>
+                  <h3 className="text-xl font-semibold mb-6">Informações do Kit</h3>
+                  <ProductForm 
+                    formData={formData} 
+                    onInputChange={handleInputChange} 
+                    includeSku={true} 
+                  />
+                  <ImageUpload 
+                    selectedImages={selectedImages} 
+                    onImagesChange={setSelectedImages} 
+                  />
+                </div>
+              </div>
+            )}
+
             {currentStep === 3 && productType === "unico" && (
               <StockForm formData={formData} onInputChange={handleInputChange} />
             )}
@@ -341,6 +376,17 @@ export function CriarProduto() {
                 onEtapaChange={setVariationEtapa}
                 tiposVariacao={tiposVariacao}
                 onTiposVariacaoChange={setTiposVariacao}
+              />
+            )}
+
+            {currentStep === 3 && productType === "kit" && (
+              <KitForm 
+                formData={formData} 
+                onInputChange={handleInputChange}
+                etapaAtual={kitEtapa}
+                onEtapaChange={setKitEtapa}
+                kitItems={kitItems}
+                onKitItemsChange={setKitItems}
               />
             )}
 
@@ -360,7 +406,7 @@ export function CriarProduto() {
               <VariationTaxForm variacoes={variacoes} onVariacoesChange={setVariacoes} />
             )}
 
-            {currentStep === 6 && (
+            {((currentStep === 6 && productType !== "kit") || (currentStep === 4 && productType === "kit")) && (
               <div className="space-y-8">
                 <div>
                   <h3 className="text-xl font-semibold mb-6">Vincular Anúncios</h3>
@@ -506,6 +552,7 @@ export function CriarProduto() {
           loading={createLoading}
           onNext={currentStep === 3 && productType === "variacao" ? handleVariationNext : nextStep}
           onBack={currentStep === 3 && productType === "variacao" ? handleVariationBack : backStep}
+          kitEtapa={kitEtapa}
           onSave={handleSave}
         />
 
