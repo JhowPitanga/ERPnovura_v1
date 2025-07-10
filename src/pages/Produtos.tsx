@@ -150,7 +150,7 @@ function ProductTable({ products, loading }: { products: any[]; loading: boolean
               </TableRow>
             ) : (
               products.map((product) => {
-                const stockAmount = product.products_stock?.[0]?.current || 0;
+                const stockAmount = product.products_stock?.current || 0;
                 const categoryName = product.categories?.name || 'Sem categoria';
                 const imageUrl = product.image_urls?.[0] || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=300&h=300&fit=crop';
                 
