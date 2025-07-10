@@ -1,18 +1,19 @@
 
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { VariationStep, KitStep } from "@/types/products";
 
 interface NavigationButtonsProps {
   currentStep: number;
   maxSteps: number;
   productType: string;
-  variationEtapa?: "tipos" | "opcoes" | "configuracao";
+  variationEtapa?: VariationStep;
   canProceedVariation?: () => boolean;
   loading?: boolean;
   onNext: () => void;
   onBack: () => void;
   onSave: () => void;
-  kitEtapa?: "info" | "produtos";
+  kitEtapa?: KitStep;
 }
 
 export function NavigationButtons({ 
@@ -32,7 +33,7 @@ export function NavigationButtons({
     if (currentStep === 1 && !productType) return false;
     
     // For variation products in step 3, use the specific variation logic
-    if (currentStep === 3 && productType === "variacao" && canProceedVariation) {
+    if (currentStep === 3 && productType === "variation" && canProceedVariation) {
       return canProceedVariation();
     }
     
@@ -47,12 +48,12 @@ export function NavigationButtons({
   // Determine if we should show back button
   const shouldShowBackButton = () => {
     // Always show back button for step 3 variations, even in the first sub-step
-    if (currentStep === 3 && productType === "variacao") {
+    if (currentStep === 3 && productType === "variation") {
       return true;
     }
     
-    // For kit products in step 3 produtos sub-step, show back button
-    if (currentStep === 3 && productType === "kit" && kitEtapa === "produtos") {
+    // For kit products in step 3 products sub-step, show back button
+    if (currentStep === 3 && productType === "kit" && kitEtapa === "products") {
       return true;
     }
     
@@ -61,18 +62,18 @@ export function NavigationButtons({
 
   // Get the next button text based on current state
   const getNextButtonText = () => {
-    if (currentStep === 3 && productType === "variacao") {
-      if (variationEtapa === "tipos") return "Próximo";
-      if (variationEtapa === "opcoes") return "Gerar Variações";
-      if (variationEtapa === "configuracao") return "Próximo";
+    if (currentStep === 3 && productType === "variation") {
+      if (variationEtapa === "types") return "Next";
+      if (variationEtapa === "options") return "Generate Variations";
+      if (variationEtapa === "configuration") return "Next";
     }
     
     if (currentStep === 3 && productType === "kit") {
-      if (kitEtapa === "info") return "Próximo";
-      if (kitEtapa === "produtos") return "Próximo";
+      if (kitEtapa === "info") return "Next";
+      if (kitEtapa === "products") return "Next";
     }
     
-    return "Próximo";
+    return "Next";
   };
 
   return (
@@ -85,7 +86,7 @@ export function NavigationButtons({
           size="lg"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
-          Voltar
+          Back
         </Button>
       )}
 
@@ -110,7 +111,7 @@ export function NavigationButtons({
           disabled={loading}
         >
           <Check className="w-5 h-5 mr-2" />
-          {loading ? "Salvando..." : "Salvar e Continuar"}
+          {loading ? "Saving..." : "Save and Continue"}
         </Button>
       ) : (
         <Button 
@@ -119,7 +120,7 @@ export function NavigationButtons({
           size="lg"
         >
           <Check className="w-5 h-5 mr-2" />
-          Fazer depois
+          Do Later
         </Button>
       )}
     </div>

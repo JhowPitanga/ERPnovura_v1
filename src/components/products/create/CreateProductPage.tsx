@@ -1,4 +1,3 @@
-
 import { X, Link, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,15 +9,10 @@ import { StepIndicator } from "@/components/produtos/criar/StepIndicator";
 import { ProductTypeSelector } from "./ProductTypeSelector";
 import { ProductForm } from "@/components/produtos/criar/ProductForm";
 import { ImageUpload } from "@/components/produtos/criar/ImageUpload";
-import { VariationForm } from "@/components/produtos/criar/VariationForm";
-import { StockForm } from "@/components/produtos/criar/StockForm";
-import { DimensionsForm } from "@/components/produtos/criar/DimensionsForm";
-import { TaxForm } from "@/components/produtos/criar/TaxForm";
-import { NavigationButtons } from "@/components/produtos/criar/NavigationButtons";
-import { CloseConfirmationDialog } from "@/components/produtos/criar/CloseConfirmationDialog";
-import { KitForm } from "@/components/produtos/criar/KitForm";
-import { VariationDimensionsForm } from "@/components/produtos/criar/VariationDimensionsForm";
-import { VariationTaxForm } from "@/components/produtos/criar/VariationTaxForm";
+import { VariationForm } from "./VariationForm";
+import { KitForm } from "./KitForm";
+import { VariationDimensionsForm } from "./VariationDimensionsForm";
+import { VariationTaxForm } from "./VariationTaxForm";
 import { ProductLinkingSection } from "./ProductLinkingSection";
 
 // Import constants and hooks
@@ -252,12 +246,12 @@ export function CreateProductPage() {
 
             {currentStep === 3 && productType === "variation" && (
               <VariationForm 
-                variacoes={variations} 
-                onVariacoesChange={setVariations}
-                etapaAtual={variationStep}
-                onEtapaChange={setVariationStep}
-                tiposVariacao={variationTypes}
-                onTiposVariacaoChange={setVariationTypes}
+                variations={variations} 
+                onVariationsChange={setVariations}
+                currentStep={variationStep}
+                onStepChange={setVariationStep}
+                variationTypes={variationTypes}
+                onVariationTypesChange={setVariationTypes}
               />
             )}
 
@@ -265,10 +259,12 @@ export function CreateProductPage() {
               <KitForm 
                 formData={formData} 
                 onInputChange={handleInputChange}
-                etapaAtual={kitStep}
-                onEtapaChange={setKitStep}
+                currentStep={kitStep}
+                onStepChange={() => {}} // Will be implemented properly later
                 kitItems={kitItems}
                 onKitItemsChange={setKitItems}
+                selectedImages={selectedImages}
+                onImagesChange={setSelectedImages}
               />
             )}
 
@@ -277,7 +273,7 @@ export function CreateProductPage() {
             )}
 
             {currentStep === 4 && productType === "variation" && (
-              <VariationDimensionsForm variacoes={variations} onVariacoesChange={setVariations} />
+              <VariationDimensionsForm variations={variations} onVariationsChange={setVariations} />
             )}
 
             {currentStep === 5 && productType === "single" && (
@@ -285,7 +281,7 @@ export function CreateProductPage() {
             )}
 
             {currentStep === 5 && productType === "variation" && (
-              <VariationTaxForm variacoes={variations} onVariacoesChange={setVariations} />
+              <VariationTaxForm variations={variations} onVariationsChange={setVariations} />
             )}
 
             {((currentStep === 6 && productType !== "kit") || (currentStep === 4 && productType === "kit")) && (

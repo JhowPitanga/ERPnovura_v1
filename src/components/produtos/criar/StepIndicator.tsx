@@ -1,9 +1,9 @@
 
 import { Check } from "lucide-react";
-import { Step } from "./types";
+import { ProductStep } from "@/types/products";
 
 interface StepIndicatorProps {
-  steps: Step[];
+  steps: ProductStep[];
   currentStep: number;
 }
 

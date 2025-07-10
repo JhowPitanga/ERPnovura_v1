@@ -1,10 +1,10 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FormData } from "./types";
+import { ProductFormData } from "@/types/products";
 
 interface DimensionsFormProps {
-  formData: FormData;
+  formData: ProductFormData;
   onInputChange: (field: string, value: string) => void;
 }
 
@@ -12,52 +12,52 @@ export function DimensionsForm({ formData, onInputChange }: DimensionsFormProps)
   return (
     <div className="space-y-8">
       <div>
-        <h3 className="text-xl font-semibold mb-6">Dimensões e Peso da Embalagem</h3>
+        <h3 className="text-xl font-semibold mb-6">Package Dimensions and Weight</h3>
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <Label htmlFor="altura">Altura (cm) *</Label>
+            <Label htmlFor="height">Height (cm) *</Label>
             <Input
-              id="altura"
+              id="height"
               type="number"
               step="0.1"
-              value={formData.altura}
-              onChange={(e) => onInputChange("altura", e.target.value)}
+              value={formData.height}
+              onChange={(e) => onInputChange("height", e.target.value)}
               placeholder="0.0"
               className="mt-2"
             />
           </div>
           <div>
-            <Label htmlFor="largura">Largura (cm) *</Label>
+            <Label htmlFor="width">Width (cm) *</Label>
             <Input
-              id="largura"
+              id="width"
               type="number"
               step="0.1"
-              value={formData.largura}
-              onChange={(e) => onInputChange("largura", e.target.value)}
+              value={formData.width}
+              onChange={(e) => onInputChange("width", e.target.value)}
               placeholder="0.0"
               className="mt-2"
             />
           </div>
           <div>
-            <Label htmlFor="comprimento">Comprimento (cm) *</Label>
+            <Label htmlFor="length">Length (cm) *</Label>
             <Input
-              id="comprimento"
+              id="length"
               type="number"
               step="0.1"
-              value={formData.comprimento}
-              onChange={(e) => onInputChange("comprimento", e.target.value)}
+              value={formData.length}
+              onChange={(e) => onInputChange("length", e.target.value)}
               placeholder="0.0"
               className="mt-2"
             />
           </div>
           <div>
-            <Label htmlFor="peso">Peso do Pacote (gramas) *</Label>
+            <Label htmlFor="weight">Package Weight (grams) *</Label>
             <Input
-              id="peso"
+              id="weight"
               type="number"
               step="1"
-              value={formData.peso}
-              onChange={(e) => onInputChange("peso", e.target.value)}
+              value={formData.weight}
+              onChange={(e) => onInputChange("weight", e.target.value)}
               placeholder="0"
               className="mt-2"
             />
