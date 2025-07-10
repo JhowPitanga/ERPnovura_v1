@@ -263,6 +263,29 @@ export function EditKitWrapper() {
     handleInputChange(englishField, value);
   };
 
+  // Convert kit items to Portuguese format for the KitForm component
+  const kitItemsPT = kitItems.map(item => ({
+    id: item.id,
+    nome: item.name,
+    sku: item.sku,
+    tipo: item.type,
+    quantidade: item.quantity,
+    imagem: item.image
+  }));
+
+  const handleKitItemsChange = (items: any[]) => {
+    // Convert back to English format
+    const englishItems: KitItem[] = items.map(item => ({
+      id: item.id,
+      name: item.nome,
+      sku: item.sku,
+      type: item.tipo,
+      quantity: item.quantidade,
+      image: item.imagem
+    }));
+    setKitItems(englishItems);
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -360,8 +383,8 @@ export function EditKitWrapper() {
                   onInputChange={handleInputChangePT}
                   etapaAtual={kitEtapa}
                   onEtapaChange={setKitEtapa}
-                  kitItems={kitItems}
-                  onKitItemsChange={setKitItems}
+                  kitItems={kitItemsPT}
+                  onKitItemsChange={handleKitItemsChange}
                   editMode={true}
                 />
               </AccordionContent>

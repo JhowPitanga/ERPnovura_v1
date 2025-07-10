@@ -107,15 +107,19 @@ export function VariationForm({
         
         {currentStep === "types" && (
           <VariationTypeSelector
-            tiposVariacao={convertTypesToPT(variationTypes)}
-            onTiposVariacaoChange={(types) => onVariationTypesChange(convertTypesFromPT(types))}
+            tiposSelecionados={convertTypesToPT(variationTypes)}
+            onTiposChange={(types) => onVariationTypesChange(convertTypesFromPT(types))}
           />
         )}
 
         {currentStep === "options" && (
           <VariationOptionsForm
             tiposVariacao={convertTypesToPT(variationTypes)}
-            onTiposVariacaoChange={(types) => onVariationTypesChange(convertTypesFromPT(types))}
+            onTiposChange={(types) => onVariationTypesChange(convertTypesFromPT(types))}
+            onVariacoesGenerate={() => {
+              // Generate variations logic would go here
+              console.log("Generate variations");
+            }}
           />
         )}
 
