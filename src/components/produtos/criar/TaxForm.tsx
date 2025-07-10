@@ -2,10 +2,10 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FormData } from "./types";
+import { ProductFormData } from "@/types/products";
 
 interface TaxFormProps {
-  formData: FormData;
+  formData: ProductFormData;
   onInputChange: (field: string, value: string) => void;
 }
 
@@ -13,16 +13,16 @@ export function TaxForm({ formData, onInputChange }: TaxFormProps) {
   return (
     <div className="space-y-8">
       <div>
-        <h3 className="text-xl font-semibold mb-6">Informações Fiscais</h3>
+        <h3 className="text-xl font-semibold mb-6">Tax Information</h3>
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <Label htmlFor="codigoBarras">Código de Barras (EAN)</Label>
+              <Label htmlFor="barcode">Barcode (EAN)</Label>
               <Input
-                id="codigoBarras"
-                value={formData.codigoBarras}
-                onChange={(e) => onInputChange("codigoBarras", e.target.value)}
-                placeholder="Código de barras do produto"
+                id="barcode"
+                value={formData.barcode}
+                onChange={(e) => onInputChange("barcode", e.target.value)}
+                placeholder="Product barcode"
                 className="mt-2"
               />
             </div>
@@ -53,40 +53,40 @@ export function TaxForm({ formData, onInputChange }: TaxFormProps) {
 
           <div className="space-y-4">
             <div>
-              <Label htmlFor="tipoUnidade">Unidade de Medida</Label>
+              <Label htmlFor="unitType">Unit of Measure</Label>
               <Select
-                value={formData.tipoUnidade}
-                onValueChange={(value) => onInputChange("tipoUnidade", value)}
+                value={formData.unitType}
+                onValueChange={(value) => onInputChange("unitType", value)}
               >
                 <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Selecione a unidade" />
+                  <SelectValue placeholder="Select unit" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="UN">Unidade (UN)</SelectItem>
-                  <SelectItem value="KG">Quilograma (KG)</SelectItem>
-                  <SelectItem value="PAR">Par (PAR)</SelectItem>
+                  <SelectItem value="UN">Unit (UN)</SelectItem>
+                  <SelectItem value="KG">Kilogram (KG)</SelectItem>
+                  <SelectItem value="PAR">Pair (PAR)</SelectItem>
                   <SelectItem value="KIT">Kit (KIT)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label htmlFor="origem">Origem</Label>
+              <Label htmlFor="origin">Origin</Label>
               <Select
-                value={formData.origem}
-                onValueChange={(value) => onInputChange("origem", value)}
+                value={formData.origin}
+                onValueChange={(value) => onInputChange("origin", value)}
               >
                 <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Selecione a origem" />
+                  <SelectValue placeholder="Select origin" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="0">0 - Nacional</SelectItem>
-                  <SelectItem value="1">1 - Estrangeira - Importação direta</SelectItem>
-                  <SelectItem value="2">2 - Estrangeira - Adquirida no mercado interno</SelectItem>
-                  <SelectItem value="3">3 - Nacional - Conteúdo de importação superior a 40%</SelectItem>
-                  <SelectItem value="4">4 - Nacional - Produção em conformidade com processos produtivos básicos</SelectItem>
-                  <SelectItem value="5">5 - Nacional - Conteúdo de importação inferior ou igual a 40%</SelectItem>
-                  <SelectItem value="6">6 - Estrangeira - Importação direta sem similar nacional</SelectItem>
-                  <SelectItem value="7">7 - Estrangeira - Adquirida no mercado interno sem similar nacional</SelectItem>
+                  <SelectItem value="0">0 - National</SelectItem>
+                  <SelectItem value="1">1 - Foreign - Direct import</SelectItem>
+                  <SelectItem value="2">2 - Foreign - Acquired in domestic market</SelectItem>
+                  <SelectItem value="3">3 - National - Import content over 40%</SelectItem>
+                  <SelectItem value="4">4 - National - Production in compliance with basic productive processes</SelectItem>
+                  <SelectItem value="5">5 - National - Import content 40% or less</SelectItem>
+                  <SelectItem value="6">6 - Foreign - Direct import without national similar</SelectItem>
+                  <SelectItem value="7">7 - Foreign - Acquired in domestic market without national similar</SelectItem>
                 </SelectContent>
               </Select>
             </div>
