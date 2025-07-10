@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Search, Filter, Settings, FileText, Printer, Bot, TrendingUp, Zap, QrCode, Check, Calendar, Download, X, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { 
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { PedidoDetails } from "@/components/pedidos/PedidoDetails";
 import { ScannerModal } from "@/components/pedidos/ScannerModal";
 import { VincularPedidoModal } from "@/components/pedidos/VincularPedidoModal";
@@ -310,12 +318,14 @@ export default function Pedidos() {
   const [selectedPedido, setSelectedPedido] = useState(null);
   const [selectedPedidosImpressao, setSelectedPedidosImpressao] = useState<string[]>([]);
   const [selectedPedidosEmissao, setSelectedPedidosEmissao] = useState<string[]>([]);
+  const [selectedPedidosCancelados, setSelectedPedidosCancelados] = useState<string[]>([]);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [shippingTypeFilter, setShippingTypeFilter] = useState("all");
   const [situacaoFilter, setSituacaoFilter] = useState("all");
   const [canceladosFilter, setCanceladosFilter] = useState("all");
   const [selectAll, setSelectAll] = useState(false);
   const [selectAllEmissao, setSelectAllEmissao] = useState(false);
+  const [selectAllCancelados, setSelectAllCancelados] = useState(false);
   const [dateRange, setDateRange] = useState<Date | undefined>(undefined);
   const [orderNumberFilter, setOrderNumberFilter] = useState("");
   const [vincularModalOpen, setVincularModalOpen] = useState(false);
@@ -323,6 +333,8 @@ export default function Pedidos() {
   const [emissaoDrawerOpen, setEmissaoDrawerOpen] = useState(false);
   const [printConfigOpen, setPrintConfigOpen] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState<string[]>([]);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const currentPedidos = mockPedidos[activeStatus] || [];
   
@@ -355,6 +367,12 @@ export default function Pedidos() {
     );
   }
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredPedidos.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedPedidos = filteredPedidos.slice(startIndex, endIndex);
+
   const toggleOrderExpansion = (orderId: string) => {
     setExpandedOrders(prev => 
       prev.includes(orderId) 
@@ -381,11 +399,20 @@ export default function Pedidos() {
     }
   };
 
+  const handleSelectPedidoCancelado = (pedidoId: string, checked: boolean | string) => {
+    const isChecked = checked === true;
+    if (isChecked) {
+      setSelectedPedidosCancelados([...selectedPedidosCancelados, pedidoId]);
+    } else {
+      setSelectedPedidosCancelados(selectedPedidosCancelados.filter(id => id !== pedidoId));
+    }
+  };
+
   const handleSelectAll = (checked: boolean | string) => {
     const isChecked = checked === true;
     setSelectAll(isChecked);
     if (isChecked) {
-      setSelectedPedidosImpressao(filteredPedidos.map(pedido => pedido.id));
+      setSelectedPedidosImpressao(paginatedPedidos.map(pedido => pedido.id));
     } else {
       setSelectedPedidosImpressao([]);
     }
@@ -395,9 +422,20 @@ export default function Pedidos() {
     const isChecked = checked === true;
     setSelectAllEmissao(isChecked);
     if (isChecked) {
-      setSelectedPedidosEmissao(filteredPedidos.map(pedido => pedido.id));
+      setSelectedPedidosEmissao(paginatedPedidos.map(pedido => pedido.id));
     } else {
       setSelectedPedidosEmissao([]);
+    }
+  };
+
+  const handleSelectAllCancelados = (checked: boolean | string) => {
+    const isChecked = checked === true;
+    setSelectAllCancelados(isChecked);
+    if (isChecked) {
+      const devolucaoPedidos = paginatedPedidos.filter(pedido => pedido.status === "Devolução").map(pedido => pedido.id);
+      setSelectedPedidosCancelados(devolucaoPedidos);
+    } else {
+      setSelectedPedidosCancelados([]);
     }
   };
 
@@ -440,6 +478,14 @@ export default function Pedidos() {
     { value: "Devolução", label: "Emitir devolução" }
   ];
 
+  const itemsPerPageOptions = [
+    { value: "10", label: "10 por página" },
+    { value: "20", label: "20 por página" },
+    { value: "50", label: "50 por página" },
+    { value: "100", label: "100 por página" },
+    { value: "300", label: "300 por página" }
+  ];
+
   return (
     <TooltipProvider>
       <SidebarProvider>
@@ -452,9 +498,9 @@ export default function Pedidos() {
               <SidebarTrigger className="mr-4" />
               <div className="flex-1 flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="w-8 h-8 bg-novura-primary rounded-xl flex items-center justify-center shadow-lg">
+                  <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center shadow-lg">
                     <div className="w-4 h-4 bg-white rounded-sm flex items-center justify-center">
-                      <div className="w-2 h-2 bg-novura-primary rounded-full"></div>
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
                     </div>
                   </div>
                   <h2 className="text-lg font-semibold text-gray-900">Pedidos</h2>
@@ -480,7 +526,7 @@ export default function Pedidos() {
                     <Card
                       key={block.id}
                       className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 border-0 bg-white text-gray-900 overflow-hidden relative ${
-                        activeStatus === block.id ? "ring-2 ring-novura-primary shadow-lg scale-105 bg-novura-primary text-white" : ""
+                        activeStatus === block.id ? "ring-2 ring-primary shadow-lg scale-105 bg-primary text-white" : ""
                       }`}
                       onClick={() => setActiveStatus(block.id)}
                     >
@@ -562,7 +608,7 @@ export default function Pedidos() {
 
                   {/* Export Button - for Todos tab */}
                   {activeStatus === "todos" && (
-                    <Button className="h-12 px-6 rounded-2xl bg-novura-primary shadow-lg">
+                    <Button className="h-12 px-6 rounded-2xl bg-primary shadow-lg">
                       <Download className="w-4 h-4 mr-2" />
                       Exportar Pedidos
                     </Button>
@@ -598,7 +644,7 @@ export default function Pedidos() {
 
                       <Button 
                         onClick={() => setScannerOpen(true)}
-                        className="h-12 px-6 rounded-2xl bg-novura-primary shadow-lg"
+                        className="h-12 px-6 rounded-2xl bg-primary shadow-lg"
                       >
                         <QrCode className="w-4 h-4 mr-2" />
                         Checkout de Impressão
@@ -621,7 +667,7 @@ export default function Pedidos() {
                   {activeStatus === "emissao" && (
                     <>
                       <Button 
-                        className={`h-12 px-6 rounded-2xl bg-green-600 shadow-lg transition-opacity ${
+                        className={`h-12 px-6 rounded-2xl bg-primary shadow-lg transition-opacity ${
                           selectedPedidosEmissao.length === 0 ? 'opacity-50' : 'opacity-100'
                         }`}
                         disabled={selectedPedidosEmissao.length === 0}
@@ -632,7 +678,7 @@ export default function Pedidos() {
                       </Button>
                       
                       <Button 
-                        className="h-12 px-6 rounded-2xl bg-green-600 shadow-lg"
+                        className="h-12 px-6 rounded-2xl bg-primary shadow-lg"
                         onClick={() => handleEmitirNF('mass')}
                       >
                         <FileText className="w-4 h-4 mr-2" />
@@ -640,46 +686,100 @@ export default function Pedidos() {
                       </Button>
                     </>
                   )}
+
+                  {/* Cancelados Actions */}
+                  {activeStatus === "cancelados" && (
+                    <Button 
+                      className={`h-12 px-6 rounded-2xl bg-primary shadow-lg transition-opacity ${
+                        selectedPedidosCancelados.length === 0 ? 'opacity-50' : 'opacity-100'
+                      }`}
+                      disabled={selectedPedidosCancelados.length === 0}
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Emitir Devoluções ({selectedPedidosCancelados.length})
+                    </Button>
+                  )}
                 </div>
 
                 {/* Pedidos List */}
                 <Card className="border-0 shadow-xl rounded-3xl overflow-hidden bg-white">
                   <CardContent className="p-0">
-                    {(activeStatus === "impressao" || activeStatus === "emissao") && (
+                    {/* Table Headers */}
+                    <div className="bg-gray-50 border-b border-gray-100 px-6 py-4">
+                      <div className="flex items-center space-x-4">
+                        {(activeStatus === "impressao" || activeStatus === "emissao" || 
+                          (activeStatus === "cancelados" && canceladosFilter === "Devolução")) && (
+                          <div className="w-8"></div>
+                        )}
+                        <div className="w-24 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          ID do Pedido
+                        </div>
+                        <div className="w-12"></div>
+                        <div className="flex-1 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          Produto
+                        </div>
+                        <div className="w-20 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          Itens
+                        </div>
+                        <div className="w-32 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          Valor do Pedido
+                        </div>
+                        <div className="w-32 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          Marketplace
+                        </div>
+                        <div className="w-28 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          ID Plataforma
+                        </div>
+                        <div className="w-32 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          Tipo de Envio
+                        </div>
+                        <div className="w-32"></div>
+                      </div>
+                    </div>
+
+                    {/* Select All Row */}
+                    {(activeStatus === "impressao" || activeStatus === "emissao" || 
+                      (activeStatus === "cancelados" && canceladosFilter === "Devolução")) && (
                       <div className="flex items-center space-x-4 p-4 bg-gray-50 border-b border-gray-100">
                         <Checkbox
-                          checked={activeStatus === "impressao" ? selectAll : selectAllEmissao}
-                          onCheckedChange={activeStatus === "impressao" ? handleSelectAll : handleSelectAllEmissao}
+                          checked={activeStatus === "impressao" ? selectAll : activeStatus === "emissao" ? selectAllEmissao : selectAllCancelados}
+                          onCheckedChange={activeStatus === "impressao" ? handleSelectAll : activeStatus === "emissao" ? handleSelectAllEmissao : handleSelectAllCancelados}
                         />
                         <span className="text-sm font-medium text-gray-700">
-                          Selecionar todos ({filteredPedidos.length} pedidos)
+                          Selecionar todos ({paginatedPedidos.length} pedidos{activeStatus === "cancelados" ? " para devolução" : ""})
                         </span>
                       </div>
                     )}
                     
                     <div className="space-y-0">
-                      {filteredPedidos.map((pedido) => (
+                      {paginatedPedidos.map((pedido) => (
                         <div key={pedido.id}>
                           <div className="flex items-center justify-between p-3 hover:bg-gray-50 transition-all duration-200 border-b border-gray-100 last:border-0 group">
                             <div className="flex items-center space-x-4 flex-1">
-                              {(activeStatus === "impressao" || activeStatus === "emissao") && (
+                              {(activeStatus === "impressao" || activeStatus === "emissao" || 
+                                (activeStatus === "cancelados" && pedido.status === "Devolução")) && (
                                 <Checkbox
                                   checked={activeStatus === "impressao" 
                                     ? selectedPedidosImpressao.includes(pedido.id)
-                                    : selectedPedidosEmissao.includes(pedido.id)
+                                    : activeStatus === "emissao"
+                                    ? selectedPedidosEmissao.includes(pedido.id)
+                                    : selectedPedidosCancelados.includes(pedido.id)
                                   }
                                   onCheckedChange={(checked) => 
                                     activeStatus === "impressao" 
                                       ? handleSelectPedidoImpressao(pedido.id, checked)
-                                      : handleSelectPedidoEmissao(pedido.id, checked)
+                                      : activeStatus === "emissao"
+                                      ? handleSelectPedidoEmissao(pedido.id, checked)
+                                      : handleSelectPedidoCancelado(pedido.id, checked)
                                   }
                                 />
                               )}
                               
                               {/* ID do Pedido */}
                               <div className="w-24">
-                                <div className="flex items-center space-x-2">
+                                <div className="flex flex-col space-y-1">
                                   <h3 className="text-sm font-bold text-gray-900">{pedido.id}</h3>
+                                  <p className="text-xs text-gray-500">{pedido.data}</p>
                                 </div>
                               </div>
 
@@ -731,7 +831,6 @@ export default function Pedidos() {
                               {/* Valor Total */}
                               <div className="w-32 text-right">
                                 <p className="text-lg font-bold text-gray-900">R$ {pedido.valor.toFixed(2)}</p>
-                                <p className="text-xs text-gray-500">{pedido.data}</p>
                               </div>
                               
                               {/* Marketplace */}
@@ -789,7 +888,7 @@ export default function Pedidos() {
                                 {activeStatus === "vincular" && (
                                   <Button 
                                     size="sm" 
-                                    className="rounded-2xl bg-novura-primary shadow-lg"
+                                    className="rounded-2xl bg-primary shadow-lg"
                                     onClick={() => handleVincularPedido(pedido)}
                                   >
                                     Vincular
@@ -799,7 +898,7 @@ export default function Pedidos() {
                                 {activeStatus === "emissao" && (
                                   <Button 
                                     size="sm" 
-                                    className="rounded-2xl bg-green-600 shadow-lg"
+                                    className="rounded-2xl bg-primary shadow-lg"
                                     onClick={() => handleEmitirNF('single')}
                                   >
                                     Emitir NF
@@ -809,7 +908,7 @@ export default function Pedidos() {
                                 {activeStatus === "cancelados" && pedido.status === "Devolução" && (
                                   <Button 
                                     size="sm" 
-                                    className="rounded-2xl bg-red-600 shadow-lg"
+                                    className="rounded-2xl bg-primary shadow-lg"
                                   >
                                     Emitir NF-e Devolução
                                   </Button>
@@ -820,8 +919,8 @@ export default function Pedidos() {
 
                           {/* Expanded Items */}
                           {expandedOrders.includes(pedido.id) && pedido.itens && pedido.itens.length > 1 && (
-                            <div className="bg-gray-50 px-8 py-4 border-b border-gray-100">
-                              <div className="space-y-2">
+                            <div className="bg-gray-50 border-b border-gray-100">
+                              <div className="space-y-2 p-4 ml-20">
                                 {pedido.itens.map((item, index) => (
                                   <div key={index} className="flex items-center space-x-4 py-2 bg-white rounded-lg px-4">
                                     <img
@@ -846,6 +945,80 @@ export default function Pedidos() {
                           )}
                         </div>
                       ))}
+                    </div>
+
+                    {/* Pagination */}
+                    <div className="flex items-center justify-between p-6 border-t border-gray-100">
+                      <div className="flex items-center space-x-4">
+                        <span className="text-sm text-gray-600">Itens por página:</span>
+                        <Select 
+                          value={itemsPerPage.toString()} 
+                          onValueChange={(value) => {
+                            setItemsPerPage(parseInt(value));
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <SelectTrigger className="w-40 h-10 rounded-xl border bg-white shadow-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white border shadow-lg">
+                            {itemsPerPageOptions.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <span className="text-sm text-gray-600">
+                          Página {currentPage} de {totalPages}
+                        </span>
+                      </div>
+
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious 
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (currentPage > 1) setCurrentPage(currentPage - 1);
+                              }}
+                              className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                            />
+                          </PaginationItem>
+                          
+                          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                            const pageNumber = i + 1;
+                            return (
+                              <PaginationItem key={pageNumber}>
+                                <PaginationLink
+                                  href="#"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    setCurrentPage(pageNumber);
+                                  }}
+                                  isActive={currentPage === pageNumber}
+                                >
+                                  {pageNumber}
+                                </PaginationLink>
+                              </PaginationItem>
+                            );
+                          })}
+                          
+                          {totalPages > 5 && <PaginationEllipsis />}
+                          
+                          <PaginationItem>
+                            <PaginationNext
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                              }}
+                              className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
                     </div>
                   </CardContent>
                 </Card>
