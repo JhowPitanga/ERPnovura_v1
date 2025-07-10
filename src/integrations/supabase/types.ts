@@ -14,30 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      product_variant_groups: {
-        Row: {
-          active: boolean | null
-          created_at: string
-          id: string
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          active?: boolean | null
-          created_at?: string
-          id?: string
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          active?: boolean | null
-          created_at?: string
-          id?: string
-          name?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       products: {
         Row: {
           barcode: number
@@ -46,9 +22,8 @@ export type Database = {
           cest: number | null
           cost_price: number
           created_at: string
-          description: string | null
+          description: string
           id: string
-          image_urls: string[]
           name: string
           ncm: number
           package_height: number
@@ -70,9 +45,8 @@ export type Database = {
           cest?: number | null
           cost_price: number
           created_at?: string
-          description?: string | null
+          description: string
           id?: string
-          image_urls: string[]
           name: string
           ncm: number
           package_height: number
@@ -94,9 +68,8 @@ export type Database = {
           cest?: number | null
           cost_price?: number
           created_at?: string
-          description?: string | null
+          description?: string
           id?: string
-          image_urls?: string[]
           name?: string
           ncm?: number
           package_height?: number
@@ -121,73 +94,22 @@ export type Database = {
           },
         ]
       }
-      products_stock: {
-        Row: {
-          created_at: string
-          current: number
-          id: number
-          in_transit: number | null
-          product_id: string
-          reserved: number | null
-          storage_id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          current: number
-          id?: number
-          in_transit?: number | null
-          product_id: string
-          reserved?: number | null
-          storage_id: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          current?: number
-          id?: number
-          in_transit?: number | null
-          product_id?: string
-          reserved?: number | null
-          storage_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "products_stock_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: true
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "products_stock_storage_id_fkey"
-            columns: ["storage_id"]
-            isOneToOne: true
-            referencedRelation: "storage"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       storage: {
         Row: {
-          active: boolean
           created_at: string
-          id: string
+          id: number
           name: string
           updated_at: string
         }
         Insert: {
-          active?: boolean
           created_at?: string
-          id?: string
+          id?: number
           name: string
           updated_at?: string
         }
         Update: {
-          active?: boolean
           created_at?: string
-          id?: string
+          id?: number
           name?: string
           updated_at?: string
         }

@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose } from "@/components/ui/drawer";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Plus, Minus, Trash2, Package, Link, ExternalLink } from "lucide-react";
+import { Search, Plus, Minus, Trash2 } from "lucide-react";
 import { FormData } from "./types";
 
 interface KitItem {
@@ -29,12 +29,10 @@ interface KitFormProps {
 }
 
 const mockProdutos = [
-  { id: "1", name: "iPhone 15 Pro", sku: "IPH15P-001", type: "unico" as const, image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=300&h=300&fit=crop" },
-  { id: "2", name: "Camiseta Basic - P - Azul", sku: "CB-001-P-AZ", type: "variacao" as const, image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=300&h=300&fit=crop" },
-  { id: "3", name: "MacBook Air M2", sku: "MBA-M2-002", type: "unico" as const, image: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=300&h=300&fit=crop" },
-  { id: "4", name: "Tênis Esportivo - 38 - Preto", sku: "TE-002-38-PT", type: "variacao" as const, image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=300&h=300&fit=crop" },
-  { id: "5", name: "Samsung Galaxy S24", sku: "SGS24-003", type: "unico" as const, image: "https://images.unsplash.com/photo-1487252665478-49b61b47f302?w=300&h=300&fit=crop" },
-  { id: "6", name: "Notebook Gamer", sku: "NG-004", type: "unico" as const, image: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=300&h=300&fit=crop" },
+  { id: "1", name: "iPhone 15 Pro", sku: "IPH15P-001", type: "unico" as const, image: "/placeholder.svg" },
+  { id: "2", name: "Camiseta Basic - P - Azul", sku: "CB-001-P-AZ", type: "variacao" as const, image: "/placeholder.svg" },
+  { id: "3", name: "MacBook Air M2", sku: "MBA-M2-002", type: "unico" as const, image: "/placeholder.svg" },
+  { id: "4", name: "Tênis Esportivo - 38 - Preto", sku: "TE-002-38-PT", type: "variacao" as const, image: "/placeholder.svg" },
 ];
 
 export function KitForm({ 
@@ -47,7 +45,6 @@ export function KitForm({
 }: KitFormProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const filteredProducts = mockProdutos.filter(produto =>
     produto.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -63,28 +60,20 @@ export function KitForm({
   };
 
   const handleSaveProducts = () => {
-    const newItems = selectedProducts
-      .filter(productId => !kitItems.some(item => item.id === productId))
-      .map(productId => {
-        const product = mockProdutos.find(p => p.id === productId);
-        return {
-          id: productId,
-          name: product?.name || "",
-          sku: product?.sku || "",
-          type: product?.type || "unico",
-          quantidade: 1,
-          image: product?.image
-        } as KitItem;
-      });
+    const newItems = selectedProducts.map(productId => {
+      const product = mockProdutos.find(p => p.id === productId);
+      return {
+        id: productId,
+        name: product?.name || "",
+        sku: product?.sku || "",
+        type: product?.type || "unico",
+        quantidade: 1,
+        image: product?.image
+      } as KitItem;
+    });
     
     onKitItemsChange([...kitItems, ...newItems]);
     setSelectedProducts([]);
-    setDrawerOpen(false);
-  };
-
-  const handleCancelSelection = () => {
-    setSelectedProducts([]);
-    setDrawerOpen(false);
   };
 
   const updateQuantity = (itemId: string, quantidade: number) => {
@@ -171,7 +160,9 @@ export function KitForm({
           <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
             <div className="space-y-4">
               <div className="text-gray-500">
-                <Package className="mx-auto h-12 w-12" />
+                <svg className="mx-auto h-12 w-12" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </div>
               <div>
                 <p className="text-gray-600">Clique para adicionar ou arraste a foto aqui</p>
@@ -191,7 +182,7 @@ export function KitForm({
         <p className="text-gray-600">Adicione os produtos que farão parte deste KIT</p>
       </div>
 
-      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+      <Drawer>
         <DrawerTrigger asChild>
           <Button className="bg-novura-primary hover:bg-novura-primary/90">
             <Plus className="w-4 h-4 mr-2" />
@@ -219,56 +210,49 @@ export function KitForm({
               </div>
 
               <div className="space-y-2 max-h-96 overflow-y-auto">
-                {filteredProducts.map((produto) => {
-                  const isAlreadyInKit = kitItems.some(item => item.id === produto.id);
-                  const isSelected = selectedProducts.includes(produto.id);
-                  
-                  return (
-                    <div key={produto.id} className={`flex items-center space-x-3 p-3 border rounded-lg ${isAlreadyInKit ? 'bg-gray-100 opacity-50' : 'hover:bg-gray-50'}`}>
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={(checked) => handleProductSelection(produto.id, !!checked)}
-                        disabled={isAlreadyInKit}
-                      />
-                      <img
-                        src={produto.image}
-                        alt={produto.name}
-                        className="w-12 h-12 rounded object-cover"
-                      />
-                      <div className="flex-1">
-                        <p className="font-medium">{produto.name}</p>
-                        <div className="flex items-center space-x-2">
-                          <p className="text-sm text-gray-500">SKU: {produto.sku}</p>
-                          <span className={`text-xs px-2 py-1 rounded ${
-                            produto.type === 'unico' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
-                          }`}>
-                            {produto.type === 'unico' ? 'Único' : 'Variação'}
-                          </span>
-                          {isAlreadyInKit && (
-                            <span className="text-xs px-2 py-1 rounded bg-gray-200 text-gray-600">
-                              Já no KIT
-                            </span>
-                          )}
-                        </div>
+                {filteredProducts.map((produto) => (
+                  <div key={produto.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                    <Checkbox
+                      checked={selectedProducts.includes(produto.id)}
+                      onCheckedChange={(checked) => handleProductSelection(produto.id, !!checked)}
+                    />
+                    <img
+                      src={produto.image}
+                      alt={produto.name}
+                      className="w-12 h-12 rounded object-cover"
+                    />
+                    <div className="flex-1">
+                      <p className="font-medium">{produto.name}</p>
+                      <div className="flex items-center space-x-2">
+                        <p className="text-sm text-gray-500">SKU: {produto.sku}</p>
+                        <span className={`text-xs px-2 py-1 rounded ${
+                          produto.type === 'unico' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                        }`}>
+                          {produto.type === 'unico' ? 'Único' : 'Variação'}
+                        </span>
                       </div>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
           <div className="flex gap-3 p-6 border-t">
-            <Button variant="outline" className="flex-1" onClick={handleCancelSelection}>
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleSaveProducts}
-              className="flex-1 bg-novura-primary hover:bg-novura-primary/90"
-              disabled={selectedProducts.length === 0}
-            >
-              Salvar ({selectedProducts.length})
-            </Button>
+            <DrawerClose asChild>
+              <Button variant="outline" className="flex-1">
+                Cancelar
+              </Button>
+            </DrawerClose>
+            <DrawerClose asChild>
+              <Button 
+                onClick={handleSaveProducts}
+                className="flex-1 bg-novura-primary hover:bg-novura-primary/90"
+                disabled={selectedProducts.length === 0}
+              >
+                Salvar ({selectedProducts.length})
+              </Button>
+            </DrawerClose>
           </div>
         </DrawerContent>
       </Drawer>
@@ -289,14 +273,7 @@ export function KitForm({
                       />
                       <div>
                         <p className="font-medium">{item.name}</p>
-                        <div className="flex items-center space-x-2">
-                          <p className="text-sm text-gray-500">SKU: {item.sku}</p>
-                          <span className={`text-xs px-2 py-1 rounded ${
-                            item.type === 'unico' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
-                          }`}>
-                            {item.type === 'unico' ? 'Único' : 'Variação'}
-                          </span>
-                        </div>
+                        <p className="text-sm text-gray-500">SKU: {item.sku}</p>
                       </div>
                     </div>
                     
@@ -310,7 +287,7 @@ export function KitForm({
                         >
                           <Minus className="w-3 h-3" />
                         </Button>
-                        <span className="w-8 text-center font-medium">{item.quantidade}</span>
+                        <span className="w-8 text-center">{item.quantidade}</span>
                         <Button
                           variant="outline"
                           size="sm"

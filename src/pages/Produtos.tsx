@@ -15,12 +15,7 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, Dr
 import { Bell, Users } from "lucide-react";
 import { CriarProduto } from "@/components/produtos/CriarProduto";
 import { EditarProduto } from "@/components/produtos/EditarProduto";
-import { EditarVariacao } from "@/components/produtos/EditarVariacao";
-import { EditarKit } from "@/components/produtos/EditarKit";
 import { CategoryDropdown } from "@/components/produtos/CategoryDropdown";
-import { CriarKit } from "@/components/produtos/CriarKit";
-import { EditarVariacaoAccordion } from "@/components/produtos/EditarVariacaoAccordion";
-import { EditarKitAccordion } from "@/components/produtos/EditarKitAccordion";
 
 const navigationItems = [
   { title: "Únicos", path: "", description: "Produtos únicos" },
@@ -313,7 +308,6 @@ function ProdutosVariacoes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [categories, setCategories] = useState(mockCategories);
-  const [editingProduct, setEditingProduct] = useState<string | null>(null);
   
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -378,69 +372,43 @@ function ProdutosVariacoes() {
                       />
                       <span className="font-medium">{produto.name}</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="outline">{produto.variacoes.length} variações</Badge>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingProduct(editingProduct === produto.id.toString() ? null : produto.id.toString());
-                        }}
-                      >
-                        <Edit className="w-4 h-4 mr-1" />
-                        {editingProduct === produto.id.toString() ? 'Fechar Edição' : 'Editar'}
-                      </Button>
-                    </div>
+                    <Badge variant="outline">{produto.variacoes.length} variações</Badge>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="pt-4">
-                    {editingProduct === produto.id.toString() ? (
-                      <EditarVariacaoAccordion 
-                        produtoId={produto.id.toString()} 
-                        produtoNome={produto.name} 
-                      />
-                    ) : (
-                      <>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>SKU</TableHead>
-                              <TableHead>Tamanho</TableHead>
-                              <TableHead>Cor</TableHead>
-                              <TableHead>Preço</TableHead>
-                              <TableHead>Estoque</TableHead>
-                              <TableHead>Ações</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {produto.variacoes.map((variacao, idx) => (
-                              <TableRow key={idx} className="hover:bg-gray-50/50">
-                                <TableCell className="font-mono text-sm">{variacao.sku}</TableCell>
-                                <TableCell>{variacao.tamanho}</TableCell>
-                                <TableCell>{variacao.cor}</TableCell>
-                                <TableCell>R$ {variacao.price.toFixed(2)}</TableCell>
-                                <TableCell>
-                                  <span className={variacao.stock < 10 ? "text-red-600 font-medium" : "text-gray-900"}>
-                                    {variacao.stock}
-                                  </span>
-                                </TableCell>
-                                <TableCell>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={() => setEditingProduct(produto.id.toString())}
-                                  >
-                                    <Edit className="w-4 h-4" />
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </>
-                    )}
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>SKU</TableHead>
+                          <TableHead>Tamanho</TableHead>
+                          <TableHead>Cor</TableHead>
+                          <TableHead>Preço</TableHead>
+                          <TableHead>Estoque</TableHead>
+                          <TableHead>Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {produto.variacoes.map((variacao, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell className="font-mono text-sm">{variacao.sku}</TableCell>
+                            <TableCell>{variacao.tamanho}</TableCell>
+                            <TableCell>{variacao.cor}</TableCell>
+                            <TableCell>R$ {variacao.price.toFixed(2)}</TableCell>
+                            <TableCell>
+                              <span className={variacao.stock < 10 ? "text-red-600 font-medium" : "text-gray-900"}>
+                                {variacao.stock}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <Button variant="ghost" size="sm">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -456,7 +424,6 @@ function ProdutosKits() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [categories, setCategories] = useState(mockCategories);
-  const [editingKit, setEditingKit] = useState<string | null>(null);
   
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -524,70 +491,46 @@ function ProdutosKits() {
                         <span className="text-sm text-gray-500">SKU: {kit.sku}</span>
                       </div>
                     </div>
-                    <div className="text-right flex items-center space-x-2">
+                    <div className="text-right">
                       <span className="font-medium">R$ {kit.price.toFixed(2)}</span>
-                      <Badge variant="outline">{kit.produtos.length} itens</Badge>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingKit(editingKit === kit.id.toString() ? null : kit.id.toString());
-                        }}
-                      >
-                        <Edit className="w-4 h-4 mr-1" />
-                        {editingKit === kit.id.toString() ? 'Fechar Edição' : 'Editar'}
-                      </Button>
+                      <Badge variant="outline" className="ml-2">{kit.produtos.length} itens</Badge>
                     </div>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="pt-4">
-                    {editingKit === kit.id.toString() ? (
-                      <EditarKitAccordion 
-                        kitId={kit.id.toString()} 
-                        kitNome={kit.name} 
-                      />
-                    ) : (
-                      <>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Produto</TableHead>
-                              <TableHead>SKU</TableHead>
-                              <TableHead>Quantidade</TableHead>
-                              <TableHead>Ações</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {kit.produtos.map((produto, idx) => (
-                              <TableRow key={idx}>
-                                <TableCell className="font-medium">{produto.name}</TableCell>
-                                <TableCell className="font-mono text-sm">{produto.sku}</TableCell>
-                                <TableCell>{produto.quantidade}x</TableCell>
-                                <TableCell>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={() => setEditingKit(kit.id.toString())}
-                                  >
-                                    <Edit className="w-4 h-4" />
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium">Estoque disponível:</span>
-                            <span className={kit.stock < 10 ? "text-red-600 font-medium" : "text-gray-900 font-medium"}>
-                              {kit.stock} kits
-                            </span>
-                          </div>
-                        </div>
-                      </>
-                    )}
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Produto</TableHead>
+                          <TableHead>SKU</TableHead>
+                          <TableHead>Quantidade</TableHead>
+                          <TableHead>Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {kit.produtos.map((produto, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell className="font-medium">{produto.name}</TableCell>
+                            <TableCell className="font-mono text-sm">{produto.sku}</TableCell>
+                            <TableCell>{produto.quantidade}x</TableCell>
+                            <TableCell>
+                              <Button variant="ghost" size="sm">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">Estoque disponível:</span>
+                        <span className={kit.stock < 10 ? "text-red-600 font-medium" : "text-gray-900 font-medium"}>
+                          {kit.stock} kits
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -680,10 +623,7 @@ export default function Produtos() {
                 <Route path="/variacoes" element={<ProdutosVariacoes />} />
                 <Route path="/kits" element={<ProdutosKits />} />
                 <Route path="/criar" element={<CriarProduto />} />
-                <Route path="/kits/criar" element={<CriarKit />} />
                 <Route path="/editar/:id" element={<EditarProduto />} />
-                <Route path="/variacoes/editar/:id" element={<EditarVariacao />} />
-                <Route path="/kits/editar/:id" element={<EditarKit />} />
               </Routes>
             </div>
           </main>
