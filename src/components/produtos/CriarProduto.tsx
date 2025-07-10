@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { ProductTypeSelector } from "./criar/ProductTypeSelector";
 
 export function CriarProduto() {
   const navigate = useNavigate();
-  const [productType, setProductType] = useState<string | null>(null);
+  const [productType, setProductType] = useState<string>("");
   const [currentStep, setCurrentStep] = useState(1);
 
   const nextStep = () => {
@@ -18,6 +19,15 @@ export function CriarProduto() {
   const backStep = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleProductTypeChange = (type: string) => {
+    setProductType(type);
+    
+    // Redirect to specific creation flows
+    if (type === "kit") {
+      navigate('/produtos/kits/criar');
     }
   };
 
@@ -39,15 +49,8 @@ export function CriarProduto() {
           <Card className="shadow-lg">
             <CardContent className="p-10">
               <ProductTypeSelector
-                selectedType={productType}
-                onTypeSelect={(type) => {
-                  setProductType(type);
-                  
-                  // Redirect to specific creation flows
-                  if (type === "kit") {
-                    navigate('/produtos/kits/criar');
-                  }
-                }}
+                productType={productType}
+                onProductTypeChange={handleProductTypeChange}
               />
             </CardContent>
           </Card>
