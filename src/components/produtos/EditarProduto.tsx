@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, Plus, Search, Filter, ExternalLink, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,36 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
-// Mock data para produto
-const mockProduct = {
-  id: 1,
-  nome: "iPhone 15 Pro",
-  sku: "IPH15P-001",
-  descricao: "iPhone 15 Pro com 128GB de armazenamento",
-  categoria: "Eletrônicos",
-  marca: "Apple",
-  custoBuyPrice: 6500.99,
-  estoque: 25,
-  armazem: "Principal",
-  peso: 200, // em gramas
-  dimensoes: {
-    altura: 14.7,
-    largura: 7.1,
-    comprimento: 0.8
-  },
-  codigoBarras: "7891000123456",
-  ncm: "85171231",
-  cest: "0123456",
-  unidade: "UN",
-  origem: "0",
-  imagens: ["/placeholder.svg"],
-  vinculos: [
-    { id: 1, marketplace: "Mercado Livre", sku: "MLB123456789", status: "Ativo", link: "https://mercadolivre.com" },
-    { id: 2, marketplace: "Amazon", sku: "AMZ987654321", status: "Ativo", link: "https://amazon.com" },
-    { id: 3, marketplace: "Shopee", sku: "SHP456789123", status: "Pausado", link: "https://shopee.com" }
-  ]
-};
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const marketplaces = [
   { value: "mercado-livre", label: "Mercado Livre" },
@@ -54,19 +26,186 @@ const marketplaces = [
 export function EditarProduto() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [produto, setProduto] = useState(mockProduct);
+  const { toast } = useToast();
+  const [produto, setProduto] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [openMapeamento, setOpenMapeamento] = useState(false);
   const [selectedMarketplace, setSelectedMarketplace] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+
+  const fetchProduct = async () => {
+    if (!id) {
+      toast({
+        title: "Erro",
+        description: "ID do produto não encontrado",
+        variant: "destructive",
+      });
+      navigate("/produtos");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          categories (
+            id,
+            name
+          ),
+          products_stock (
+            current,
+            in_transit,
+            reserved,
+            storage (
+              id,
+              name
+            )
+          )
+        `)
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching product:', error);
+        toast({
+          title: "Erro",
+          description: "Produto não encontrado",
+          variant: "destructive",
+        });
+        navigate("/produtos");
+        return;
+      }
+
+      // Transform the data to match the expected structure
+      const transformedProduct = {
+        id: data.id,
+        nome: data.name,
+        sku: data.sku,
+        descricao: data.description || "",
+        categoria: data.categories?.name || "",
+        marca: "", // Not available in current schema
+        custoBuyPrice: data.cost_price,
+        estoque: data.products_stock?.[0]?.current || 0,
+        armazem: data.products_stock?.[0]?.storage?.name || "Principal",
+        peso: data.weight || 0,
+        dimensoes: {
+          altura: data.package_height,
+          largura: data.package_width,
+          comprimento: data.package_length
+        },
+        codigoBarras: data.barcode?.toString() || "",
+        ncm: data.ncm?.toString() || "",
+        cest: data.cest?.toString() || "",
+        unidade: "UN", // Default value
+        origem: data.tax_origin_code?.toString() || "0",
+        imagens: data.image_urls || [],
+        vinculos: [] // Mock data for now - marketplace integrations not implemented
+      };
+
+      setProduto(transformedProduct);
+    } catch (err) {
+      console.error('Error:', err);
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar produto",
+        variant: "destructive",
+      });
+      navigate("/produtos");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProduct();
+  }, [id]);
 
   const handleVoltar = () => {
     navigate("/produtos");
   };
 
-  const handleSalvar = () => {
-    console.log("Salvando produto:", produto);
-    // TODO: Implementar salvamento
+  const handleSalvar = async () => {
+    if (!produto || !id) return;
+
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({
+          name: produto.nome,
+          sku: produto.sku,
+          description: produto.descricao,
+          cost_price: produto.custoBuyPrice,
+          package_height: produto.dimensoes.altura,
+          package_width: produto.dimensoes.largura,
+          package_length: produto.dimensoes.comprimento,
+          weight: produto.peso,
+          barcode: parseInt(produto.codigoBarras) || 0,
+          ncm: parseInt(produto.ncm) || 0,
+          cest: produto.cest ? parseInt(produto.cest) : null,
+          tax_origin_code: parseInt(produto.origem) || 0,
+          image_urls: produto.imagens
+        })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error updating product:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao salvar produto",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Sucesso",
+        description: "Produto atualizado com sucesso",
+      });
+    } catch (err) {
+      console.error('Error:', err);
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar produto",
+        variant: "destructive",
+      });
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+          <div className="flex items-center space-x-3">
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-40" />
+          </div>
+        </div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              {[...Array(6)].map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!produto) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-500">Produto não encontrado</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -124,6 +263,7 @@ export function EditarProduto() {
                       id="categoria"
                       value={produto.categoria}
                       onChange={(e) => setProduto({...produto, categoria: e.target.value})}
+                      disabled
                     />
                   </div>
                   <div className="space-y-2">
@@ -147,7 +287,6 @@ export function EditarProduto() {
               </AccordionContent>
             </AccordionItem>
 
-            {/* Passo 2 - Fotos */}
             <AccordionItem value="fotos">
               <AccordionTrigger>
                 <div className="flex items-center space-x-2">
@@ -177,7 +316,6 @@ export function EditarProduto() {
               </AccordionContent>
             </AccordionItem>
 
-            {/* Passo 3 - Preço de Custo */}
             <AccordionItem value="preco-custo">
               <AccordionTrigger>
                 <div className="flex items-center space-x-2">
@@ -198,32 +336,26 @@ export function EditarProduto() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="estoque">Estoque Inicial *</Label>
+                    <Label htmlFor="estoque">Estoque Atual</Label>
                     <Input
                       id="estoque"
                       type="number"
                       value={produto.estoque}
-                      onChange={(e) => setProduto({...produto, estoque: parseInt(e.target.value)})}
+                      disabled
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="armazem">Armazém</Label>
-                    <Select value={produto.armazem} onValueChange={(value) => setProduto({...produto, armazem: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o armazém" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="principal">Principal</SelectItem>
-                        <SelectItem value="secundario">Secundário</SelectItem>
-                        <SelectItem value="deposito">Depósito</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      id="armazem"
+                      value={produto.armazem}
+                      disabled
+                    />
                   </div>
                 </div>
               </AccordionContent>
             </AccordionItem>
 
-            {/* Passo 4 - Dimensões e Peso */}
             <AccordionItem value="dimensoes">
               <AccordionTrigger>
                 <div className="flex items-center space-x-2">
@@ -285,7 +417,6 @@ export function EditarProduto() {
               </AccordionContent>
             </AccordionItem>
 
-            {/* Passo 5 - Informações Fiscais */}
             <AccordionItem value="fiscais">
               <AccordionTrigger>
                 <div className="flex items-center space-x-2">
@@ -350,7 +481,6 @@ export function EditarProduto() {
               </AccordionContent>
             </AccordionItem>
 
-            {/* Passo 6 - Mapeamento */}
             <AccordionItem value="mapeamento">
               <AccordionTrigger>
                 <div className="flex items-center space-x-2">
@@ -377,7 +507,6 @@ export function EditarProduto() {
                           </DrawerDescription>
                         </DrawerHeader>
                         <div className="p-6 space-y-4">
-                          {/* Filtros */}
                           <div className="flex space-x-4">
                             <div className="flex-1">
                               <Select value={selectedMarketplace} onValueChange={setSelectedMarketplace}>
@@ -399,7 +528,6 @@ export function EditarProduto() {
                             </Button>
                           </div>
                           
-                          {/* Barra de Pesquisa */}
                           <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             <Input
@@ -410,17 +538,14 @@ export function EditarProduto() {
                             />
                           </div>
 
-                          {/* Resultados Mock */}
                           <div className="space-y-2 max-h-96 overflow-y-auto">
                             <Card>
                               <CardContent className="p-4">
                                 <div className="flex justify-between items-center">
                                   <div>
-                                    <p className="font-medium">iPhone 15 Pro - Mercado Livre</p>
-                                    <p className="text-sm text-gray-500">SKU: MLB123456789</p>
-                                    <p className="text-sm text-gray-500">ID: 12345</p>
+                                    <p className="font-medium">Nenhum anúncio encontrado</p>
+                                    <p className="text-sm text-gray-500">Funcionalidade em desenvolvimento</p>
                                   </div>
-                                  <Button size="sm">Vincular</Button>
                                 </div>
                               </CardContent>
                             </Card>
@@ -430,45 +555,10 @@ export function EditarProduto() {
                     </Drawer>
                   </div>
 
-                  {/* Tabela de Vínculos */}
                   <Card>
-                    <CardContent className="p-0">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Marketplace</TableHead>
-                            <TableHead>SKU</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Link</TableHead>
-                            <TableHead>Ações</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {produto.vinculos.map((vinculo) => (
-                            <TableRow key={vinculo.id}>
-                              <TableCell className="font-medium">{vinculo.marketplace}</TableCell>
-                              <TableCell className="font-mono text-sm">{vinculo.sku}</TableCell>
-                              <TableCell>
-                                <Badge variant={vinculo.status === "Ativo" ? "default" : "secondary"}>
-                                  {vinculo.status}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                <Button variant="ghost" size="sm" asChild>
-                                  <a href={vinculo.link} target="_blank" rel="noopener noreferrer">
-                                    <ExternalLink className="w-4 h-4" />
-                                  </a>
-                                </Button>
-                              </TableCell>
-                              <TableCell>
-                                <Button variant="ghost" size="sm" className="text-red-600">
-                                  Desvincular
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                    <CardContent className="p-4 text-center text-gray-500">
+                      <p>Nenhum anúncio vinculado</p>
+                      <p className="text-sm">Use o botão acima para adicionar vínculos com marketplaces</p>
                     </CardContent>
                   </Card>
                 </div>
