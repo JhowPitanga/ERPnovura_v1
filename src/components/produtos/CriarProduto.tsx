@@ -85,6 +85,7 @@ export function CriarProduto() {
     try {
       // Validate required fields
       if (!formData.nome || !formData.sku || !formData.precoCusto || !formData.ncm || !formData.origem) {
+        console.log(formData);
         toast({
           title: "Erro",
           description: "Preencha todos os campos obrigatórios",
@@ -153,7 +154,6 @@ export function CriarProduto() {
 
   const handleProductTypeChange = (type: string) => {
     setProductType(type);
-    console.log("CriarProduto");
     handleInputChange("tipo", type);
   };
 
