@@ -45,6 +45,7 @@ export function useProducts() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      console.log(data);
       setProducts(data || []);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar produtos';
