@@ -22,8 +22,9 @@ export type Database = {
           cest: number | null
           cost_price: number
           created_at: string
-          description: string
+          description: string | null
           id: string
+          image_urls: string[]
           name: string
           ncm: number
           package_height: number
@@ -45,8 +46,9 @@ export type Database = {
           cest?: number | null
           cost_price: number
           created_at?: string
-          description: string
+          description?: string | null
           id?: string
+          image_urls: string[]
           name: string
           ncm: number
           package_height: number
@@ -68,8 +70,9 @@ export type Database = {
           cest?: number | null
           cost_price?: number
           created_at?: string
-          description?: string
+          description?: string | null
           id?: string
+          image_urls?: string[]
           name?: string
           ncm?: number
           package_height?: number
@@ -100,7 +103,7 @@ export type Database = {
           current: number
           id: number
           in_transit: number | null
-          product_id: string | null
+          product_id: string
           reserved: number | null
           storage_id: string
           updated_at: string
@@ -110,7 +113,7 @@ export type Database = {
           current: number
           id?: number
           in_transit?: number | null
-          product_id?: string | null
+          product_id: string
           reserved?: number | null
           storage_id: string
           updated_at?: string
@@ -120,7 +123,7 @@ export type Database = {
           current?: number
           id?: number
           in_transit?: number | null
-          product_id?: string | null
+          product_id?: string
           reserved?: number | null
           storage_id?: string
           updated_at?: string
@@ -129,8 +132,15 @@ export type Database = {
           {
             foreignKeyName: "products_stock_product_id_fkey"
             columns: ["product_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_stock_storage_id_fkey"
+            columns: ["storage_id"]
+            isOneToOne: true
+            referencedRelation: "storage"
             referencedColumns: ["id"]
           },
         ]
