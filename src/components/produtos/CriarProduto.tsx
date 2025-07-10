@@ -153,6 +153,7 @@ export function CriarProduto() {
 
   const handleProductTypeChange = (type: string) => {
     setProductType(type);
+    console.log("CriarProduto");
     handleInputChange("tipo", type);
   };
 
