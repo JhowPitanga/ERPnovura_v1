@@ -26,6 +26,7 @@ interface KitFormProps {
   onEtapaChange: (etapa: "info" | "produtos") => void;
   kitItems: KitItem[];
   onKitItemsChange: (items: KitItem[]) => void;
+  editMode?: boolean;
 }
 
 const mockProdutos = [
@@ -39,9 +40,10 @@ export function KitForm({
   formData, 
   onInputChange, 
   etapaAtual, 
-  onEtapaChange,
-  kitItems,
-  onKitItemsChange
+  onEtapaChange, 
+  kitItems, 
+  onKitItemsChange,
+  editMode = false
 }: KitFormProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);

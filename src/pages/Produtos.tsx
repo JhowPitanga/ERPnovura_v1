@@ -15,6 +15,8 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, Dr
 import { Bell, Users } from "lucide-react";
 import { CriarProduto } from "@/components/produtos/CriarProduto";
 import { EditarProduto } from "@/components/produtos/EditarProduto";
+import { EditarVariacao } from "@/components/produtos/EditarVariacao";
+import { EditarKit } from "@/components/produtos/EditarKit";
 import { CategoryDropdown } from "@/components/produtos/CategoryDropdown";
 import { useProducts, useCategories } from "@/hooks/useProducts";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -207,18 +209,23 @@ function ProductTable({ products, loading }: { products: any[]; loading: boolean
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-40">
                           <DropdownMenuItem onClick={() => window.location.href = `/produtos/editar/${product.id}`}>
-                            <Eye className="w-4 h-4 mr-2" />
-                            Visualizar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => window.location.href = `/produtos/editar/${product.id}`}>
                             <Edit className="w-4 h-4 mr-2" />
                             Editar
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                            // TODO: Implement duplicate functionality
+                            console.log('Duplicar produto:', product.id);
+                          }}>
                             <Copy className="w-4 h-4 mr-2" />
                             Duplicar
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
+                          <DropdownMenuItem 
+                            className="text-red-600"
+                            onClick={() => {
+                              // TODO: Implement delete functionality
+                              console.log('Excluir produto:', product.id);
+                            }}
+                          >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Excluir
                           </DropdownMenuItem>
@@ -392,9 +399,27 @@ function ProdutosVariacoes() {
                               </span>
                             </TableCell>
                             <TableCell>
-                              <Button variant="ghost" size="sm">
-                                <Edit className="w-4 h-4" />
-                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <MoreHorizontal className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-40">
+                                  <DropdownMenuItem onClick={() => window.location.href = `/produtos/editar-variacao/${produto.id}`}>
+                                    <Edit className="w-4 h-4 mr-2" />
+                                    Editar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    <Copy className="w-4 h-4 mr-2" />
+                                    Duplicar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="text-red-600">
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Excluir
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -506,9 +531,27 @@ function ProdutosKits() {
                             <TableCell className="font-mono text-sm">{produto.sku}</TableCell>
                             <TableCell>{produto.quantidade}x</TableCell>
                             <TableCell>
-                              <Button variant="ghost" size="sm">
-                                <Edit className="w-4 h-4" />
-                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <MoreHorizontal className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-40">
+                                  <DropdownMenuItem onClick={() => window.location.href = `/produtos/editar-kit/${kit.id}`}>
+                                    <Edit className="w-4 h-4 mr-2" />
+                                    Editar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    <Copy className="w-4 h-4 mr-2" />
+                                    Duplicar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="text-red-600">
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Excluir
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -615,6 +658,8 @@ export default function Produtos() {
                 <Route path="/kits" element={<ProdutosKits />} />
                 <Route path="/criar" element={<CriarProduto />} />
                 <Route path="/editar/:id" element={<EditarProduto />} />
+                <Route path="/editar-variacao/:id" element={<EditarVariacao />} />
+                <Route path="/editar-kit/:id" element={<EditarKit />} />
               </Routes>
             </div>
           </main>

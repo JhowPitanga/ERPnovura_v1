@@ -14,15 +14,17 @@ interface VariationFormProps {
   onEtapaChange: (etapa: "tipos" | "opcoes" | "configuracao") => void;
   tiposVariacao: TipoVariacao[];
   onTiposVariacaoChange: (tipos: TipoVariacao[]) => void;
+  editMode?: boolean;
 }
 
 export function VariationForm({ 
   variacoes, 
-  onVariacoesChange,
-  etapaAtual,
-  onEtapaChange,
-  tiposVariacao,
-  onTiposVariacaoChange
+  onVariacoesChange, 
+  etapaAtual, 
+  onEtapaChange, 
+  tiposVariacao, 
+  onTiposVariacaoChange,
+  editMode = false
 }: VariationFormProps) {
   const handleImageUpload = (variacaoId: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
