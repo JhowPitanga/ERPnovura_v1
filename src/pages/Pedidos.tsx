@@ -283,6 +283,27 @@ const mockPedidos = {
   ]
 };
 
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case "Pendente":
+      return <Badge className="bg-orange-500 text-white">Vincular</Badge>;
+    case "Vinculado":
+      return <Badge className="bg-yellow-500 text-white">Emissão de NF-e</Badge>;
+    case "NF Emitida":
+      return <Badge className="bg-purple-600 text-white">Impressão</Badge>;
+    case "Aguardando":
+      return <Badge className="bg-blue-500 text-white">Aguardando coleta</Badge>;
+    case "Enviado":
+      return <Badge className="bg-green-500 text-white">Enviado</Badge>;
+    case "Cancelado":
+      return <Badge className="bg-gray-500 text-white">Cancelado</Badge>;
+    case "Devolução":
+      return <Badge className="bg-red-500 text-white">Emitir devolução</Badge>;
+    default:
+      return <Badge variant="default">Normal</Badge>;
+  }
+};
+
 export default function Pedidos() {
   const [activeStatus, setActiveStatus] = useState("todos");
   const [searchTerm, setSearchTerm] = useState("");
@@ -292,6 +313,7 @@ export default function Pedidos() {
   const [scannerOpen, setScannerOpen] = useState(false);
   const [shippingTypeFilter, setShippingTypeFilter] = useState("all");
   const [situacaoFilter, setSituacaoFilter] = useState("all");
+  const [canceladosFilter, setCanceladosFilter] = useState("all");
   const [selectAll, setSelectAll] = useState(false);
   const [selectAllEmissao, setSelectAllEmissao] = useState(false);
   const [dateRange, setDateRange] = useState<Date | undefined>(undefined);
@@ -313,6 +335,18 @@ export default function Pedidos() {
   
   if (situacaoFilter !== "all") {
     filteredPedidos = filteredPedidos.filter(pedido => pedido.status === situacaoFilter);
+  }
+
+  // Filter for cancelados tab
+  if (activeStatus === "cancelados" && canceladosFilter !== "all") {
+    filteredPedidos = filteredPedidos.filter(pedido => {
+      if (canceladosFilter === "Cancelado") {
+        return pedido.status === "Cancelado";
+      } else if (canceladosFilter === "Devolução") {
+        return pedido.status === "Devolução";
+      }
+      return true;
+    });
   }
   
   if (orderNumberFilter) {
@@ -400,6 +434,12 @@ export default function Pedidos() {
     ]
   };
 
+  const canceladosOptions = [
+    { value: "all", label: "Todas as situações" },
+    { value: "Cancelado", label: "Cancelado" },
+    { value: "Devolução", label: "Emitir devolução" }
+  ];
+
   return (
     <TooltipProvider>
       <SidebarProvider>
@@ -473,6 +513,22 @@ export default function Pedidos() {
                       </SelectTrigger>
                       <SelectContent className="bg-white border shadow-lg">
                         {(situacaoOptions[activeStatus] || situacaoOptions.todos).map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+
+                  {/* Cancelados Filter */}
+                  {activeStatus === "cancelados" && (
+                    <Select value={canceladosFilter} onValueChange={setCanceladosFilter}>
+                      <SelectTrigger className="w-48 h-12 rounded-2xl border-0 bg-white shadow-lg ring-1 ring-gray-200/60">
+                        <SelectValue placeholder="Situação" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border shadow-lg">
+                        {canceladosOptions.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
                           </SelectItem>
@@ -624,18 +680,6 @@ export default function Pedidos() {
                               <div className="w-24">
                                 <div className="flex items-center space-x-2">
                                   <h3 className="text-sm font-bold text-gray-900">{pedido.id}</h3>
-                                  {pedido.quantidade > 1 && (
-                                    <button
-                                      onClick={() => toggleOrderExpansion(pedido.id)}
-                                      className="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center animate-pulse hover:animate-none transition-all"
-                                    >
-                                      {expandedOrders.includes(pedido.id) ? (
-                                        <ChevronUp className="w-3 h-3 text-white" />
-                                      ) : (
-                                        <ChevronDown className="w-3 h-3 text-white" />
-                                      )}
-                                    </button>
-                                  )}
                                 </div>
                               </div>
 
@@ -664,7 +708,23 @@ export default function Pedidos() {
                               
                               {/* Quantidade */}
                               <div className="w-20 text-center">
-                                <p className="text-sm font-medium text-gray-900">{pedido.quantidade}</p>
+                                <div className="flex items-center justify-center space-x-1">
+                                  <p className={`text-sm font-medium ${pedido.quantidade > 1 ? 'text-purple-600' : 'text-gray-900'}`}>
+                                    {pedido.quantidade}
+                                  </p>
+                                  {pedido.quantidade > 1 && (
+                                    <button
+                                      onClick={() => toggleOrderExpansion(pedido.id)}
+                                      className="w-4 h-4 rounded-full bg-purple-600 flex items-center justify-center animate-pulse hover:animate-none transition-all"
+                                    >
+                                      {expandedOrders.includes(pedido.id) ? (
+                                        <ChevronUp className="w-2 h-2 text-white" />
+                                      ) : (
+                                        <ChevronDown className="w-2 h-2 text-white" />
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
                                 <p className="text-xs text-gray-500">itens</p>
                               </div>
                               

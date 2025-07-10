@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Brain } from "lucide-react";
 
 interface AIIndicatorProps {
   type: "high_margin" | "low_stock" | "delayed_print" | "profit_opportunity";
@@ -43,15 +42,39 @@ export function AIIndicator({ type, suggestion, details }: AIIndicatorProps) {
   return (
     <div className="relative inline-block">
       <div
-        className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-110 group relative overflow-hidden"
+        className="w-6 h-6 rounded-full cursor-pointer transition-all duration-300 hover:scale-110 group relative overflow-hidden"
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
+        style={{
+          background: 'linear-gradient(45deg, #8B5CF6, #A855F7, #C084FC)',
+          boxShadow: '0 0 20px rgba(139, 92, 246, 0.4)'
+        }}
       >
-        <Brain className="w-4 h-4 text-white z-10" />
+        {/* Multiple expanding ripple effects */}
+        <div 
+          className="absolute inset-0 rounded-full border-2 border-purple-400 opacity-40 animate-ping" 
+          style={{ 
+            animationDuration: '2s',
+            animationDelay: '0s'
+          }}
+        ></div>
+        <div 
+          className="absolute inset-0 rounded-full border-2 border-purple-300 opacity-30 animate-ping" 
+          style={{ 
+            animationDuration: '2.5s',
+            animationDelay: '0.5s'
+          }}
+        ></div>
+        <div 
+          className="absolute inset-0 rounded-full border-2 border-purple-200 opacity-20 animate-ping" 
+          style={{ 
+            animationDuration: '3s',
+            animationDelay: '1s'
+          }}
+        ></div>
         
-        {/* Slower Ripple Effects */}
-        <div className="absolute inset-0 rounded-full animate-ping opacity-20 bg-purple-600" style={{ animationDuration: '3s' }}></div>
-        <div className="absolute inset-0 rounded-full animate-pulse opacity-15 bg-purple-600" style={{ animationDuration: '4s' }}></div>
+        {/* Inner glow effect */}
+        <div className="absolute inset-1 rounded-full bg-gradient-to-br from-purple-300 to-purple-600 opacity-80"></div>
       </div>
 
       {/* Tooltip */}
@@ -60,7 +83,12 @@ export function AIIndicator({ type, suggestion, details }: AIIndicatorProps) {
           <CardContent className="p-4">
             <div className="flex items-start space-x-3">
               <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                <Brain className="w-3 h-3 text-purple-600" />
+                <div 
+                  className="w-3 h-3 rounded-full"
+                  style={{
+                    background: 'linear-gradient(45deg, #8B5CF6, #A855F7)',
+                  }}
+                ></div>
               </div>
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-2">
@@ -68,7 +96,12 @@ export function AIIndicator({ type, suggestion, details }: AIIndicatorProps) {
                     {config.title}
                   </Badge>
                   <div className="flex items-center space-x-1">
-                    <Brain className="w-3 h-3 text-novura-primary" />
+                    <div 
+                      className="w-3 h-3 rounded-full"
+                      style={{
+                        background: 'linear-gradient(45deg, #8B5CF6, #A855F7)',
+                      }}
+                    ></div>
                     <span className="text-xs text-novura-primary font-medium">NOVURA AI</span>
                   </div>
                 </div>

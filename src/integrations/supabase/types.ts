@@ -14,87 +14,122 @@ export type Database = {
   }
   public: {
     Tables: {
-      pedidos: {
+      products: {
         Row: {
+          barcode: number
+          brand_id: string | null
+          category_id: string | null
+          cest: number | null
+          cost_price: number
           created_at: string
-          id: number
+          description: string
+          id: string
+          name: string
+          ncm: number
+          package_height: number
+          package_length: number
+          package_width: number
+          sell_price: number | null
+          sku: string
+          tax_origin_code: number
+          type: string
+          updated_at: string
+          user_id: string | null
+          weight: number | null
+          weight_type: string | null
         }
         Insert: {
+          barcode: number
+          brand_id?: string | null
+          category_id?: string | null
+          cest?: number | null
+          cost_price: number
           created_at?: string
-          id?: number
+          description: string
+          id?: string
+          name: string
+          ncm: number
+          package_height: number
+          package_length: number
+          package_width: number
+          sell_price?: number | null
+          sku: string
+          tax_origin_code: number
+          type: string
+          updated_at?: string
+          user_id?: string | null
+          weight?: number | null
+          weight_type?: string | null
         }
         Update: {
+          barcode?: number
+          brand_id?: string | null
+          category_id?: string | null
+          cest?: number | null
+          cost_price?: number
           created_at?: string
-          id?: number
-        }
-        Relationships: []
-      }
-      pedidos_produtos: {
-        Row: {
-          id: number
-          pedido_id: number
-          produto_id: string | null
-        }
-        Insert: {
-          id?: number
-          pedido_id: number
-          produto_id?: string | null
-        }
-        Update: {
-          id?: number
-          pedido_id?: number
-          produto_id?: string | null
+          description?: string
+          id?: string
+          name?: string
+          ncm?: number
+          package_height?: number
+          package_length?: number
+          package_width?: number
+          sell_price?: number | null
+          sku?: string
+          tax_origin_code?: number
+          type?: string
+          updated_at?: string
+          user_id?: string | null
+          weight?: number | null
+          weight_type?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "pedidos_produtos_pedido_id_fkey"
-            columns: ["pedido_id"]
+            foreignKeyName: "products_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "pedidos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pedidos_produtos_produto_id_fkey"
-            columns: ["produto_id"]
-            isOneToOne: false
-            referencedRelation: "products"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
       }
-      products: {
+      storage: {
         Row: {
-          cost_proce: number | null
-          id: string
+          created_at: string
+          id: number
           name: string
+          updated_at: string
         }
         Insert: {
-          cost_proce?: number | null
-          id?: string
+          created_at?: string
+          id?: number
           name: string
+          updated_at?: string
         }
         Update: {
-          cost_proce?: number | null
-          id?: string
+          created_at?: string
+          id?: number
           name?: string
+          updated_at?: string
         }
         Relationships: []
       }
-      profiles: {
+      users: {
         Row: {
-          first_name: string | null
+          created_at: string
           id: string
-          last_name: string | null
+          updated_at: string
         }
         Insert: {
-          first_name?: string | null
-          id: string
-          last_name?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
         }
         Update: {
-          first_name?: string | null
+          created_at?: string
           id?: string
-          last_name?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
