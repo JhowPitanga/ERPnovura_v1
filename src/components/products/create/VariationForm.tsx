@@ -90,24 +90,6 @@ export function VariationForm({
     }));
   };
 
-  const convertStepToPT = (step: VariationStep) => {
-    switch (step) {
-      case "types": return "tipos";
-      case "options": return "opcoes";
-      case "configuration": return "configuracao";
-      default: return "tipos";
-    }
-  };
-
-  const convertStepFromPT = (step: string) => {
-    switch (step) {
-      case "tipos": return "types" as VariationStep;
-      case "opcoes": return "options" as VariationStep;
-      case "configuracao": return "configuration" as VariationStep;
-      default: return "types" as VariationStep;
-    }
-  };
-
   return (
     <div className="space-y-8">
       <div>

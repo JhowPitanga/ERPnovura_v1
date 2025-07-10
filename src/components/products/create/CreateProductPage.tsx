@@ -1,3 +1,4 @@
+
 import { X, Link, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +15,11 @@ import { KitForm } from "./KitForm";
 import { VariationDimensionsForm } from "./VariationDimensionsForm";
 import { VariationTaxForm } from "./VariationTaxForm";
 import { ProductLinkingSection } from "./ProductLinkingSection";
+import { StockForm } from "@/components/produtos/criar/StockForm";
+import { DimensionsForm } from "@/components/produtos/criar/DimensionsForm";
+import { TaxForm } from "@/components/produtos/criar/TaxForm";
+import { NavigationButtons } from "@/components/produtos/criar/NavigationButtons";
+import { CloseConfirmationDialog } from "@/components/produtos/criar/CloseConfirmationDialog";
 
 // Import constants and hooks
 import { stepsUnico, stepsVariacoes, stepsKit } from "@/components/produtos/criar/constants";
