@@ -87,7 +87,7 @@ export function EditarProduto() {
         categoria: data.categories?.name || "",
         marca: "", // Not available in current schema
         custoBuyPrice: data.cost_price,
-        estoque: data.products_stock?.[0]?.current || 0,
+        estoque: data.products_stock?.current || 0,
         armazem: data.products_stock?.[0]?.storage?.name || "Principal",
         peso: data.weight || 0,
         dimensoes: {
