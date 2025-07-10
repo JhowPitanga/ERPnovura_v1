@@ -55,6 +55,7 @@ export function ProductForm({ formData, onInputChange, includeSku = true }: Prod
               <SelectItem value="" disabled>Carregando...</SelectItem>
             ) : (
               categories.map((category) => (
+                console.log("Category Item", category)
                 <SelectItem key={category.id} value={category.id}>
                   {category.name}
                 </SelectItem>
