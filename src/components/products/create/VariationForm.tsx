@@ -90,6 +90,16 @@ export function VariationForm({
     }));
   };
 
+  const handleVariationUpdate = (variacaoId: string, field: string, value: string) => {
+    const updatedVariations = variations.map(variation => {
+      if (variation.id === variacaoId) {
+        return { ...variation, [field]: value };
+      }
+      return variation;
+    });
+    onVariationsChange(updatedVariations);
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -110,10 +120,26 @@ export function VariationForm({
         )}
 
         {currentStep === "configuration" && (
-          <VariationDetailsForm
-            variacoes={convertVariationsToPT(variations)}
-            onVariacoesChange={(variations) => onVariationsChange(convertVariationsFromPT(variations))}
-          />
+          <div className="space-y-6">
+            {variations.map((variation) => (
+              <div key={variation.id} className="border rounded-lg p-4">
+                <h4 className="font-medium mb-4">{variation.name}</h4>
+                <VariationDetailsForm
+                  variacao={convertVariationsToPT([variation])[0]}
+                  onUpdate={(variacaoId, field, value) => {
+                    // Convert field names back to English
+                    const fieldMap: Record<string, string> = {
+                      sku: 'sku',
+                      ean: 'ean',
+                      precoCusto: 'costPrice'
+                    };
+                    const englishField = fieldMap[field] || field;
+                    handleVariationUpdate(variacaoId, englishField, value);
+                  }}
+                />
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>
