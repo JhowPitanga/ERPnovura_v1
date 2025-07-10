@@ -63,7 +63,7 @@ export function StockForm({ formData, onInputChange }: StockFormProps) {
               </SelectTrigger>
               <SelectContent>
                 {storageLoading ? (
-                  <SelectItem value="" disabled>Carregando...</SelectItem>
+                  <SelectItem value="loading" disabled>Carregando...</SelectItem>
                 ) : (
                   storageLocations.map((storage) => (
                     <SelectItem key={storage.id} value={storage.id}>
