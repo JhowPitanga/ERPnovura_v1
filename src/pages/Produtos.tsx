@@ -46,42 +46,6 @@ const mockCategories = [
   { id: "3", name: "Casa e Jardim" },
 ];
 
-// Mock data for different product types - updated structure with images
-const produtosUnicos = [
-  { 
-    id: 1, 
-    name: "iPhone 15 Pro", 
-    sku: "IPH15P-001", 
-    custoBuyPrice: 6500.99, 
-    stock: 25, 
-    categoria: "Eletrônicos",
-    categoryId: "1",
-    vinculos: 3,
-    image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=300&h=300&fit=crop"
-  },
-  { 
-    id: 2, 
-    name: "MacBook Air M2", 
-    sku: "MBA-M2-002", 
-    custoBuyPrice: 8500.99, 
-    stock: 12, 
-    categoria: "Computadores",
-    categoryId: "12",
-    vinculos: 2,
-    image: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=300&h=300&fit=crop"
-  },
-  { 
-    id: 3, 
-    name: "Samsung Galaxy S24", 
-    sku: "SGS24-003", 
-    custoBuyPrice: 4200.99, 
-    stock: 18, 
-    categoria: "Eletrônicos",
-    categoryId: "1",
-    vinculos: 4,
-    image: "https://images.unsplash.com/photo-1487252665478-49b61b47f302?w=300&h=300&fit=crop"
-  },
-];
 
 const produtosVariacoes = [
   {
