@@ -15,6 +15,8 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, Dr
 import { Bell, Users } from "lucide-react";
 import { CriarProduto } from "@/components/produtos/CriarProduto";
 import { EditarProduto } from "@/components/produtos/EditarProduto";
+import { EditarVariacao } from "@/components/produtos/EditarVariacao";
+import { EditarKit } from "@/components/produtos/EditarKit";
 import { CategoryDropdown } from "@/components/produtos/CategoryDropdown";
 
 const navigationItems = [
@@ -372,7 +374,20 @@ function ProdutosVariacoes() {
                       />
                       <span className="font-medium">{produto.name}</span>
                     </div>
-                    <Badge variant="outline">{produto.variacoes.length} variações</Badge>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="outline">{produto.variacoes.length} variações</Badge>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.location.href = `/produtos/variacoes/editar/${produto.id}`;
+                        }}
+                      >
+                        <Edit className="w-4 h-4 mr-1" />
+                        Editar
+                      </Button>
+                    </div>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>
@@ -390,7 +405,11 @@ function ProdutosVariacoes() {
                       </TableHeader>
                       <TableBody>
                         {produto.variacoes.map((variacao, idx) => (
-                          <TableRow key={idx}>
+                          <TableRow 
+                            key={idx}
+                            className="hover:bg-gray-50/50 cursor-pointer"
+                            onClick={() => window.location.href = `/produtos/variacoes/editar/${produto.id}?variacao=${idx}`}
+                          >
                             <TableCell className="font-mono text-sm">{variacao.sku}</TableCell>
                             <TableCell>{variacao.tamanho}</TableCell>
                             <TableCell>{variacao.cor}</TableCell>
@@ -401,7 +420,14 @@ function ProdutosVariacoes() {
                               </span>
                             </TableCell>
                             <TableCell>
-                              <Button variant="ghost" size="sm">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.location.href = `/produtos/variacoes/editar/${produto.id}?variacao=${idx}`;
+                                }}
+                              >
                                 <Edit className="w-4 h-4" />
                               </Button>
                             </TableCell>
@@ -491,9 +517,20 @@ function ProdutosKits() {
                         <span className="text-sm text-gray-500">SKU: {kit.sku}</span>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex items-center space-x-2">
                       <span className="font-medium">R$ {kit.price.toFixed(2)}</span>
-                      <Badge variant="outline" className="ml-2">{kit.produtos.length} itens</Badge>
+                      <Badge variant="outline">{kit.produtos.length} itens</Badge>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.location.href = `/produtos/kits/editar/${kit.id}`;
+                        }}
+                      >
+                        <Edit className="w-4 h-4 mr-1" />
+                        Editar
+                      </Button>
                     </div>
                   </div>
                 </AccordionTrigger>
@@ -624,6 +661,8 @@ export default function Produtos() {
                 <Route path="/kits" element={<ProdutosKits />} />
                 <Route path="/criar" element={<CriarProduto />} />
                 <Route path="/editar/:id" element={<EditarProduto />} />
+                <Route path="/variacoes/editar/:id" element={<EditarVariacao />} />
+                <Route path="/kits/editar/:id" element={<EditarKit />} />
               </Routes>
             </div>
           </main>

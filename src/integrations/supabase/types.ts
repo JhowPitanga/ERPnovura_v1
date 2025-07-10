@@ -94,22 +94,66 @@ export type Database = {
           },
         ]
       }
-      storage: {
+      products_stock: {
         Row: {
           created_at: string
+          current: number
           id: number
-          name: string
+          in_transit: number | null
+          product_id: string | null
+          reserved: number | null
+          storage_id: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          current: number
           id?: number
-          name: string
+          in_transit?: number | null
+          product_id?: string | null
+          reserved?: number | null
+          storage_id: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          current?: number
           id?: number
+          in_transit?: number | null
+          product_id?: string | null
+          reserved?: number | null
+          storage_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_stock_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      storage: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
           name?: string
           updated_at?: string
         }
