@@ -725,13 +725,13 @@ export default function Pedidos() {
                           Valor do Pedido
                         </div>
                         <div className="w-32 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          Tipo de Envio
+                        </div>
+                        <div className="w-32 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
                           Marketplace
                         </div>
                         <div className="w-28 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
                           ID Plataforma
-                        </div>
-                        <div className="w-32 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                          Tipo de Envio
                         </div>
                         <div className="w-32"></div>
                       </div>
@@ -775,10 +775,43 @@ export default function Pedidos() {
                                 />
                               )}
                               
-                              {/* ID do Pedido */}
+                              {/* ID do Pedido com Badge de Status */}
                               <div className="w-24">
                                 <div className="flex flex-col space-y-1">
-                                  <h3 className="text-sm font-bold text-gray-900">{pedido.id}</h3>
+                                  {/* Status Badge - smaller size */}
+                                  <div className="mb-1">
+                                    {(() => {
+                                      switch (pedido.status) {
+                                        case "Pendente":
+                                          return <Badge className="bg-orange-500 text-white text-xs py-0 px-1">Vincular</Badge>;
+                                        case "Vinculado":
+                                          return <Badge className="bg-yellow-500 text-white text-xs py-0 px-1">Emissão de NF-e</Badge>;
+                                        case "NF Emitida":
+                                          return <Badge className="bg-purple-600 text-white text-xs py-0 px-1">Impressão</Badge>;
+                                        case "Aguardando":
+                                          return <Badge className="bg-blue-500 text-white text-xs py-0 px-1">Aguardando coleta</Badge>;
+                                        case "Enviado":
+                                          return <Badge className="bg-green-500 text-white text-xs py-0 px-1">Enviado</Badge>;
+                                        case "Cancelado":
+                                          return <Badge className="bg-gray-500 text-white text-xs py-0 px-1">Cancelado</Badge>;
+                                        case "Devolução":
+                                          return <Badge className="bg-red-500 text-white text-xs py-0 px-1">Emitir devolução</Badge>;
+                                        default:
+                                          return <Badge variant="default" className="text-xs py-0 px-1">Normal</Badge>;
+                                      }
+                                    })()}
+                                  </div>
+                                  {/* ID with AI Indicator */}
+                                  <div className="flex items-center space-x-1">
+                                    <h3 className="text-sm font-bold text-gray-900">{pedido.id}</h3>
+                                    {pedido.aiSuggestion && (
+                                      <AIIndicator
+                                        type={pedido.aiSuggestion.type}
+                                        suggestion={pedido.aiSuggestion.suggestion}
+                                        details={pedido.aiSuggestion.details}
+                                      />
+                                    )}
+                                  </div>
                                   <p className="text-xs text-gray-500">{pedido.data}</p>
                                 </div>
                               </div>
@@ -792,16 +825,6 @@ export default function Pedidos() {
                               
                               {/* Produto e SKU */}
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-center space-x-2 mb-1">
-                                  {getStatusBadge(pedido.status)}
-                                  {pedido.aiSuggestion && (
-                                    <AIIndicator
-                                      type={pedido.aiSuggestion.type}
-                                      suggestion={pedido.aiSuggestion.suggestion}
-                                      details={pedido.aiSuggestion.details}
-                                    />
-                                  )}
-                                </div>
                                 <p className="text-sm text-gray-900 font-medium truncate">{pedido.produto}</p>
                                 <p className="text-xs text-gray-500">SKU: {pedido.sku}</p>
                               </div>
@@ -833,6 +856,13 @@ export default function Pedidos() {
                                 <p className="text-lg font-bold text-gray-900">R$ {pedido.valor.toFixed(2)}</p>
                               </div>
                               
+                              {/* Tipo Envio - now with primary color */}
+                              <div className="w-32 text-center">
+                                <Badge className="bg-primary text-primary-foreground border-0">
+                                  {pedido.tipoEnvio}
+                                </Badge>
+                              </div>
+                              
                               {/* Marketplace */}
                               <div className="w-32 text-center">
                                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
@@ -843,13 +873,6 @@ export default function Pedidos() {
                               {/* ID Plataforma */}
                               <div className="w-28 text-center">
                                 <p className="text-xs font-mono text-gray-600">{pedido.idPlataforma}</p>
-                              </div>
-                              
-                              {/* Tipo Envio */}
-                              <div className="w-32 text-center">
-                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                                  {pedido.tipoEnvio}
-                                </Badge>
                               </div>
                               
                               {/* Actions */}
