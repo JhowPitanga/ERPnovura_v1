@@ -54,12 +54,12 @@ export function ProductForm({ formData, onInputChange, includeSku = true }: Prod
             {categoriesLoading ? (
               <SelectItem value="" disabled>Carregando...</SelectItem>
             ) : (
-              categories.map((category) => (
-                console.log("Category Item", category)
-                <SelectItem key={category.id} value={category.id}>
+              categories.map((category) => {
+                console.log("Category Item", category);
+                return <SelectItem key={category.id} value={category.id}>
                   {category.name}
                 </SelectItem>
-              ))
+              })
             )}
           </SelectContent>
         </Select>
