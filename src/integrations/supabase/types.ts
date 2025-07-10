@@ -14,22 +14,127 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_group_members: {
+        Row: {
+          created_at: string
+          id: string
+          product_group_id: string | null
+          product_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_group_id?: string | null
+          product_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_group_id?: string | null
+          product_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_variants_product_variant_group_id_fkey"
+            columns: ["product_group_id"]
+            isOneToOne: false
+            referencedRelation: "product_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_groups: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          id: string
+          name: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          id?: string
+          name: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          id?: string
+          name?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           barcode: number
           brand_id: string | null
           category_id: string | null
           cest: number | null
+          color: string | null
           cost_price: number
           created_at: string
-          description: string
+          custom_attributes: Json | null
+          description: string | null
           id: string
+          image_urls: string[]
           name: string
           ncm: number
           package_height: number
           package_length: number
           package_width: number
           sell_price: number | null
+          size: string | null
           sku: string
           tax_origin_code: number
           type: string
@@ -43,16 +148,20 @@ export type Database = {
           brand_id?: string | null
           category_id?: string | null
           cest?: number | null
+          color?: string | null
           cost_price: number
           created_at?: string
-          description: string
+          custom_attributes?: Json | null
+          description?: string | null
           id?: string
+          image_urls: string[]
           name: string
           ncm: number
           package_height: number
           package_length: number
           package_width: number
           sell_price?: number | null
+          size?: string | null
           sku: string
           tax_origin_code: number
           type: string
@@ -66,16 +175,20 @@ export type Database = {
           brand_id?: string | null
           category_id?: string | null
           cest?: number | null
+          color?: string | null
           cost_price?: number
           created_at?: string
-          description?: string
+          custom_attributes?: Json | null
+          description?: string | null
           id?: string
+          image_urls?: string[]
           name?: string
           ncm?: number
           package_height?: number
           package_length?: number
           package_width?: number
           sell_price?: number | null
+          size?: string | null
           sku?: string
           tax_origin_code?: number
           type?: string
@@ -86,6 +199,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "products_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -94,22 +214,73 @@ export type Database = {
           },
         ]
       }
-      storage: {
+      products_stock: {
         Row: {
           created_at: string
+          current: number
           id: number
-          name: string
+          in_transit: number | null
+          product_id: string
+          reserved: number | null
+          storage_id: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          current: number
           id?: number
-          name: string
+          in_transit?: number | null
+          product_id: string
+          reserved?: number | null
+          storage_id: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          current?: number
           id?: number
+          in_transit?: number | null
+          product_id?: string
+          reserved?: number | null
+          storage_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_stock_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_stock_storage_id_fkey"
+            columns: ["storage_id"]
+            isOneToOne: true
+            referencedRelation: "storage"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      storage: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
           name?: string
           updated_at?: string
         }
@@ -138,7 +309,34 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_product_with_stock: {
+        Args: {
+          p_name: string
+          p_sku: string
+          p_type: string
+          p_description: string
+          p_cost_price: number
+          p_sell_price: number
+          p_barcode: number
+          p_ncm: number
+          p_cest: number
+          p_package_height: number
+          p_package_width: number
+          p_package_length: number
+          p_weight: number
+          p_weight_type: string
+          p_tax_origin_code: number
+          p_category_id: string
+          p_brand_id: string
+          p_color: string
+          p_size: string
+          p_image_urls: string[]
+          p_custom_attributes: Json
+          p_stock_current: number
+          p_storage_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

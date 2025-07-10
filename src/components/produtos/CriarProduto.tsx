@@ -7,6 +7,8 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, Dr
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
+import { useCreateProduct, CreateProductData } from "@/hooks/useProducts";
+import { useToast } from "@/hooks/use-toast";
 
 // Import refactored components
 import { StepIndicator } from "./criar/StepIndicator";
@@ -26,6 +28,8 @@ import { VariationTaxForm } from "./criar/VariationTaxForm";
 
 export function CriarProduto() {
   const navigate = useNavigate();
+  const { createProduct, loading: createLoading } = useCreateProduct();
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [productType, setProductType] = useState("");
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -45,16 +49,17 @@ export function CriarProduto() {
     marca: "",
     descricao: "",
     precoCusto: "",
+    precoVenda: "",
     estoque: "",
     armazem: "",
     altura: "",
     largura: "",
     comprimento: "",
     peso: "",
+    tipoUnidade: "",
     codigoBarras: "",
     ncm: "",
     cest: "",
-    unidade: "",
     origem: "",
   });
 
@@ -66,13 +71,73 @@ export function CriarProduto() {
     return 6;
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (currentStep < getMaxSteps()) {
       if (currentStep === 5 && !productSaved) {
-        setProductSaved(true);
-        console.log("Produto salvo:", formData);
+        await handleCreateProduct();
+      } else {
+        setCurrentStep(currentStep + 1);
       }
+    }
+  };
+
+  const handleCreateProduct = async () => {
+    try {
+      // Validate required fields
+      if (!formData.nome || !formData.sku || !formData.precoCusto || !formData.ncm || !formData.origem) {
+        toast({
+          title: "Erro",
+          description: "Preencha todos os campos obrigatórios",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Convert form data to the format expected by the database
+      const productData: CreateProductData = {
+        name: formData.nome,
+        sku: formData.sku,
+        type: getProductTypeForDB(productType),
+        description: formData.descricao || undefined,
+        cost_price: parseFloat(formData.precoCusto),
+        sell_price: formData.precoVenda ? parseFloat(formData.precoVenda) : undefined,
+        barcode: parseInt(formData.codigoBarras) || 0,
+        ncm: parseInt(formData.ncm),
+        cest: formData.cest ? parseInt(formData.cest) : undefined,
+        package_height: parseInt(formData.altura) || 0,
+        package_width: parseInt(formData.largura) || 0,
+        package_length: parseInt(formData.comprimento) || 0,
+        weight: formData.peso ? parseFloat(formData.peso) : undefined,
+        weight_type: formData.tipoUnidade || undefined,
+        tax_origin_code: parseInt(formData.origem),
+        category_id: formData.categoria || undefined,
+        brand_id: undefined, // TODO: Add brand support
+        color: undefined,
+        size: undefined,
+        image_urls: [], // TODO: Handle image uploads
+        custom_attributes: undefined,
+        stock_current: formData.estoque ? parseInt(formData.estoque) : undefined,
+        storage_id: formData.armazem || undefined,
+      };
+
+      await createProduct(productData);
+      setProductSaved(true);
       setCurrentStep(currentStep + 1);
+    } catch (error) {
+      console.error("Error creating product:", error);
+    }
+  };
+
+  const getProductTypeForDB = (type: string): 'UNICO' | 'VARIANT' | 'ITEM' => {
+    switch (type) {
+      case 'unico':
+        return 'UNICO';
+      case 'variacao':
+        return 'VARIANT';
+      case 'kit':
+        return 'ITEM';
+      default:
+        return 'UNICO';
     }
   };
 
@@ -437,6 +502,7 @@ export function CriarProduto() {
           productType={productType}
           variationEtapa={variationEtapa}
           canProceedVariation={canProceedVariation}
+          loading={createLoading}
           onNext={currentStep === 3 && productType === "variacao" ? handleVariationNext : nextStep}
           onBack={currentStep === 3 && productType === "variacao" ? handleVariationBack : backStep}
           onSave={handleSave}

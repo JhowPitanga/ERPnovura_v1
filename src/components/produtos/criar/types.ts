@@ -39,16 +39,17 @@ export interface FormData {
   marca: string;
   descricao: string;
   precoCusto: string;
+  precoVenda: string;
   estoque: string;
   armazem: string;
   altura: string;
   largura: string;
   comprimento: string;
   peso: string;
+  tipoUnidade: string;
   codigoBarras: string;
   ncm: string;
   cest: string;
-  unidade: string;
   origem: string;
 }
 

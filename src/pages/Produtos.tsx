@@ -16,6 +16,8 @@ import { Bell, Users } from "lucide-react";
 import { CriarProduto } from "@/components/produtos/CriarProduto";
 import { EditarProduto } from "@/components/produtos/EditarProduto";
 import { CategoryDropdown } from "@/components/produtos/CategoryDropdown";
+import { useProducts, useCategories } from "@/hooks/useProducts";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const navigationItems = [
   { title: "Únicos", path: "", description: "Produtos únicos" },
@@ -135,7 +137,31 @@ const produtosKits = [
   },
 ];
 
-function ProductTable({ products }: { products: any[] }) {
+function ProductTable({ products, loading }: { products: any[]; loading: boolean }) {
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center space-x-4">
+                <Skeleton className="w-12 h-12 rounded-lg" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-8 w-8" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardContent className="p-0">
@@ -152,79 +178,93 @@ function ProductTable({ products }: { products: any[] }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.map((product) => (
-              <TableRow 
-                key={product.id} 
-                className="hover:bg-gray-50/50 cursor-pointer"
-                onClick={() => window.location.href = `/produtos/editar/${product.id}`}
-              >
-                <TableCell>
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-12 h-12 rounded-lg object-cover bg-gray-100"
-                  />
-                </TableCell>
-                <TableCell>
-                  <div>
-                    <p className="font-medium text-gray-900">{product.name}</p>
-                    <p className="text-sm text-gray-500">SKU: {product.sku}</p>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline">{product.categoria}</Badge>
-                </TableCell>
-                <TableCell>
-                  <span className="font-medium">R$ {product.custoBuyPrice.toFixed(2)}</span>
-                </TableCell>
-                <TableCell>
-                  <span className={product.stock < 10 ? "text-red-600 font-medium" : "text-gray-900"}>
-                    {product.stock} unidades
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-blue-600 hover:text-blue-800"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // TODO: Open vinculos modal
-                    }}
-                  >
-                    <Link className="w-4 h-4 mr-1" />
-                    {product.vinculos} vínculos
-                  </Button>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-40">
-                      <DropdownMenuItem onClick={() => window.location.href = `/produtos/editar/${product.id}`}>
-                        <Eye className="w-4 h-4 mr-2" />
-                        Visualizar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => window.location.href = `/produtos/editar/${product.id}`}>
-                        <Edit className="w-4 h-4 mr-2" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Copy className="w-4 h-4 mr-2" />
-                        Duplicar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600">
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+            {products.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  Nenhum produto encontrado
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              products.map((product) => {
+                const stockAmount = product.products_stock?.[0]?.current || 0;
+                const categoryName = product.categories?.name || 'Sem categoria';
+                const imageUrl = product.image_urls?.[0] || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=300&h=300&fit=crop';
+                
+                return (
+                  <TableRow 
+                    key={product.id} 
+                    className="hover:bg-gray-50/50 cursor-pointer"
+                    onClick={() => window.location.href = `/produtos/editar/${product.id}`}
+                  >
+                    <TableCell>
+                      <img
+                        src={imageUrl}
+                        alt={product.name}
+                        className="w-12 h-12 rounded-lg object-cover bg-gray-100"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium text-gray-900">{product.name}</p>
+                        <p className="text-sm text-gray-500">SKU: {product.sku}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{categoryName}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-medium">R$ {(product.cost_price || 0).toFixed(2)}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className={stockAmount < 10 ? "text-red-600 font-medium" : "text-gray-900"}>
+                        {stockAmount} unidades
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-blue-600 hover:text-blue-800"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // TODO: Open vinculos modal
+                        }}
+                      >
+                        <Link className="w-4 h-4 mr-1" />
+                        0 vínculos
+                      </Button>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem onClick={() => window.location.href = `/produtos/editar/${product.id}`}>
+                            <Eye className="w-4 h-4 mr-2" />
+                            Visualizar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => window.location.href = `/produtos/editar/${product.id}`}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Copy className="w-4 h-4 mr-2" />
+                            Duplicar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600">
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </CardContent>
@@ -235,48 +275,35 @@ function ProductTable({ products }: { products: any[] }) {
 function ProdutosUnicos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [categories, setCategories] = useState(mockCategories);
+  const { products, loading, refetch } = useProducts();
+  const { categories, createCategory } = useCategories();
   
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
   };
 
-  const handleAddCategory = (newCategory: { name: string; parent_id?: string }) => {
-    const newId = Date.now().toString();
-    
-    if (newCategory.parent_id) {
-      setCategories(prev => prev.map(cat => {
-        if (cat.id === newCategory.parent_id) {
-          return {
-            ...cat,
-            children: [
-              ...(cat.children || []),
-              { id: newId, name: newCategory.name, parent_id: newCategory.parent_id }
-            ]
-          };
-        }
-        return cat;
-      }));
-    } else {
-      setCategories(prev => [
-        ...prev,
-        { id: newId, name: newCategory.name, children: [] }
-      ]);
+  const handleAddCategory = async (newCategory: { name: string; parent_id?: string }) => {
+    try {
+      await createCategory(newCategory.name);
+    } catch (error) {
+      console.error("Error creating category:", error);
     }
   };
 
-  // Filtrar produtos pela categoria selecionada
-  const filteredProducts = selectedCategory 
-    ? produtosUnicos.filter(product => {
-        // Verificar se é categoria pai ou filha
-        const isDirectMatch = product.categoryId === selectedCategory;
-        const isChildMatch = categories.some(cat => 
-          cat.id === selectedCategory && 
-          cat.children?.some(child => child.id === product.categoryId)
-        );
-        return isDirectMatch || isChildMatch;
-      })
-    : produtosUnicos;
+  // Filtrar produtos únicos pela categoria selecionada e termo de busca
+  const filteredProducts = products
+    .filter(product => product.type === 'UNICO')
+    .filter(product => {
+      if (!selectedCategory) return true;
+      return product.category_id === selectedCategory;
+    })
+    .filter(product => {
+      if (!searchTerm) return true;
+      return (
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.sku.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
   
   return (
     <div className="space-y-6">
@@ -292,14 +319,14 @@ function ProdutosUnicos() {
           />
         </div>
         <CategoryDropdown
-          categories={categories}
+          categories={categories.map(cat => ({ id: cat.id, name: cat.name, children: [] }))}
           selectedCategory={selectedCategory}
           onCategoryChange={handleCategoryChange}
           onAddCategory={handleAddCategory}
         />
       </div>
 
-      <ProductTable products={filteredProducts} />
+      <ProductTable products={filteredProducts} loading={loading} />
     </div>
   );
 }

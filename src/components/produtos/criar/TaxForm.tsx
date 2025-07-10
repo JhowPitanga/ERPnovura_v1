@@ -53,10 +53,10 @@ export function TaxForm({ formData, onInputChange }: TaxFormProps) {
 
           <div className="space-y-4">
             <div>
-              <Label htmlFor="unidade">Unidade de Medida</Label>
+              <Label htmlFor="tipoUnidade">Unidade de Medida</Label>
               <Select
-                value={formData.unidade}
-                onValueChange={(value) => onInputChange("unidade", value)}
+                value={formData.tipoUnidade}
+                onValueChange={(value) => onInputChange("tipoUnidade", value)}
               >
                 <SelectTrigger className="mt-2">
                   <SelectValue placeholder="Selecione a unidade" />

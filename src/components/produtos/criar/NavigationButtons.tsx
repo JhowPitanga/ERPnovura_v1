@@ -8,6 +8,7 @@ interface NavigationButtonsProps {
   productType: string;
   variationEtapa?: "tipos" | "opcoes" | "configuracao";
   canProceedVariation?: () => boolean;
+  loading?: boolean;
   onNext: () => void;
   onBack: () => void;
   onSave: () => void;
@@ -19,6 +20,7 @@ export function NavigationButtons({
   productType, 
   variationEtapa,
   canProceedVariation,
+  loading = false,
   onNext, 
   onBack,
   onSave 
@@ -77,7 +79,7 @@ export function NavigationButtons({
           onClick={onNext} 
           className="bg-novura-primary hover:bg-novura-primary/90"
           size="lg"
-          disabled={!canProceed()}
+          disabled={!canProceed() || loading}
         >
           {getNextButtonText()}
           <ArrowRight className="w-5 h-5 ml-2" />
@@ -87,9 +89,10 @@ export function NavigationButtons({
           onClick={onNext} 
           className="bg-novura-primary hover:bg-novura-primary/90"
           size="lg"
+          disabled={loading}
         >
           <Check className="w-5 h-5 mr-2" />
-          Salvar e Continuar
+          {loading ? "Salvando..." : "Salvar e Continuar"}
         </Button>
       ) : (
         <Button 
