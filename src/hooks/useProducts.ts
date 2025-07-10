@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 export type Product = Tables<'products'>;
 export type Category = Tables<'categories'>;
@@ -13,8 +14,14 @@ export function useProducts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchProducts = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -54,7 +61,7 @@ export function useProducts() {
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [user]);
 
   return {
     products,
@@ -136,8 +143,14 @@ export function useStorage() {
   const [storageLocations, setStorageLocations] = useState<Storage[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchStorage = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -162,7 +175,7 @@ export function useStorage() {
 
   useEffect(() => {
     fetchStorage();
-  }, []);
+  }, [user]);
 
   return {
     storageLocations,

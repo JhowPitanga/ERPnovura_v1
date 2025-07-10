@@ -1,8 +1,11 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Desempenho from "./pages/Desempenho";
 import Produtos from "./pages/Produtos";
@@ -18,39 +21,43 @@ import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
 import NotFound from "./pages/NotFound";
 import NovuraAcademy from "./pages/NovuraAcademy";
+import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/landing" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/cadastro" element={<Cadastro />} />
-          
-          {/* Dashboard routes */}
-          <Route path="/" element={<Index />} />
-          <Route path="/desempenho/*" element={<Desempenho />} />
-          <Route path="/produtos/*" element={<Produtos />} />
-          <Route path="/anuncios/*" element={<Anuncios />} />
-          <Route path="/recursos-seller/*" element={<RecursosSeller />} />
-          <Route path="/equipe/*" element={<Equipe />} />
-          <Route path="/aplicativos" element={<Aplicativos />} />
-          <Route path="/pedidos" element={<Pedidos />} />
-          <Route path="/estoque" element={<Estoque />} />
-          <Route path="/notas-fiscais" element={<NotasFiscais />} />
-          <Route path="/novura-academy/*" element={<NovuraAcademy />} />
-          
-          {/* Catch-all route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/landing" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/cadastro" element={<Cadastro />} />
+            <Route path="/auth" element={<Auth />} />
+            
+            {/* Protected dashboard routes */}
+            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+            <Route path="/desempenho/*" element={<ProtectedRoute><Desempenho /></ProtectedRoute>} />
+            <Route path="/produtos/*" element={<ProtectedRoute><Produtos /></ProtectedRoute>} />
+            <Route path="/anuncios/*" element={<ProtectedRoute><Anuncios /></ProtectedRoute>} />
+            <Route path="/recursos-seller/*" element={<ProtectedRoute><RecursosSeller /></ProtectedRoute>} />
+            <Route path="/equipe/*" element={<ProtectedRoute><Equipe /></ProtectedRoute>} />
+            <Route path="/aplicativos" element={<ProtectedRoute><Aplicativos /></ProtectedRoute>} />
+            <Route path="/pedidos" element={<ProtectedRoute><Pedidos /></ProtectedRoute>} />
+            <Route path="/estoque" element={<ProtectedRoute><Estoque /></ProtectedRoute>} />
+            <Route path="/notas-fiscais" element={<ProtectedRoute><NotasFiscais /></ProtectedRoute>} />
+            <Route path="/novura-academy/*" element={<ProtectedRoute><NovuraAcademy /></ProtectedRoute>} />
+            
+            {/* Catch-all route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
