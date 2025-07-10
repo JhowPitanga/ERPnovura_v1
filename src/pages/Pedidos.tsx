@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Search, Filter, Settings, FileText, Printer, Bot, TrendingUp, Zap, QrCode, Check, Calendar, Download, X, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,6 @@ import { VincularPedidoModal } from "@/components/pedidos/VincularPedidoModal";
 import { EmissaoNFDrawer } from "@/components/pedidos/EmissaoNFDrawer";
 import { PrintConfigModal } from "@/components/pedidos/PrintConfigModal";
 import { AIIndicator } from "@/components/equipe/AIIndicator";
-import { getStatusBadge } from "@/utils/estoqueUtils";
 import { format } from "date-fns";
 
 const statusBlocks = [
