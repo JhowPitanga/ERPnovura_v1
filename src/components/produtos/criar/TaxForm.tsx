@@ -15,65 +15,81 @@ export function TaxForm({ formData, onInputChange }: TaxFormProps) {
       <div>
         <h3 className="text-xl font-semibold mb-6">Informações Fiscais</h3>
         <div className="grid grid-cols-2 gap-6">
-          <div>
-            <Label htmlFor="codigoBarras">Código de Barras *</Label>
-            <Input
-              id="codigoBarras"
-              value={formData.codigoBarras}
-              onChange={(e) => onInputChange("codigoBarras", e.target.value)}
-              placeholder="Ex: 7891234567890"
-              className="mt-2"
-            />
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="codigoBarras">Código de Barras (EAN)</Label>
+              <Input
+                id="codigoBarras"
+                value={formData.codigoBarras}
+                onChange={(e) => onInputChange("codigoBarras", e.target.value)}
+                placeholder="Código de barras do produto"
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <Label htmlFor="ncm">
+                NCM <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="ncm"
+                value={formData.ncm}
+                onChange={(e) => onInputChange("ncm", e.target.value)}
+                placeholder="00000000"
+                className="mt-2"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="cest">CEST</Label>
+              <Input
+                id="cest"
+                value={formData.cest}
+                onChange={(e) => onInputChange("cest", e.target.value)}
+                placeholder="0000000"
+                className="mt-2"
+              />
+            </div>
           </div>
-          <div>
-            <Label htmlFor="ncm">NCM *</Label>
-            <Input
-              id="ncm"
-              value={formData.ncm}
-              onChange={(e) => onInputChange("ncm", e.target.value)}
-              placeholder="00000000"
-              className="mt-2"
-            />
-          </div>
-          <div>
-            <Label htmlFor="cest">CEST (Opcional)</Label>
-            <Input
-              id="cest"
-              value={formData.cest}
-              onChange={(e) => onInputChange("cest", e.target.value)}
-              placeholder="0000000"
-              className="mt-2"
-            />
-          </div>
-          <div>
-            <Label htmlFor="unidade">Unidade</Label>
-            <Select value={formData.unidade} onValueChange={(value) => onInputChange("unidade", value)}>
-              <SelectTrigger className="mt-2">
-                <SelectValue placeholder="Selecione a unidade" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="un">Unidade</SelectItem>
-                <SelectItem value="kg">Quilograma</SelectItem>
-                <SelectItem value="g">Grama</SelectItem>
-                <SelectItem value="l">Litro</SelectItem>
-                <SelectItem value="ml">Mililitro</SelectItem>
-                <SelectItem value="m">Metro</SelectItem>
-                <SelectItem value="cm">Centímetro</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="col-span-2">
-            <Label htmlFor="origem">Origem</Label>
-            <Select value={formData.origem} onValueChange={(value) => onInputChange("origem", value)}>
-              <SelectTrigger className="mt-2">
-                <SelectValue placeholder="Selecione a origem" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="0">0 - Nacional</SelectItem>
-                <SelectItem value="1">1 - Estrangeira - Importação direta</SelectItem>
-                <SelectItem value="2">2 - Estrangeira - Adquirida no mercado interno</SelectItem>
-              </SelectContent>
-            </Select>
+
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="unidade">Unidade de Medida</Label>
+              <Select
+                value={formData.unidade}
+                onValueChange={(value) => onInputChange("unidade", value)}
+              >
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Selecione a unidade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="UN">Unidade (UN)</SelectItem>
+                  <SelectItem value="KG">Quilograma (KG)</SelectItem>
+                  <SelectItem value="PAR">Par (PAR)</SelectItem>
+                  <SelectItem value="KIT">Kit (KIT)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="origem">Origem</Label>
+              <Select
+                value={formData.origem}
+                onValueChange={(value) => onInputChange("origem", value)}
+              >
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Selecione a origem" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">0 - Nacional</SelectItem>
+                  <SelectItem value="1">1 - Estrangeira - Importação direta</SelectItem>
+                  <SelectItem value="2">2 - Estrangeira - Adquirida no mercado interno</SelectItem>
+                  <SelectItem value="3">3 - Nacional - Conteúdo de importação superior a 40%</SelectItem>
+                  <SelectItem value="4">4 - Nacional - Produção em conformidade com processos produtivos básicos</SelectItem>
+                  <SelectItem value="5">5 - Nacional - Conteúdo de importação inferior ou igual a 40%</SelectItem>
+                  <SelectItem value="6">6 - Estrangeira - Importação direta sem similar nacional</SelectItem>
+                  <SelectItem value="7">7 - Estrangeira - Adquirida no mercado interno sem similar nacional</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </div>

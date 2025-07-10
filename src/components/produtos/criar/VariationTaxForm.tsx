@@ -87,10 +87,9 @@ export function VariationTaxForm({ variacoes, onVariacoesChange }: VariationTaxF
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="UN">Unidade (UN)</SelectItem>
-                          <SelectItem value="PC">Peça (PC)</SelectItem>
                           <SelectItem value="KG">Quilograma (KG)</SelectItem>
-                          <SelectItem value="LT">Litro (LT)</SelectItem>
-                          <SelectItem value="MT">Metro (MT)</SelectItem>
+                          <SelectItem value="PAR">Par (PAR)</SelectItem>
+                          <SelectItem value="KIT">Kit (KIT)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -107,6 +106,11 @@ export function VariationTaxForm({ variacoes, onVariacoesChange }: VariationTaxF
                           <SelectItem value="0">0 - Nacional</SelectItem>
                           <SelectItem value="1">1 - Estrangeira - Importação direta</SelectItem>
                           <SelectItem value="2">2 - Estrangeira - Adquirida no mercado interno</SelectItem>
+                          <SelectItem value="3">3 - Nacional - Conteúdo de importação superior a 40%</SelectItem>
+                          <SelectItem value="4">4 - Nacional - Produção em conformidade com processos produtivos básicos</SelectItem>
+                          <SelectItem value="5">5 - Nacional - Conteúdo de importação inferior ou igual a 40%</SelectItem>
+                          <SelectItem value="6">6 - Estrangeira - Importação direta sem similar nacional</SelectItem>
+                          <SelectItem value="7">7 - Estrangeira - Adquirida no mercado interno sem similar nacional</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

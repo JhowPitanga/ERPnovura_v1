@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Plus, Search, MoreHorizontal, Edit, Eye, Trash2, Copy, Package, Link, Filter } from "lucide-react";
 import { Routes, Route, useLocation } from "react-router-dom";
@@ -45,7 +44,7 @@ const mockCategories = [
   { id: "3", name: "Casa e Jardim" },
 ];
 
-// Mock data for different product types - updated structure
+// Mock data for different product types - updated structure with images
 const produtosUnicos = [
   { 
     id: 1, 
@@ -56,7 +55,7 @@ const produtosUnicos = [
     categoria: "Eletrônicos",
     categoryId: "1",
     vinculos: 3,
-    image: "/placeholder.svg" 
+    image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=300&h=300&fit=crop"
   },
   { 
     id: 2, 
@@ -67,7 +66,7 @@ const produtosUnicos = [
     categoria: "Computadores",
     categoryId: "12",
     vinculos: 2,
-    image: "/placeholder.svg" 
+    image: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=300&h=300&fit=crop"
   },
   { 
     id: 3, 
@@ -78,7 +77,7 @@ const produtosUnicos = [
     categoria: "Eletrônicos",
     categoryId: "1",
     vinculos: 4,
-    image: "/placeholder.svg" 
+    image: "https://images.unsplash.com/photo-1487252665478-49b61b47f302?w=300&h=300&fit=crop"
   },
 ];
 
@@ -87,6 +86,7 @@ const produtosVariacoes = [
     id: 1,
     name: "Camiseta Basic",
     sku_base: "CB-001",
+    image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=300&h=300&fit=crop",
     variacoes: [
       { sku: "CB-001-P-AZ", tamanho: "P", cor: "Azul", price: 89.99, stock: 50 },
       { sku: "CB-001-M-AZ", tamanho: "M", cor: "Azul", price: 89.99, stock: 45 },
@@ -97,6 +97,7 @@ const produtosVariacoes = [
     id: 2,
     name: "Tênis Esportivo",
     sku_base: "TE-002",
+    image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=300&h=300&fit=crop",
     variacoes: [
       { sku: "TE-002-38-PT", tamanho: "38", cor: "Preto", price: 299.99, stock: 25 },
       { sku: "TE-002-39-PT", tamanho: "39", cor: "Preto", price: 299.99, stock: 30 },
@@ -110,6 +111,7 @@ const produtosKits = [
     id: 1,
     name: "Kit Gamer Completo",
     sku: "KGC-001",
+    image: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=300&h=300&fit=crop",
     produtos: [
       { name: "Teclado Mecânico", sku: "TM-001", quantidade: 1 },
       { name: "Mouse Gamer", sku: "MG-001", quantidade: 1 },
@@ -122,6 +124,7 @@ const produtosKits = [
     id: 2,
     name: "Kit Escritório Home Office",
     sku: "KEHO-002",
+    image: "https://images.unsplash.com/photo-1487252665478-49b61b47f302?w=300&h=300&fit=crop",
     produtos: [
       { name: "Cadeira Ergonômica", sku: "CE-001", quantidade: 1 },
       { name: "Mesa Ajustável", sku: "MA-001", quantidade: 1 },
@@ -242,7 +245,6 @@ function ProdutosUnicos() {
     const newId = Date.now().toString();
     
     if (newCategory.parent_id) {
-      // Adicionar categoria filha
       setCategories(prev => prev.map(cat => {
         if (cat.id === newCategory.parent_id) {
           return {
@@ -256,7 +258,6 @@ function ProdutosUnicos() {
         return cat;
       }));
     } else {
-      // Adicionar categoria pai
       setCategories(prev => [
         ...prev,
         { id: newId, name: newCategory.name, children: [] }
@@ -305,6 +306,36 @@ function ProdutosUnicos() {
 
 function ProdutosVariacoes() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [categories, setCategories] = useState(mockCategories);
+  
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+  };
+
+  const handleAddCategory = (newCategory: { name: string; parent_id?: string }) => {
+    const newId = Date.now().toString();
+    
+    if (newCategory.parent_id) {
+      setCategories(prev => prev.map(cat => {
+        if (cat.id === newCategory.parent_id) {
+          return {
+            ...cat,
+            children: [
+              ...(cat.children || []),
+              { id: newId, name: newCategory.name, parent_id: newCategory.parent_id }
+            ]
+          };
+        }
+        return cat;
+      }));
+    } else {
+      setCategories(prev => [
+        ...prev,
+        { id: newId, name: newCategory.name, children: [] }
+      ]);
+    }
+  };
   
   return (
     <div className="space-y-6">
@@ -318,10 +349,12 @@ function ProdutosVariacoes() {
             className="pl-10"
           />
         </div>
-        <Button variant="outline" size="sm">
-          <Filter className="w-4 h-4 mr-2" />
-          Filtros
-        </Button>
+        <CategoryDropdown
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategoryChange={handleCategoryChange}
+          onAddCategory={handleAddCategory}
+        />
       </div>
 
       <Card>
@@ -331,7 +364,14 @@ function ProdutosVariacoes() {
               <AccordionItem key={produto.id} value={`item-${produto.id}`}>
                 <AccordionTrigger>
                   <div className="flex justify-between items-center w-full pr-4">
-                    <span className="font-medium">{produto.name}</span>
+                    <div className="flex items-center space-x-4">
+                      <img
+                        src={produto.image}
+                        alt={produto.name}
+                        className="w-12 h-12 rounded-lg object-cover bg-gray-100"
+                      />
+                      <span className="font-medium">{produto.name}</span>
+                    </div>
                     <Badge variant="outline">{produto.variacoes.length} variações</Badge>
                   </div>
                 </AccordionTrigger>
@@ -382,6 +422,36 @@ function ProdutosVariacoes() {
 
 function ProdutosKits() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [categories, setCategories] = useState(mockCategories);
+  
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+  };
+
+  const handleAddCategory = (newCategory: { name: string; parent_id?: string }) => {
+    const newId = Date.now().toString();
+    
+    if (newCategory.parent_id) {
+      setCategories(prev => prev.map(cat => {
+        if (cat.id === newCategory.parent_id) {
+          return {
+            ...cat,
+            children: [
+              ...(cat.children || []),
+              { id: newId, name: newCategory.name, parent_id: newCategory.parent_id }
+            ]
+          };
+        }
+        return cat;
+      }));
+    } else {
+      setCategories(prev => [
+        ...prev,
+        { id: newId, name: newCategory.name, children: [] }
+      ]);
+    }
+  };
   
   return (
     <div className="space-y-6">
@@ -395,10 +465,12 @@ function ProdutosKits() {
             className="pl-10"
           />
         </div>
-        <Button variant="outline" size="sm">
-          <Filter className="w-4 h-4 mr-2" />
-          Filtros
-        </Button>
+        <CategoryDropdown
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategoryChange={handleCategoryChange}
+          onAddCategory={handleAddCategory}
+        />
       </div>
 
       <Card>
@@ -408,9 +480,16 @@ function ProdutosKits() {
               <AccordionItem key={kit.id} value={`kit-${kit.id}`}>
                 <AccordionTrigger>
                   <div className="flex justify-between items-center w-full pr-4">
-                    <div className="text-left">
-                      <span className="font-medium block">{kit.name}</span>
-                      <span className="text-sm text-gray-500">SKU: {kit.sku}</span>
+                    <div className="flex items-center space-x-4 text-left">
+                      <img
+                        src={kit.image}
+                        alt={kit.name}
+                        className="w-12 h-12 rounded-lg object-cover bg-gray-100"
+                      />
+                      <div>
+                        <span className="font-medium block">{kit.name}</span>
+                        <span className="text-sm text-gray-500">SKU: {kit.sku}</span>
+                      </div>
                     </div>
                     <div className="text-right">
                       <span className="font-medium">R$ {kit.price.toFixed(2)}</span>
@@ -426,6 +505,7 @@ function ProdutosKits() {
                           <TableHead>Produto</TableHead>
                           <TableHead>SKU</TableHead>
                           <TableHead>Quantidade</TableHead>
+                          <TableHead>Ações</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -434,6 +514,11 @@ function ProdutosKits() {
                             <TableCell className="font-medium">{produto.name}</TableCell>
                             <TableCell className="font-mono text-sm">{produto.sku}</TableCell>
                             <TableCell>{produto.quantidade}x</TableCell>
+                            <TableCell>
+                              <Button variant="ghost" size="sm">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>

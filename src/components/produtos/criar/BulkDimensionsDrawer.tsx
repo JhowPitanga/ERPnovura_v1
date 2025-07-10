@@ -3,23 +3,22 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose } from "@/components/ui/drawer";
 import { Separator } from "@/components/ui/separator";
 import { Package } from "lucide-react";
 import { Variacao } from "./types";
 
-interface BulkTaxDrawerProps {
+interface BulkDimensionsDrawerProps {
   variacoes: Variacao[];
   onVariacoesChange: (variacoes: Variacao[]) => void;
 }
 
-export function BulkTaxDrawer({ variacoes, onVariacoesChange }: BulkTaxDrawerProps) {
+export function BulkDimensionsDrawer({ variacoes, onVariacoesChange }: BulkDimensionsDrawerProps) {
   const [bulkData, setBulkData] = useState({
-    ncm: "",
-    cest: "",
-    unidade: "",
-    origem: ""
+    altura: "",
+    largura: "",
+    comprimento: "",
+    peso: ""
   });
 
   const handleBulkInputChange = (field: string, value: string) => {
@@ -29,28 +28,28 @@ export function BulkTaxDrawer({ variacoes, onVariacoesChange }: BulkTaxDrawerPro
   const applyBulkData = () => {
     const updatedVariacoes = variacoes.map(variacao => ({
       ...variacao,
-      ...(bulkData.ncm && { ncm: bulkData.ncm }),
-      ...(bulkData.cest && { cest: bulkData.cest }),
-      ...(bulkData.unidade && { unidade: bulkData.unidade }),
-      ...(bulkData.origem && { origem: bulkData.origem })
+      ...(bulkData.altura && { altura: bulkData.altura }),
+      ...(bulkData.largura && { largura: bulkData.largura }),
+      ...(bulkData.comprimento && { comprimento: bulkData.comprimento }),
+      ...(bulkData.peso && { peso: bulkData.peso })
     }));
     
     onVariacoesChange(updatedVariacoes);
     
     setBulkData({
-      ncm: "",
-      cest: "",
-      unidade: "",
-      origem: ""
+      altura: "",
+      largura: "",
+      comprimento: "",
+      peso: ""
     });
   };
 
   const clearBulkData = () => {
     setBulkData({
-      ncm: "",
-      cest: "",
-      unidade: "",
-      origem: ""
+      altura: "",
+      largura: "",
+      comprimento: "",
+      peso: ""
     });
   };
 
@@ -59,14 +58,14 @@ export function BulkTaxDrawer({ variacoes, onVariacoesChange }: BulkTaxDrawerPro
       <DrawerTrigger asChild>
         <Button variant="outline" className="mb-6">
           <Package className="w-4 h-4 mr-2" />
-          Aplicar Dados em Massa
+          Aplicar Dimensões em Massa
         </Button>
       </DrawerTrigger>
       <DrawerContent className="max-h-[85vh] w-[45%]">
         <DrawerHeader>
-          <DrawerTitle>Aplicar Informações Fiscais em Massa</DrawerTitle>
+          <DrawerTitle>Aplicar Dimensões em Massa</DrawerTitle>
           <DrawerDescription>
-            Preencha os campos abaixo para aplicar as mesmas informações fiscais a todas as {variacoes.length} variações
+            Preencha os campos abaixo para aplicar as mesmas dimensões a todas as {variacoes.length} variações
           </DrawerDescription>
         </DrawerHeader>
         
@@ -74,62 +73,52 @@ export function BulkTaxDrawer({ variacoes, onVariacoesChange }: BulkTaxDrawerPro
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <Label htmlFor="bulk-ncm">NCM</Label>
+                <Label htmlFor="bulk-altura">Altura (cm)</Label>
                 <Input
-                  id="bulk-ncm"
-                  value={bulkData.ncm}
-                  onChange={(e) => handleBulkInputChange("ncm", e.target.value)}
-                  placeholder="00000000"
+                  id="bulk-altura"
+                  type="number"
+                  step="0.01"
+                  value={bulkData.altura}
+                  onChange={(e) => handleBulkInputChange("altura", e.target.value)}
+                  placeholder="0,00"
                   className="mt-2"
                 />
               </div>
               <div>
-                <Label htmlFor="bulk-cest">CEST</Label>
+                <Label htmlFor="bulk-largura">Largura (cm)</Label>
                 <Input
-                  id="bulk-cest"
-                  value={bulkData.cest}
-                  onChange={(e) => handleBulkInputChange("cest", e.target.value)}
-                  placeholder="0000000"
+                  id="bulk-largura"
+                  type="number"
+                  step="0.01"
+                  value={bulkData.largura}
+                  onChange={(e) => handleBulkInputChange("largura", e.target.value)}
+                  placeholder="0,00"
                   className="mt-2"
                 />
               </div>
               <div>
-                <Label htmlFor="bulk-unidade">Unidade de Medida</Label>
-                <Select
-                  value={bulkData.unidade}
-                  onValueChange={(value) => handleBulkInputChange("unidade", value)}
-                >
-                  <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Selecione a unidade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="UN">Unidade (UN)</SelectItem>
-                    <SelectItem value="KG">Quilograma (KG)</SelectItem>
-                    <SelectItem value="PAR">Par (PAR)</SelectItem>
-                    <SelectItem value="KIT">Kit (KIT)</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="bulk-comprimento">Comprimento (cm)</Label>
+                <Input
+                  id="bulk-comprimento"
+                  type="number"
+                  step="0.01"
+                  value={bulkData.comprimento}
+                  onChange={(e) => handleBulkInputChange("comprimento", e.target.value)}
+                  placeholder="0,00"
+                  className="mt-2"
+                />
               </div>
               <div>
-                <Label htmlFor="bulk-origem">Origem</Label>
-                <Select
-                  value={bulkData.origem}
-                  onValueChange={(value) => handleBulkInputChange("origem", value)}
-                >
-                  <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Selecione a origem" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">0 - Nacional</SelectItem>
-                    <SelectItem value="1">1 - Estrangeira - Importação direta</SelectItem>
-                    <SelectItem value="2">2 - Estrangeira - Adquirida no mercado interno</SelectItem>
-                    <SelectItem value="3">3 - Nacional - Conteúdo de importação superior a 40%</SelectItem>
-                    <SelectItem value="4">4 - Nacional - Produção em conformidade com processos produtivos básicos</SelectItem>
-                    <SelectItem value="5">5 - Nacional - Conteúdo de importação inferior ou igual a 40%</SelectItem>
-                    <SelectItem value="6">6 - Estrangeira - Importação direta sem similar nacional</SelectItem>
-                    <SelectItem value="7">7 - Estrangeira - Adquirida no mercado interno sem similar nacional</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="bulk-peso">Peso (kg)</Label>
+                <Input
+                  id="bulk-peso"
+                  type="number"
+                  step="0.01"
+                  value={bulkData.peso}
+                  onChange={(e) => handleBulkInputChange("peso", e.target.value)}
+                  placeholder="0,00"
+                  className="mt-2"
+                />
               </div>
             </div>
 
