@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Save } from "lucide-react";
@@ -214,29 +213,6 @@ export function EditKitWrapper() {
     }
   };
 
-  // Convert to Portuguese format for compatibility with existing components
-  const formDataPT = {
-    tipo: formData.type,
-    nome: formData.name,
-    sku: formData.sku,
-    categoria: formData.category,
-    marca: formData.brand,
-    descricao: formData.description,
-    precoCusto: formData.costPrice,
-    precoVenda: formData.sellPrice,
-    estoque: formData.stock,
-    armazem: formData.warehouse,
-    altura: formData.height,
-    largura: formData.width,
-    comprimento: formData.length,
-    peso: formData.weight,
-    tipoUnidade: formData.unitType,
-    codigoBarras: formData.barcode,
-    ncm: formData.ncm,
-    cest: formData.cest,
-    origem: formData.origin,
-  };
-
   const handleInputChangePT = (field: string, value: string) => {
     // Convert Portuguese field names to English
     const fieldMap: Record<string, string> = {
@@ -263,25 +239,15 @@ export function EditKitWrapper() {
     handleInputChange(englishField, value);
   };
 
-  // Convert kit items to Portuguese format for the KitForm component
-  const kitItemsPT = kitItems.map(item => ({
-    id: item.id,
-    nome: item.name,
-    sku: item.sku,
-    tipo: item.type,
-    quantidade: item.quantity,
-    imagem: item.image
-  }));
-
   const handleKitItemsChange = (items: any[]) => {
     // Convert back to English format
     const englishItems: KitItem[] = items.map(item => ({
       id: item.id,
-      name: item.nome,
+      name: item.nome || item.name,
       sku: item.sku,
-      type: item.tipo,
-      quantity: item.quantidade,
-      image: item.imagem
+      type: item.tipo || item.type,
+      quantity: item.quantidade || item.quantity,
+      image: item.imagem || item.image
     }));
     setKitItems(englishItems);
   };
@@ -346,7 +312,7 @@ export function EditKitWrapper() {
               </AccordionTrigger>
               <AccordionContent className="pt-4">
                 <ProductForm 
-                  formData={formDataPT} 
+                  formData={formData} 
                   onInputChange={handleInputChangePT} 
                   includeSku={true} 
                 />
@@ -379,11 +345,11 @@ export function EditKitWrapper() {
               </AccordionTrigger>
               <AccordionContent className="pt-4">
                 <KitForm 
-                  formData={formDataPT} 
+                  formData={formData} 
                   onInputChange={handleInputChangePT}
                   etapaAtual={kitEtapa}
                   onEtapaChange={setKitEtapa}
-                  kitItems={kitItemsPT}
+                  kitItems={kitItems}
                   onKitItemsChange={handleKitItemsChange}
                   editMode={true}
                 />
