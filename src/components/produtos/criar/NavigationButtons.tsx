@@ -56,6 +56,11 @@ export function NavigationButtons({
     if (currentStep === 3 && productType === "kit" && kitEtapa === "products") {
       return true;
     }
+
+    // For company type, show back button if not on first step
+    if (productType === "company") {
+      return currentStep > 1;
+    }
     
     return currentStep > 1;
   };
@@ -93,7 +98,9 @@ export function NavigationButtons({
       <div className="flex-1" />
 
       {/* Next/Save Buttons */}
-      {(currentStep < 5 && productType !== "kit") || (currentStep < 4 && productType === "kit") ? (
+      {((currentStep < 5 && productType !== "kit" && productType !== "company") || 
+        (currentStep < 4 && productType === "kit") || 
+        (currentStep < 4 && productType === "company")) ? (
         <Button 
           onClick={onNext} 
           className="bg-novura-primary hover:bg-novura-primary/90"
@@ -103,7 +110,7 @@ export function NavigationButtons({
           {getNextButtonText()}
           <ArrowRight className="w-5 h-5 ml-2" />
         </Button>
-      ) : (currentStep === 5 && productType !== "kit") ? (
+      ) : (currentStep === 5 && productType !== "kit" && productType !== "company") ? (
         <Button 
           onClick={onNext} 
           className="bg-novura-primary hover:bg-novura-primary/90"
@@ -112,6 +119,16 @@ export function NavigationButtons({
         >
           <Check className="w-5 h-5 mr-2" />
           {loading ? "Saving..." : "Save and Continue"}
+        </Button>
+      ) : productType === "company" && currentStep === 4 ? (
+        <Button 
+          onClick={onNext} 
+          className="bg-novura-primary hover:bg-novura-primary/90"
+          size="lg"
+          disabled={loading}
+        >
+          <Check className="w-5 h-5 mr-2" />
+          {loading ? "Salvando..." : "Salvar Empresa"}
         </Button>
       ) : (
         <Button 
