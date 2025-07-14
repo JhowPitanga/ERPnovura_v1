@@ -12,7 +12,9 @@ import {
   ShoppingBag,
   Users,
   Settings,
-  User
+  User,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -40,11 +42,17 @@ const menuItems = [
   { title: "Recursos Seller", url: "/recursos-seller", icon: ShoppingBag },
 ];
 
+const configMenuItems = [
+  { title: "Configurações Fiscais", url: "/configuracoes/notas-fiscais", icon: FileText },
+  { title: "Usuários", url: "/configuracoes/usuarios", icon: Users },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
+  const [configExpanded, setConfigExpanded] = useState(currentPath.startsWith("/configuracoes"));
 
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path + "/");
 
@@ -88,6 +96,60 @@ export function AppSidebar() {
                       {!isCollapsed && (
                         <span className="font-medium text-base">{item.title}</span>
                       )}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Configuration Section */}
+        <SidebarGroup className="mt-6 px-6">
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-3">
+              {/* Configuration Header */}
+              <SidebarMenuItem>
+                <button
+                  onClick={() => setConfigExpanded(!configExpanded)}
+                  className={`w-full flex items-center space-x-4 px-5 py-4 rounded-xl transition-all duration-300 group relative overflow-hidden ${
+                    currentPath.startsWith("/configuracoes")
+                      ? "bg-gray-100 text-gray-900"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  }`}
+                >
+                  <Settings className={`w-6 h-6 flex-shrink-0 ${
+                    currentPath.startsWith("/configuracoes") ? "text-novura-primary" : "text-gray-500 group-hover:text-novura-primary"
+                  }`} />
+                  {!isCollapsed && (
+                    <>
+                      <span className="font-medium text-base flex-1 text-left">Configurações</span>
+                      {configExpanded ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4" />
+                      )}
+                    </>
+                  )}
+                </button>
+              </SidebarMenuItem>
+
+              {/* Configuration Menu Items */}
+              {(configExpanded || isCollapsed) && !isCollapsed && configMenuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to={item.url}
+                      className={`flex items-center space-x-4 px-5 py-3 ml-4 rounded-lg transition-all duration-300 group relative ${
+                        isActive(item.url)
+                          ? "text-novura-primary bg-novura-primary/10 border-l-4 border-novura-primary"
+                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      }`}
+                    >
+                      <div className={`w-2 h-2 rounded-full ${
+                        isActive(item.url) ? "bg-novura-primary" : "bg-gray-300"
+                      }`} />
+                      <span className="font-medium text-sm">{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
