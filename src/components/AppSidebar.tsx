@@ -17,6 +17,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
+import { ConfiguracoesModal } from "@/components/ConfiguracoesModal";
 
 import {
   Sidebar,
@@ -48,7 +49,7 @@ export function AppSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
-  const [configExpanded, setConfigExpanded] = useState(currentPath.startsWith("/configuracoes"));
+  const [configModalOpen, setConfigModalOpen] = useState(false);
 
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path + "/");
 
@@ -115,17 +116,22 @@ export function AppSidebar() {
                     <p className="text-sm text-gray-600">Admin</p>
                   </div>
                 </div>
-                <NavLink 
-                  to="/configuracoes"
+                <button 
+                  onClick={() => setConfigModalOpen(true)}
                   className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-gray-100 hover:bg-gray-50 transition-colors"
                 >
                   <Settings className="w-5 h-5 text-gray-600" />
-                </NavLink>
+                </button>
               </div>
             </div>
           </div>
         )}
       </SidebarContent>
+      
+      <ConfiguracoesModal 
+        open={configModalOpen} 
+        onOpenChange={setConfigModalOpen} 
+      />
     </Sidebar>
   );
 }

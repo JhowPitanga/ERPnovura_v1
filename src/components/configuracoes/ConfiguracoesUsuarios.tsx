@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { Plus, Mail, Phone, Shield } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AddUserModal } from "./AddUserModal";
 
 interface UserInvitation {
   id: string;
@@ -17,10 +17,14 @@ interface UserInvitation {
   created_at: string;
 }
 
-export function ConfiguracoesUsuarios() {
+interface ConfiguracoesUsuariosProps {
+  onClose?: () => void;
+}
+
+export function ConfiguracoesUsuarios({ onClose }: ConfiguracoesUsuariosProps = {}) {
   const [users, setUsers] = useState<UserInvitation[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -44,7 +48,7 @@ export function ConfiguracoesUsuarios() {
   };
 
   const handleAddUser = () => {
-    navigate('/configuracoes/usuarios/novo-usuario');
+    setShowAddUserModal(true);
   };
 
   const getStatusBadge = (status: string) => {
@@ -169,6 +173,12 @@ export function ConfiguracoesUsuarios() {
           ))}
         </div>
       )}
+      
+      <AddUserModal 
+        open={showAddUserModal}
+        onOpenChange={setShowAddUserModal}
+        onUserAdded={loadUsers}
+      />
     </div>
   );
 }
