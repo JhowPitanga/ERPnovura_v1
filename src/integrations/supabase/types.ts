@@ -49,6 +49,84 @@ export type Database = {
           },
         ]
       }
+      companies: {
+        Row: {
+          active: boolean
+          bairro: string
+          cep: string
+          certificado_a1_url: string | null
+          certificado_senha: string | null
+          certificado_validade: string | null
+          cidade: string
+          cnpj: string
+          created_at: string
+          email: string
+          endereco: string
+          estado: string
+          id: string
+          inscricao_estadual: string | null
+          lojas_associadas: Json | null
+          numero: string
+          numero_serie: string | null
+          proxima_nfe: number | null
+          razao_social: string
+          tipo_empresa: string
+          tributacao: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          bairro: string
+          cep: string
+          certificado_a1_url?: string | null
+          certificado_senha?: string | null
+          certificado_validade?: string | null
+          cidade: string
+          cnpj: string
+          created_at?: string
+          email: string
+          endereco: string
+          estado: string
+          id?: string
+          inscricao_estadual?: string | null
+          lojas_associadas?: Json | null
+          numero: string
+          numero_serie?: string | null
+          proxima_nfe?: number | null
+          razao_social: string
+          tipo_empresa: string
+          tributacao: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          bairro?: string
+          cep?: string
+          certificado_a1_url?: string | null
+          certificado_senha?: string | null
+          certificado_validade?: string | null
+          cidade?: string
+          cnpj?: string
+          created_at?: string
+          email?: string
+          endereco?: string
+          estado?: string
+          id?: string
+          inscricao_estadual?: string | null
+          lojas_associadas?: Json | null
+          numero?: string
+          numero_serie?: string | null
+          proxima_nfe?: number | null
+          razao_social?: string
+          tipo_empresa?: string
+          tributacao?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       product_group_members: {
         Row: {
           created_at: string
@@ -282,6 +360,48 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_invitations: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string | null
+          id: string
+          invitation_token: string | null
+          invited_by_user_id: string
+          nome: string
+          permissions: Json
+          status: string
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string | null
+          id?: string
+          invitation_token?: string | null
+          invited_by_user_id: string
+          nome: string
+          permissions?: Json
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string | null
+          id?: string
+          invitation_token?: string | null
+          invited_by_user_id?: string
+          nome?: string
+          permissions?: Json
+          status?: string
+          telefone?: string | null
           updated_at?: string
         }
         Relationships: []
