@@ -5,6 +5,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useProductSync } from '@/hooks/useProductSync';
 
 export async function fetchProductsWithDetailedStock() {
+  console.log('>>> fetchProductsWithDetailedStock: Iniciando busca de dados...');
+
   const { data: productsData, error: productsError } = await supabase
     .from('products')
     .select(`
@@ -26,15 +28,24 @@ export async function fetchProductsWithDetailedStock() {
       )
     `);
 
-  if (productsError) throw productsError;
+  if (productsError) {
+    console.error('>>> ERRO NA QUERY DE PRODUTOS SUPABASE:', productsError.message);
+    throw productsError;
+  }
+
+  console.log('>>> fetchProductsWithDetailedStock: Dados brutos (productsData) do Supabase:', JSON.stringify(productsData, null, 2));
 
   const formattedData = productsData?.map(product => {
-    // Ensure products_stock is always an array
+    console.log(`>>> fetchProductsWithDetailedStock: Processando produto: ${product.name} (ID: ${product.id})`);
+    console.log('>>> fetchProductsWithDetailedStock: products_stock para este produto:', product.products_stock);
+
     const stockArray = Array.isArray(product.products_stock) ? product.products_stock : [];
-    
+
     const totalCurrent = stockArray.reduce((sum, stock) => sum + (stock.current || 0), 0);
     const totalReserved = stockArray.reduce((sum, stock) => sum + (stock.reserved || 0), 0);
     const totalAvailable = totalCurrent - totalReserved;
+
+    console.log(`>>> fetchProductsWithDetailedStock: Totais calculados para ${product.name}: Current=${totalCurrent}, Reserved=${totalReserved}, Available=${totalAvailable}`);
 
     return {
       ...product,
@@ -52,6 +63,8 @@ export async function fetchProductsWithDetailedStock() {
       }))
     };
   }) || [];
+
+  console.log('>>> fetchProductsWithDetailedStock: Dados formatados finais:', JSON.stringify(formattedData, null, 2));
 
   return formattedData;
 }
