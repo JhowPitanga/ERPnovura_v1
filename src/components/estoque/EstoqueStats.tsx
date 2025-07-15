@@ -1,6 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, Archive, PackageOpen, Truck, PackageCheck, Building2, BarChart3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Package, Archive, BarChart3 } from "lucide-react";
 
 interface EstoqueStatsProps {
   activeFilter: string;
@@ -15,7 +16,8 @@ export function EstoqueStats({ activeFilter, setActiveFilter }: EstoqueStatsProp
       value: "R$ 515.991,83",
       subtitle: "+8% vs mês anterior",
       icon: Package,
-      color: "text-muted-foreground"
+      color: "text-muted-foreground",
+      clickable: false
     },
     {
       id: "estoque",
@@ -23,39 +25,8 @@ export function EstoqueStats({ activeFilter, setActiveFilter }: EstoqueStatsProp
       value: "115",
       subtitle: "5 produtos",
       icon: Archive,
-      color: "text-muted-foreground"
-    },
-    {
-      id: "picking",
-      title: "Picking Pendente",
-      value: "8",
-      subtitle: "Pedidos aguardando",
-      icon: PackageOpen,
-      color: "text-orange-500"
-    },
-    {
-      id: "expedicoes",
-      title: "Expedições Hoje",
-      value: "23",
-      subtitle: "+12% vs ontem",
-      icon: Truck,
-      color: "text-blue-500"
-    },
-    {
-      id: "recebimentos",
-      title: "Recebimentos",
-      value: "3",
-      subtitle: "Pendentes conferência",
-      icon: PackageCheck,
-      color: "text-green-500"
-    },
-    {
-      id: "fulfillment",
-      title: "Fulfillment",
-      value: "45",
-      subtitle: "Produtos ativos",
-      icon: Building2,
-      color: "text-purple-500"
+      color: "text-muted-foreground",
+      clickable: true
     },
     {
       id: "inventario",
@@ -63,12 +34,14 @@ export function EstoqueStats({ activeFilter, setActiveFilter }: EstoqueStatsProp
       value: "12",
       subtitle: "Contagens pendentes",
       icon: BarChart3,
-      color: "text-indigo-500"
+      color: "text-indigo-500",
+      clickable: true,
+      hasButton: true
     }
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-7 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       {cards.map((card) => {
         const Icon = card.icon;
         const isActive = activeFilter === card.id;
@@ -76,20 +49,35 @@ export function EstoqueStats({ activeFilter, setActiveFilter }: EstoqueStatsProp
         return (
           <Card 
             key={card.id}
-            className={`cursor-pointer transition-all hover:shadow-md ${
-              isActive ? 'ring-2 ring-primary shadow-md' : ''
+            className={`transition-all hover:shadow-md ${
+              card.clickable ? 'cursor-pointer' : ''
+            } ${
+              isActive && card.clickable ? 'bg-primary/5 ring-2 ring-primary shadow-md' : ''
             }`}
-            onClick={() => setActiveFilter(card.id)}
+            onClick={() => card.clickable && setActiveFilter(card.id)}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-              <Icon className={`h-4 w-4 ${card.color}`} />
+              <Icon className={`h-4 w-4 ${isActive && card.clickable ? 'text-primary' : card.color}`} />
             </CardHeader>
             <CardContent>
-              <div className={`text-xl font-bold ${card.color.replace('text-', 'text-')}`}>
+              <div className={`text-xl font-bold ${isActive && card.clickable ? 'text-primary' : card.color.replace('text-', 'text-')}`}>
                 {card.value}
               </div>
               <p className="text-xs text-muted-foreground">{card.subtitle}</p>
+              {card.hasButton && (
+                <Button 
+                  size="sm" 
+                  className="mt-2 w-full"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Lógica para criar balanço de estoque
+                    console.log("Criar balanço de estoque");
+                  }}
+                >
+                  Criar Balanço
+                </Button>
+              )}
             </CardContent>
           </Card>
         );

@@ -4,10 +4,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Eye, Edit, MapPin, Search, Settings, Package } from "lucide-react";
+import { Settings, Package } from "lucide-react";
 import { estoqueData } from "@/data/estoqueData";
-import { getStatusBadge, getStatusIcon } from "@/utils/estoqueUtils";
+import { getStatusBadge } from "@/utils/estoqueUtils";
 import { EstoqueManagementDrawer } from "../EstoqueManagementDrawer";
 
 interface EstoqueTabProps {
@@ -34,12 +33,8 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
     const matchesGalpao = selectedGalpao === "todos" || item.galpao === selectedGalpao;
     
     // Filtrar por status baseado no filtro ativo
-    if (activeFilter === "estoque") return matchesSearch && matchesGalpao;
-    if (activeFilter === "picking") return matchesSearch && matchesGalpao && item.reservado > 0;
-    if (activeFilter === "recebimentos") return matchesSearch && matchesGalpao && item.status === "Normal";
-    if (activeFilter === "expedicoes") return matchesSearch && matchesGalpao;
-    if (activeFilter === "fulfillment") return matchesSearch && matchesGalpao && item.galpao === "Centro Fulfillment";
-    if (activeFilter === "inventario") return matchesSearch && matchesGalpao && item.status === "Crítico";
+    if (activeFilter === "estoque" || activeFilter === "total") return matchesSearch && matchesGalpao;
+    if (activeFilter === "inventario") return matchesSearch && matchesGalpao && (item.status === "Crítico" || item.status === "Baixo");
     
     return matchesSearch && matchesGalpao;
   });
@@ -99,10 +94,7 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
                     <p className="font-mono text-sm">{item.sku}</p>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(item.status)}
-                      {getStatusBadge(item.status)}
-                    </div>
+                    {getStatusBadge(item.status)}
                   </TableCell>
                   <TableCell>
                     <p className="font-medium">
@@ -134,38 +126,15 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleManageStock(item)}
-                        className="h-8 px-2"
-                      >
-                        <Settings className="h-4 w-4 mr-1" />
-                        Gerenciar
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
-                          <DropdownMenuItem>
-                            <Eye className="w-4 h-4 mr-2" />
-                            Visualizar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Edit className="w-4 h-4 mr-2" />
-                            Movimentar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <MapPin className="w-4 h-4 mr-2" />
-                            Realocar
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleManageStock(item)}
+                      className="h-8 px-2"
+                    >
+                      <Settings className="h-4 w-4 mr-1" />
+                      Gerenciar
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

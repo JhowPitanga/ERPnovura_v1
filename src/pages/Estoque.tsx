@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Warehouse, Plus, Bell, Users } from "lucide-react";
+import { Warehouse, Bell, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -68,10 +68,6 @@ export default function Estoque() {
                 <h1 className="text-2xl font-bold text-gray-900">Sistema WMS Completo</h1>
                 <p className="text-gray-600">Gestão completa de armazém com controle de fulfillment</p>
               </div>
-              <Button className="bg-novura-primary hover:bg-novura-primary/90">
-                <Plus className="w-4 h-4 mr-2" />
-                Nova Operação
-              </Button>
             </div>
 
             {/* Stats Cards */}

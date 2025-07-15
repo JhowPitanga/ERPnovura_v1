@@ -65,10 +65,11 @@ export function EstoqueManagementDrawer({
     const finalAdjustment = operationType === "entrada" ? adjustmentQuantity : -adjustmentQuantity;
     const newStockValue = product.estoque + finalAdjustment;
 
-    if (newStockValue < 0) {
+    // Verificar se o estoque não pode ficar abaixo do reservado
+    if (operationType === "saida" && newStockValue < product.reservado) {
       toast({
         title: "Erro",
-        description: "O estoque não pode ficar negativo.",
+        description: `Não é possível retirar esta quantidade. Estoque disponível: ${product.disponivel} unidades (${product.reservado} reservadas).`,
         variant: "destructive",
       });
       return;
@@ -99,9 +100,16 @@ export function EstoqueManagementDrawer({
     }
   };
 
+  const getUpdatedStatus = (currentStock: number, reserved: number) => {
+    const available = currentStock - reserved;
+    if (available <= 0) return "Crítico";
+    if (available <= 10) return "Baixo";
+    return "Normal";
+  };
+
   return (
     <Drawer open={isOpen} onOpenChange={onClose} direction="right">
-      <DrawerContent className="fixed inset-y-0 right-0 flex h-full w-[400px] flex-col">
+      <DrawerContent className="fixed inset-y-0 right-0 flex h-full w-[500px] flex-col">
         <DrawerHeader className="border-b border-border">
           <div className="flex items-center gap-2">
             <Package className="h-5 w-5 text-primary" />
@@ -132,7 +140,9 @@ export function EstoqueManagementDrawer({
               </div>
               <div>
                 <Label className="text-xs text-muted-foreground">Status</Label>
-                <Badge variant={getStatusColor(product.status)}>{product.status}</Badge>
+                <Badge variant={getStatusColor(getUpdatedStatus(product.estoque, product.reservado))}>
+                  {getUpdatedStatus(product.estoque, product.reservado)}
+                </Badge>
               </div>
             </div>
           </div>
