@@ -1,11 +1,10 @@
+
 import { useState } from "react";
-import { Minus, Package, Plus, Settings } from "lucide-react";
+import { Minus, Package, Plus, Settings, X } from "lucide-react";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerDescription,
-  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
@@ -75,6 +74,16 @@ export function EstoqueManagementDrawer({
       return;
     }
 
+    // Verificar se o estoque não pode ficar negativo
+    if (newStockValue < 0) {
+      toast({
+        title: "Erro",
+        description: "O estoque não pode ficar negativo.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Por enquanto, simular a atualização
     onUpdateStock(product.id, newStockValue);
     
@@ -107,13 +116,32 @@ export function EstoqueManagementDrawer({
     return "Normal";
   };
 
+  // Calculate the status for the current stock state
+  const currentStatus = getUpdatedStatus(product.estoque, product.reservado);
+
+  // Calculate the status for the preview (if there's an adjustment)
+  const previewStock = adjustmentQuantity > 0 ? 
+    product.estoque + (operationType === "entrada" ? adjustmentQuantity : -adjustmentQuantity) : 
+    product.estoque;
+  const previewStatus = getUpdatedStatus(previewStock, product.reservado);
+
   return (
     <Drawer open={isOpen} onOpenChange={onClose} direction="right">
-      <DrawerContent className="fixed inset-y-0 right-0 flex h-full w-[500px] flex-col">
+      <DrawerContent className="fixed inset-y-0 right-0 flex h-full w-[45%] flex-col">
         <DrawerHeader className="border-b border-border">
-          <div className="flex items-center gap-2">
-            <Package className="h-5 w-5 text-primary" />
-            <DrawerTitle className="text-lg">Ajustar Estoque</DrawerTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-primary" />
+              <DrawerTitle className="text-lg">Ajustar Estoque</DrawerTitle>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-8 w-8 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
           <DrawerDescription>
             {product.produto} ({product.sku})
@@ -140,8 +168,8 @@ export function EstoqueManagementDrawer({
               </div>
               <div>
                 <Label className="text-xs text-muted-foreground">Status</Label>
-                <Badge variant={getStatusColor(getUpdatedStatus(product.estoque, product.reservado))}>
-                  {getUpdatedStatus(product.estoque, product.reservado)}
+                <Badge variant={getStatusColor(currentStatus)}>
+                  {currentStatus}
                 </Badge>
               </div>
             </div>
@@ -256,27 +284,27 @@ export function EstoqueManagementDrawer({
 
             {/* Preview do Resultado */}
             {adjustmentQuantity > 0 && (
-              <div className="p-3 bg-muted rounded-lg">
-                <p className="text-sm text-muted-foreground">Novo estoque após ajuste:</p>
+              <div className="p-3 bg-muted rounded-lg space-y-2">
+                <div className="flex justify-between items-center">
+                  <p className="text-sm text-muted-foreground">Novo estoque após ajuste:</p>
+                  <Badge variant={getStatusColor(previewStatus)}>
+                    {previewStatus}
+                  </Badge>
+                </div>
                 <p className="text-lg font-bold text-primary">
-                  {product.estoque + (operationType === "entrada" ? adjustmentQuantity : -adjustmentQuantity)} unidades
+                  {previewStock} unidades
                 </p>
               </div>
             )}
           </div>
         </div>
 
-        <DrawerFooter className="border-t border-border">
-          <div className="flex gap-2">
-            <Button onClick={handleSaveAdjustment} className="flex-1">
-              <Settings className="w-4 h-4 mr-2" />
-              Salvar Ajuste
-            </Button>
-            <DrawerClose asChild>
-              <Button variant="outline">Fechar</Button>
-            </DrawerClose>
-          </div>
-        </DrawerFooter>
+        <div className="border-t border-border p-6">
+          <Button onClick={handleSaveAdjustment} className="w-full">
+            <Settings className="w-4 h-4 mr-2" />
+            Salvar Ajuste
+          </Button>
+        </div>
       </DrawerContent>
     </Drawer>
   );
