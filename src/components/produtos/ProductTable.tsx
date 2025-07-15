@@ -229,11 +229,7 @@ export function ProductTable({ products, loading, onDeleteProduct, onRefresh }: 
                   <Checkbox
                     checked={allSelected}
                     onCheckedChange={handleSelectAll}
-                    ref={(ref) => {
-                      if (ref) {
-                        ref.indeterminate = someSelected;
-                      }
-                    }}
+                    {...(someSelected && { "data-state": "indeterminate" })}
                   />
                 </TableHead>
                 <TableHead className="w-20">Imagem</TableHead>
