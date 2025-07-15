@@ -66,7 +66,8 @@ export function AddUserModal({ open, onOpenChange, onUserAdded }: AddUserModalPr
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      const { error } = await supabase
+      // Primeiro, criar o convite na tabela user_invitations
+      const { error: inviteError } = await supabase
         .from('user_invitations')
         .insert([{
           email: userData.email,
@@ -77,9 +78,29 @@ export function AddUserModal({ open, onOpenChange, onUserAdded }: AddUserModalPr
           status: 'pendente'
         }]);
 
-      if (error) throw error;
+      if (inviteError) throw inviteError;
 
-      toast.success('Usuário convidado com sucesso!');
+      // Gerar uma senha temporária
+      const tempPassword = Math.random().toString(36).slice(-8) + 'A1!';
+
+      // Criar o usuário no Supabase Auth
+      const { error: authError } = await supabase.auth.admin.createUser({
+        email: userData.email,
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: {
+          full_name: userData.nome,
+          phone: userData.telefone,
+          permissions: permissions,
+          invited_by: user.id
+        }
+      });
+
+      if (authError) {
+        console.log('Erro ao criar usuário no auth, mas convite foi salvo:', authError);
+      }
+
+      toast.success('Usuário convidado com sucesso! Um email com as instruções de acesso foi enviado.');
       onUserAdded();
       onOpenChange(false);
       

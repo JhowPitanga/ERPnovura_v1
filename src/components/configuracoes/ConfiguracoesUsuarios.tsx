@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AddUserModal } from "./AddUserModal";
 import { UserProfileDrawer } from "./UserProfileDrawer";
+import { useAuth } from "@/hooks/useAuth";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,18 +39,33 @@ export function ConfiguracoesUsuarios({ onClose }: ConfiguracoesUsuariosProps = 
   const [users, setUsers] = useState<UserInvitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
-  const [currentUser] = useState({
-    id: 'current-user',
-    nome: 'João Silva',
-    email: 'joao@empresa.com',
-    telefone: '(11) 99999-9999',
+  const { user } = useAuth();
+  const [currentUserData, setCurrentUserData] = useState({
+    id: '',
+    nome: '',
+    email: '',
+    telefone: '',
     status: 'ativo',
     permissions: { admin: true }
   });
 
   useEffect(() => {
     loadUsers();
-  }, []);
+    loadCurrentUser();
+  }, [user]);
+
+  const loadCurrentUser = async () => {
+    if (user) {
+      setCurrentUserData({
+        id: user.id,
+        nome: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário',
+        email: user.email || '',
+        telefone: user.user_metadata?.phone || '',
+        status: 'ativo',
+        permissions: { admin: true }
+      });
+    }
+  };
 
   const loadUsers = async () => {
     try {
@@ -154,9 +170,9 @@ export function ConfiguracoesUsuarios({ onClose }: ConfiguracoesUsuariosProps = 
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <h3 className="text-lg font-semibold text-gray-900">
-                {currentUser.nome}
+                {currentUserData.nome}
               </h3>
-              {getStatusBadge(currentUser.status)}
+              {getStatusBadge(currentUserData.status)}
               <Badge className="bg-novura-primary text-white">
                 Usuário Atual
               </Badge>
@@ -165,13 +181,13 @@ export function ConfiguracoesUsuarios({ onClose }: ConfiguracoesUsuariosProps = 
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-gray-600">
                 <Mail className="w-4 h-4" />
-                <span className="text-sm">{currentUser.email}</span>
+                <span className="text-sm">{currentUserData.email}</span>
               </div>
               
-              {currentUser.telefone && (
+              {currentUserData.telefone && (
                 <div className="flex items-center gap-2 text-gray-600">
                   <Phone className="w-4 h-4" />
-                  <span className="text-sm">{currentUser.telefone}</span>
+                  <span className="text-sm">{currentUserData.telefone}</span>
                 </div>
               )}
               
