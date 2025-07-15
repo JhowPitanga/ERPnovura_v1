@@ -67,7 +67,11 @@ export function ProductTable({ products, loading, onDeleteProduct }: ProductTabl
                 </TableRow>
               ) : (
                 products.map((product) => {
-                  const stockAmount = product.products_stock?.current || 0;
+                  // Calculate total stock from all storage locations
+                  const totalStock = Array.isArray(product.products_stock) 
+                    ? product.products_stock.reduce((sum, stock) => sum + (stock.current || 0), 0)
+                    : (product.products_stock?.current || 0);
+                  
                   const categoryName = product.categories?.name || 'Sem categoria';
                   const imageUrl = product.image_urls?.[0] || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=300&h=300&fit=crop';
                   
@@ -97,8 +101,8 @@ export function ProductTable({ products, loading, onDeleteProduct }: ProductTabl
                         <span className="font-medium">R$ {(product.cost_price || 0).toFixed(2)}</span>
                       </TableCell>
                       <TableCell>
-                        <span className={stockAmount < 10 ? "text-red-600 font-medium" : "text-gray-900"}>
-                          {stockAmount} unidades
+                        <span className={totalStock < 10 ? "text-red-600 font-medium" : "text-gray-900"}>
+                          {totalStock} unidades
                         </span>
                       </TableCell>
                       <TableCell>

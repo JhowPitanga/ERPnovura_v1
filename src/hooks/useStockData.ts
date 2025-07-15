@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useProductSync } from '@/hooks/useProductSync';
 
 export async function fetchProductsWithDetailedStock() {
   const { data: productsData, error: productsError } = await supabase
@@ -56,10 +57,11 @@ export async function fetchProductsWithDetailedStock() {
 }
 
 export function useStockData() {
-  const [stockData, setStockData] = useState([]);
+  const [stockData, setStockData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { lastUpdate } = useProductSync();
 
   const fetchData = async () => {
     try {
@@ -82,7 +84,7 @@ export function useStockData() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [lastUpdate]); // Re-fetch when data changes
 
   return {
     stockData,

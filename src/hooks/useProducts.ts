@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useProductSync } from '@/hooks/useProductSync';
 
 export type Product = Tables<'products'>;
 export type Category = Tables<'categories'>;
@@ -15,6 +16,7 @@ export function useProducts() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { lastUpdate } = useProductSync();
 
   const fetchProducts = async () => {
     if (!user) {
@@ -33,6 +35,8 @@ export function useProducts() {
             name
           ),
           products_stock (
+            id,
+            storage_id,
             current,
             in_transit,
             reserved,
@@ -62,7 +66,7 @@ export function useProducts() {
 
   useEffect(() => {
     fetchProducts();
-  }, [user]);
+  }, [user, lastUpdate]); // Re-fetch when data changes
 
   const deleteProduct = async (productId: string) => {
     try {

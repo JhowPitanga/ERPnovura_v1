@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Settings, Package } from "lucide-react";
 import { getStatusBadge } from "@/utils/estoqueUtils";
 import { EstoqueManagementDrawer } from "../EstoqueManagementDrawer";
-import { useStockData, fetchProductsWithDetailedStock } from "@/hooks/useStockData";
+import { useStockData } from "@/hooks/useStockData";
 
 interface EstoqueTabProps {
   activeFilter: string;
@@ -19,9 +19,6 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
   const { stockData, loading, error, refetch } = useStockData();
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [products, setProducts] = useState([]);
-  const [localLoading, setLocalLoading] = useState(true);
-  const [localError, setLocalError] = useState<string | null>(null);
 
   // Função para calcular o status baseado na quantidade
   const getStatusFromStock = (estoque: number, reservado: number) => {
@@ -31,26 +28,8 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
     return "Normal";
   };
 
-  // Load products using the provided logic
-  const loadProducts = async () => {
-    setLocalLoading(true);
-    setLocalError(null);
-    try {
-      const data = await fetchProductsWithDetailedStock();
-      setProducts(data);
-    } catch (err) {
-      setLocalError('Não foi possível carregar os produtos do estoque.');
-    } finally {
-      setLocalLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadProducts();
-  }, []);
-
   // Transformar dados do Supabase para o formato esperado pelo componente
-  const transformedData = (products.length > 0 ? products : stockData).map(product => ({
+  const transformedData = stockData.map(product => ({
     id: product.id,
     produto: product.name,
     sku: product.sku,
@@ -97,21 +76,16 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
 
   const handleStockAdjusted = () => {
     handleCloseDrawer();
-    loadProducts(); // Reload products after stock adjustment
+    refetch(); // Reload products after stock adjustment
   };
 
   const handleUpdateStock = async (productId: string, newStock: number) => {
     // Aqui você pode implementar a lógica para atualizar o estoque no Supabase
     // Por enquanto, vamos apenas recarregar os dados
     await refetch();
-    await loadProducts();
   };
 
-  // Use local loading and error states when available
-  const currentLoading = localLoading || loading;
-  const currentError = localError || error;
-
-  if (currentLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-muted-foreground">Carregando estoque...</div>
@@ -119,10 +93,10 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
     );
   }
 
-  if (currentError) {
+  if (error) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-destructive">Erro: {currentError}</div>
+        <div className="text-destructive">Erro: {error}</div>
       </div>
     );
   }
@@ -201,7 +175,7 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
                         {item.precoCusto ? new Intl.NumberFormat('pt-BR', {
                           style: 'currency',
                           currency: 'BRL'
-                        }).format(item.precoCusto / 100) : 'N/A'}
+                        }).format(item.precoCusto) : 'N/A'}
                       </p>
                     </TableCell>
                     <TableCell>
