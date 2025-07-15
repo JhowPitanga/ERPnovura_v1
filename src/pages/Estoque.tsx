@@ -5,24 +5,15 @@ import { Button } from "@/components/ui/button";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Archive, PackageCheck, PackageOpen, Truck, Building2, BarChart3 } from "lucide-react";
-
 // Import refactored components
 import { EstoqueStats } from "@/components/estoque/EstoqueStats";
 import { EstoqueFilters } from "@/components/estoque/EstoqueFilters";
 import { EstoqueTab } from "@/components/estoque/tabs/EstoqueTab";
-import { RecebimentoTab } from "@/components/estoque/tabs/RecebimentoTab";
-import { PickingTab } from "@/components/estoque/tabs/PickingTab";
-import { ExpedicaoTab } from "@/components/estoque/tabs/ExpedicaoTab";
-import { FulfillmentTab } from "@/components/estoque/tabs/FulfillmentTab";
-import { InventarioTab } from "@/components/estoque/tabs/InventarioTab";
 
 export default function Estoque() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGalpao, setSelectedGalpao] = useState("todos");
-  const [selectedMarketplace, setSelectedMarketplace] = useState("todos");
-  const [activeTab, setActiveTab] = useState("estoque");
+  const [activeFilter, setActiveFilter] = useState("estoque");
 
   return (
     <SidebarProvider>
@@ -84,72 +75,25 @@ export default function Estoque() {
             </div>
 
             {/* Stats Cards */}
-            <EstoqueStats />
+            <EstoqueStats 
+              activeFilter={activeFilter}
+              setActiveFilter={setActiveFilter}
+            />
 
-            {/* Navigation Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-              <TabsList className="grid w-full grid-cols-6 bg-white shadow-sm">
-                <TabsTrigger value="estoque" className="data-[state=active]:bg-novura-primary data-[state=active]:text-white">
-                  <Archive className="w-4 h-4 mr-2" />
-                  Estoque
-                </TabsTrigger>
-                <TabsTrigger value="recebimento" className="data-[state=active]:bg-novura-primary data-[state=active]:text-white">
-                  <PackageCheck className="w-4 h-4 mr-2" />
-                  Recebimento
-                </TabsTrigger>
-                <TabsTrigger value="picking" className="data-[state=active]:bg-novura-primary data-[state=active]:text-white">
-                  <PackageOpen className="w-4 h-4 mr-2" />
-                  Picking
-                </TabsTrigger>
-                <TabsTrigger value="expedicao" className="data-[state=active]:bg-novura-primary data-[state=active]:text-white">
-                  <Truck className="w-4 h-4 mr-2" />
-                  Expedição
-                </TabsTrigger>
-                <TabsTrigger value="fulfillment" className="data-[state=active]:bg-novura-primary data-[state=active]:text-white">
-                  <Building2 className="w-4 h-4 mr-2" />
-                  Fulfillment
-                </TabsTrigger>
-                <TabsTrigger value="inventario" className="data-[state=active]:bg-novura-primary data-[state=active]:text-white">
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  Inventário
-                </TabsTrigger>
-              </TabsList>
+            {/* Filters */}
+            <EstoqueFilters
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              selectedGalpao={selectedGalpao}
+              setSelectedGalpao={setSelectedGalpao}
+            />
 
-              {/* Filters */}
-              <EstoqueFilters
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                selectedGalpao={selectedGalpao}
-                setSelectedGalpao={setSelectedGalpao}
-                selectedMarketplace={selectedMarketplace}
-                setSelectedMarketplace={setSelectedMarketplace}
-              />
-
-              {/* Content */}
-              <TabsContent value="estoque">
-                <EstoqueTab />
-              </TabsContent>
-
-              <TabsContent value="recebimento">
-                <RecebimentoTab />
-              </TabsContent>
-
-              <TabsContent value="picking">
-                <PickingTab />
-              </TabsContent>
-
-              <TabsContent value="expedicao">
-                <ExpedicaoTab />
-              </TabsContent>
-
-              <TabsContent value="fulfillment">
-                <FulfillmentTab />
-              </TabsContent>
-
-              <TabsContent value="inventario">
-                <InventarioTab />
-              </TabsContent>
-            </Tabs>
+            {/* Content */}
+            <EstoqueTab 
+              activeFilter={activeFilter}
+              searchTerm={searchTerm}
+              selectedGalpao={selectedGalpao}
+            />
           </main>
         </div>
       </div>

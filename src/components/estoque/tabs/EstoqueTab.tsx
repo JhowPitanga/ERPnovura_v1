@@ -5,13 +5,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Eye, Edit, MapPin, Search, Settings } from "lucide-react";
+import { MoreHorizontal, Eye, Edit, MapPin, Search, Settings, Package } from "lucide-react";
 import { estoqueData } from "@/data/estoqueData";
 import { getStatusBadge, getStatusIcon } from "@/utils/estoqueUtils";
 import { EstoqueManagementDrawer } from "../EstoqueManagementDrawer";
 
-export function EstoqueTab() {
-  const [searchTerm, setSearchTerm] = useState("");
+interface EstoqueTabProps {
+  activeFilter: string;
+  searchTerm: string;
+  selectedGalpao: string;
+}
+
+export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: EstoqueTabProps) {
   const [stockData, setStockData] = useState(estoqueData);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -22,11 +27,22 @@ export function EstoqueTab() {
     precoCusto: item.valor * 0.6, // Simular preço de custo como 60% do valor
   }));
 
-  // Filtrar dados baseado na busca
-  const filteredData = enrichedStockData.filter(item =>
-    item.produto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filtrar dados baseado na busca, galpão e filtro ativo
+  const filteredData = enrichedStockData.filter(item => {
+    const matchesSearch = item.produto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.sku.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesGalpao = selectedGalpao === "todos" || item.galpao === selectedGalpao;
+    
+    // Filtrar por status baseado no filtro ativo
+    if (activeFilter === "estoque") return matchesSearch && matchesGalpao;
+    if (activeFilter === "picking") return matchesSearch && matchesGalpao && item.reservado > 0;
+    if (activeFilter === "recebimentos") return matchesSearch && matchesGalpao && item.status === "Normal";
+    if (activeFilter === "expedicoes") return matchesSearch && matchesGalpao;
+    if (activeFilter === "fulfillment") return matchesSearch && matchesGalpao && item.galpao === "Centro Fulfillment";
+    if (activeFilter === "inventario") return matchesSearch && matchesGalpao && item.status === "Crítico";
+    
+    return matchesSearch && matchesGalpao;
+  });
 
   const handleManageStock = (product: any) => {
     setSelectedProduct(product);
@@ -49,26 +65,15 @@ export function EstoqueTab() {
 
   return (
     <div className="space-y-4">
-      {/* Barra de Busca */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Buscar por nome ou SKU..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-      </div>
-
       <Card>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow className="border-b border-gray-100">
+                <TableHead>Imagem</TableHead>
                 <TableHead>Produto</TableHead>
                 <TableHead>SKU</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Preço de Custo</TableHead>
                 <TableHead>Galpão</TableHead>
                 <TableHead>Reservado</TableHead>
@@ -81,18 +86,23 @@ export function EstoqueTab() {
               {filteredData.map((item) => (
                 <TableRow key={item.id} className="hover:bg-gray-50/50">
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(item.status)}
-                      <div>
-                        <p className="font-medium text-gray-900">{item.produto}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          {getStatusBadge(item.status)}
-                        </div>
-                      </div>
+                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <Package className="w-6 h-6 text-gray-400" />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <p className="font-medium text-gray-900">{item.produto}</p>
                     </div>
                   </TableCell>
                   <TableCell>
                     <p className="font-mono text-sm">{item.sku}</p>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(item.status)}
+                      {getStatusBadge(item.status)}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <p className="font-medium">
