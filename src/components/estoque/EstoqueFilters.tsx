@@ -2,7 +2,7 @@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, MapPin } from "lucide-react";
-import { armazens } from "@/data/estoqueData";
+import { useStorage } from "@/hooks/useProducts";
 
 interface EstoqueFiltersProps {
   searchTerm: string;
@@ -17,6 +17,8 @@ export function EstoqueFilters({
   selectedGalpao,
   setSelectedGalpao
 }: EstoqueFiltersProps) {
+  const { storageLocations, loading: storageLoading } = useStorage();
+
   return (
     <div className="flex items-center space-x-4 mt-6 mb-6">
       <div className="relative flex-1 max-w-md">
@@ -34,9 +36,10 @@ export function EstoqueFilters({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {armazens.map((galpao) => (
-            <SelectItem key={galpao.id} value={galpao.id}>
-              {galpao.name}
+          <SelectItem value="todos">Todos os Galpões</SelectItem>
+          {!storageLoading && storageLocations.map((storage) => (
+            <SelectItem key={storage.id} value={storage.name}>
+              {storage.name}
             </SelectItem>
           ))}
         </SelectContent>

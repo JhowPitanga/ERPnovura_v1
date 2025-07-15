@@ -495,6 +495,16 @@ export type Database = {
         }
         Returns: string
       }
+      upsert_product_stock: {
+        Args: {
+          p_product_id: string
+          p_storage_id: string
+          p_quantity: number
+          p_reserved?: number
+          p_in_transit?: number
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

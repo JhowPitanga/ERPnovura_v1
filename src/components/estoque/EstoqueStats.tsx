@@ -2,6 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Package, Archive, BarChart3 } from "lucide-react";
+import { useStockData } from "@/hooks/useStockData";
 
 interface EstoqueStatsProps {
   activeFilter: string;
@@ -9,12 +10,53 @@ interface EstoqueStatsProps {
 }
 
 export function EstoqueStats({ activeFilter, setActiveFilter }: EstoqueStatsProps) {
+  const { stockData, loading } = useStockData();
+
+  // Calcular estatísticas baseadas nos dados reais
+  const calculateStats = () => {
+    if (!stockData || stockData.length === 0) {
+      return {
+        totalValue: 0,
+        totalStock: 0,
+        productCount: 0,
+        lowStockCount: 0
+      };
+    }
+
+    const totalValue = stockData.reduce((sum, product) => {
+      return sum + (product.cost_price * product.total_current_stock);
+    }, 0);
+
+    const totalStock = stockData.reduce((sum, product) => {
+      return sum + product.total_current_stock;
+    }, 0);
+
+    const productCount = stockData.length;
+
+    const lowStockCount = stockData.filter(product => {
+      const available = product.total_current_stock - product.total_reserved_stock;
+      return available <= 10; // Considerando baixo estoque quando disponível <= 10
+    }).length;
+
+    return {
+      totalValue,
+      totalStock,
+      productCount,
+      lowStockCount
+    };
+  };
+
+  const stats = calculateStats();
+
   const cards = [
     {
       id: "total",
       title: "Valor Total",
-      value: "R$ 515.991,83",
-      subtitle: "+8% vs mês anterior",
+      value: loading ? "Carregando..." : new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(stats.totalValue / 100),
+      subtitle: `${stats.productCount} produtos`,
       icon: Package,
       color: "text-muted-foreground",
       clickable: false
@@ -22,8 +64,8 @@ export function EstoqueStats({ activeFilter, setActiveFilter }: EstoqueStatsProp
     {
       id: "estoque",
       title: "Estoque Total",
-      value: "115",
-      subtitle: "5 produtos",
+      value: loading ? "..." : stats.totalStock.toString(),
+      subtitle: `${stats.productCount} produtos`,
       icon: Archive,
       color: "text-muted-foreground",
       clickable: true
@@ -31,8 +73,8 @@ export function EstoqueStats({ activeFilter, setActiveFilter }: EstoqueStatsProp
     {
       id: "inventario",
       title: "Inventário",
-      value: "12",
-      subtitle: "Contagens pendentes",
+      value: loading ? "..." : stats.lowStockCount.toString(),
+      subtitle: "Estoque baixo/crítico",
       icon: BarChart3,
       color: "text-indigo-500",
       clickable: true,
@@ -71,7 +113,6 @@ export function EstoqueStats({ activeFilter, setActiveFilter }: EstoqueStatsProp
                   className="mt-2 w-full"
                   onClick={(e) => {
                     e.stopPropagation();
-                    // Lógica para criar balanço de estoque
                     console.log("Criar balanço de estoque");
                   }}
                 >
