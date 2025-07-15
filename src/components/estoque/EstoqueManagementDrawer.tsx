@@ -32,6 +32,7 @@ interface EstoqueManagementDrawerProps {
   onClose: () => void;
   product: EstoqueProduct | null;
   onUpdateStock: (productId: string, newStock: number) => void;
+  onStockAdjusted?: () => void;
 }
 
 export function EstoqueManagementDrawer({
@@ -39,6 +40,7 @@ export function EstoqueManagementDrawer({
   onClose,
   product,
   onUpdateStock,
+  onStockAdjusted,
 }: EstoqueManagementDrawerProps) {
   const [adjustmentQuantity, setAdjustmentQuantity] = useState<number>(0);
   const [operationType, setOperationType] = useState<"entrada" | "saida">("entrada");
@@ -84,17 +86,23 @@ export function EstoqueManagementDrawer({
       return;
     }
 
-    // Por enquanto, simular a atualização
+    // Atualizar o estoque
     onUpdateStock(product.id, newStockValue);
     
     toast({
-      title: "Ajuste simulado com sucesso!",
+      title: "Ajuste realizado com sucesso!",
       description: `${operationType === "entrada" ? "Entrada" : "Saída"} de ${adjustmentQuantity} unidades para ${product.produto}`,
     });
 
     // Reset form
     setAdjustmentQuantity(0);
     setOperationType("entrada");
+    
+    // Callback para recarregar dados
+    if (onStockAdjusted) {
+      onStockAdjusted();
+    }
+    
     onClose();
   };
 
@@ -125,9 +133,16 @@ export function EstoqueManagementDrawer({
     product.estoque;
   const previewStatus = getUpdatedStatus(previewStock, product.reservado);
 
+  const handleCloseDrawer = () => {
+    // Reset form when closing
+    setAdjustmentQuantity(0);
+    setOperationType("entrada");
+    onClose();
+  };
+
   return (
-    <Drawer open={isOpen} onOpenChange={onClose} direction="right">
-      <DrawerContent className="fixed inset-y-0 right-0 flex h-full w-[400px] flex-col">
+    <Drawer open={isOpen} onOpenChange={handleCloseDrawer} direction="right">
+      <DrawerContent className="fixed inset-y-0 right-0 flex h-full w-3/4 max-w-sm flex-col">
         <DrawerHeader className="border-b border-border">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -137,7 +152,7 @@ export function EstoqueManagementDrawer({
             <Button
               variant="ghost"
               size="sm"
-              onClick={onClose}
+              onClick={handleCloseDrawer}
               className="h-8 w-8 p-0"
             >
               <X className="h-4 w-4" />

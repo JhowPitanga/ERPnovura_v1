@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Settings, Package } from "lucide-react";
 import { getStatusBadge } from "@/utils/estoqueUtils";
 import { EstoqueManagementDrawer } from "../EstoqueManagementDrawer";
-import { useStockData } from "@/hooks/useStockData";
+import { useStockData, fetchProductsWithDetailedStock } from "@/hooks/useStockData";
 
 interface EstoqueTabProps {
   activeFilter: string;
@@ -19,6 +19,9 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
   const { stockData, loading, error, refetch } = useStockData();
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [localLoading, setLocalLoading] = useState(true);
+  const [localError, setLocalError] = useState<string | null>(null);
 
   // Função para calcular o status baseado na quantidade
   const getStatusFromStock = (estoque: number, reservado: number) => {
@@ -28,8 +31,26 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
     return "Normal";
   };
 
+  // Load products using the provided logic
+  const loadProducts = async () => {
+    setLocalLoading(true);
+    setLocalError(null);
+    try {
+      const data = await fetchProductsWithDetailedStock();
+      setProducts(data);
+    } catch (err) {
+      setLocalError('Não foi possível carregar os produtos do estoque.');
+    } finally {
+      setLocalLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
   // Transformar dados do Supabase para o formato esperado pelo componente
-  const transformedData = stockData.map(product => ({
+  const transformedData = (products.length > 0 ? products : stockData).map(product => ({
     id: product.id,
     produto: product.name,
     sku: product.sku,
@@ -39,7 +60,10 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
     disponivel: product.total_available_stock,
     status: getStatusFromStock(product.total_current_stock, product.total_reserved_stock),
     image_urls: product.image_urls,
-    stock_by_location: product.stock_by_location
+    stock_by_location: product.stock_by_location,
+    galpao: product.stock_by_location?.length > 0 
+      ? product.stock_by_location[0].storage_name 
+      : undefined
   }));
 
   // Filtrar dados baseado na busca, galpão e filtro ativo
@@ -61,29 +85,58 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
     return matchesSearch && matchesGalpao;
   });
 
-  const handleManageStock = (product: any) => {
+  const handleManageStockClick = (product: any) => {
     setSelectedProduct(product);
     setIsDrawerOpen(true);
+  };
+
+  const handleCloseDrawer = () => {
+    setIsDrawerOpen(false);
+    setSelectedProduct(null);
+  };
+
+  const handleStockAdjusted = () => {
+    handleCloseDrawer();
+    loadProducts(); // Reload products after stock adjustment
   };
 
   const handleUpdateStock = async (productId: string, newStock: number) => {
     // Aqui você pode implementar a lógica para atualizar o estoque no Supabase
     // Por enquanto, vamos apenas recarregar os dados
     await refetch();
+    await loadProducts();
   };
 
-  if (loading) {
+  // Use local loading and error states when available
+  const currentLoading = localLoading || loading;
+  const currentError = localError || error;
+
+  if (currentLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-muted-foreground">Carregando produtos...</div>
+        <div className="text-muted-foreground">Carregando estoque...</div>
       </div>
     );
   }
 
-  if (error) {
+  if (currentError) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-destructive">Erro ao carregar produtos: {error}</div>
+        <div className="text-destructive">Erro: {currentError}</div>
+      </div>
+    );
+  }
+
+  if (filteredData.length === 0) {
+    return (
+      <div className="space-y-4">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <div className="text-muted-foreground">
+              Nenhum produto encontrado. Cadastre produtos na aba de Produtos.
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -100,6 +153,7 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
                 <TableHead>SKU</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Preço de Custo</TableHead>
+                <TableHead>Galpão Principal</TableHead>
                 <TableHead>Reservado</TableHead>
                 <TableHead>Disponível</TableHead>
                 <TableHead>Estoque Atual</TableHead>
@@ -144,10 +198,15 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
                     </TableCell>
                     <TableCell>
                       <p className="font-medium">
-                        {new Intl.NumberFormat('pt-BR', {
+                        {item.precoCusto ? new Intl.NumberFormat('pt-BR', {
                           style: 'currency',
                           currency: 'BRL'
-                        }).format(item.precoCusto / 100)}
+                        }).format(item.precoCusto / 100) : 'N/A'}
+                      </p>
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-sm">
+                        {item.galpao || 'Não em estoque'}
                       </p>
                     </TableCell>
                     <TableCell>
@@ -169,7 +228,7 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleManageStock(item)}
+                        onClick={() => handleManageStockClick(item)}
                         className="h-8 px-2"
                       >
                         <Settings className="h-4 w-4 mr-1" />
@@ -186,9 +245,10 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
 
       <EstoqueManagementDrawer
         isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
+        onClose={handleCloseDrawer}
         product={selectedProduct}
         onUpdateStock={handleUpdateStock}
+        onStockAdjusted={handleStockAdjusted}
       />
     </div>
   );
