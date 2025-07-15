@@ -49,7 +49,12 @@ export function ProdutosUnicos() {
         placeholder="Buscar produtos únicos..."
       />
 
-      <ProductTable products={filteredProducts} loading={loading} onDeleteProduct={deleteProduct} />
+      <ProductTable 
+        products={filteredProducts} 
+        loading={loading} 
+        onDeleteProduct={deleteProduct}
+        onRefresh={refetch}
+      />
     </div>
   );
 }
