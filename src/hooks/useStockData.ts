@@ -27,9 +27,12 @@ export async function fetchProductsWithDetailedStock() {
 
   if (productsError) throw productsError;
 
-  const formattedData = productsData.map(product => {
-    const totalCurrent = product.products_stock.reduce((sum, stock) => sum + stock.current, 0);
-    const totalReserved = product.products_stock.reduce((sum, stock) => sum + (stock.reserved || 0), 0);
+  const formattedData = productsData?.map(product => {
+    // Ensure products_stock is always an array
+    const stockArray = Array.isArray(product.products_stock) ? product.products_stock : [];
+    
+    const totalCurrent = stockArray.reduce((sum, stock) => sum + (stock.current || 0), 0);
+    const totalReserved = stockArray.reduce((sum, stock) => sum + (stock.reserved || 0), 0);
     const totalAvailable = totalCurrent - totalReserved;
 
     return {
@@ -37,17 +40,17 @@ export async function fetchProductsWithDetailedStock() {
       total_current_stock: totalCurrent,
       total_reserved_stock: totalReserved,
       total_available_stock: totalAvailable,
-      stock_by_location: product.products_stock.map(stock => ({
+      stock_by_location: stockArray.map(stock => ({
         stock_id: stock.id,
         storage_name: stock.storage?.name || 'Galpão Desconhecido',
         storage_id: stock.storage_id,
-        current: stock.current,
+        current: stock.current || 0,
         reserved: stock.reserved || 0,
         in_transit: stock.in_transit || 0,
-        available: stock.current - (stock.reserved || 0)
+        available: (stock.current || 0) - (stock.reserved || 0)
       }))
     };
-  });
+  }) || [];
 
   return formattedData;
 }

@@ -119,8 +119,12 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
                             alt={item.produto}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                              e.currentTarget.nextElementSibling.style.display = 'flex';
+                              const target = e.currentTarget as HTMLImageElement;
+                              target.style.display = 'none';
+                              const nextSibling = target.nextElementSibling as HTMLElement;
+                              if (nextSibling) {
+                                nextSibling.style.display = 'flex';
+                              }
                             }}
                           />
                         ) : null}

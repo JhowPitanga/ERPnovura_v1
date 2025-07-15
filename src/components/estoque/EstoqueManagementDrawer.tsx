@@ -16,22 +16,22 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 
 interface EstoqueProduct {
-  id: number;
+  id: string;
   produto: string;
   sku: string;
-  galpao: string;
+  galpao?: string;
   estoque: number;
   reservado: number;
   disponivel: number;
   status: string;
-  valor: number;
+  valor?: number;
 }
 
 interface EstoqueManagementDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   product: EstoqueProduct | null;
-  onUpdateStock: (productId: number, newStock: number) => void;
+  onUpdateStock: (productId: string, newStock: number) => void;
 }
 
 export function EstoqueManagementDrawer({
@@ -127,7 +127,7 @@ export function EstoqueManagementDrawer({
 
   return (
     <Drawer open={isOpen} onOpenChange={onClose} direction="right">
-      <DrawerContent className="fixed inset-y-0 right-0 flex h-full w-[45%] flex-col">
+      <DrawerContent className="fixed inset-y-0 right-0 flex h-full w-[400px] flex-col">
         <DrawerHeader className="border-b border-border">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -162,10 +162,12 @@ export function EstoqueManagementDrawer({
                 <Label className="text-xs text-muted-foreground">SKU</Label>
                 <p className="font-medium">{product.sku}</p>
               </div>
-              <div>
-                <Label className="text-xs text-muted-foreground">Galpão</Label>
-                <p className="font-medium">{product.galpao}</p>
-              </div>
+              {product.galpao && (
+                <div>
+                  <Label className="text-xs text-muted-foreground">Galpão</Label>
+                  <p className="font-medium">{product.galpao}</p>
+                </div>
+              )}
               <div>
                 <Label className="text-xs text-muted-foreground">Status</Label>
                 <Badge variant={getStatusColor(currentStatus)}>
