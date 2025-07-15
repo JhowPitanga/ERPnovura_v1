@@ -1,11 +1,24 @@
+
 import { useState, useEffect } from "react";
-import { Plus, Mail, Phone, Shield } from "lucide-react";
+import { Plus, Mail, Phone, Shield, Settings2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AddUserModal } from "./AddUserModal";
+import { UserProfileDrawer } from "./UserProfileDrawer";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface UserInvitation {
   id: string;
@@ -25,6 +38,14 @@ export function ConfiguracoesUsuarios({ onClose }: ConfiguracoesUsuariosProps = 
   const [users, setUsers] = useState<UserInvitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [currentUser] = useState({
+    id: 'current-user',
+    nome: 'João Silva',
+    email: 'joao@empresa.com',
+    telefone: '(11) 99999-9999',
+    status: 'ativo',
+    permissions: { admin: true }
+  });
 
   useEffect(() => {
     loadUsers();
@@ -49,6 +70,23 @@ export function ConfiguracoesUsuarios({ onClose }: ConfiguracoesUsuariosProps = 
 
   const handleAddUser = () => {
     setShowAddUserModal(true);
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_invitations')
+        .delete()
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      toast.success('Usuário removido com sucesso');
+      loadUsers();
+    } catch (error) {
+      console.error('Erro ao remover usuário:', error);
+      toast.error('Erro ao remover usuário');
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -110,6 +148,55 @@ export function ConfiguracoesUsuarios({ onClose }: ConfiguracoesUsuariosProps = 
         </Button>
       </div>
 
+      {/* Usuário Atual */}
+      <Card className="p-6 border-2 border-novura-primary/20 bg-gradient-to-r from-novura-primary/5 to-transparent">
+        <div className="flex justify-between items-start">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {currentUser.nome}
+              </h3>
+              {getStatusBadge(currentUser.status)}
+              <Badge className="bg-novura-primary text-white">
+                Usuário Atual
+              </Badge>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-gray-600">
+                <Mail className="w-4 h-4" />
+                <span className="text-sm">{currentUser.email}</span>
+              </div>
+              
+              {currentUser.telefone && (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Phone className="w-4 h-4" />
+                  <span className="text-sm">{currentUser.telefone}</span>
+                </div>
+              )}
+              
+              <div className="flex items-center gap-2 text-gray-600">
+                <Shield className="w-4 h-4" />
+                <span className="text-sm">Administrador</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <UserProfileDrawer>
+              <Button 
+                size="sm"
+                className="bg-novura-primary hover:bg-novura-primary/90"
+              >
+                <Settings2 className="w-4 h-4 mr-2" />
+                Configurar Perfil
+              </Button>
+            </UserProfileDrawer>
+          </div>
+        </div>
+      </Card>
+
+      {/* Lista de Usuários */}
       {users.length === 0 ? (
         <Card className="p-8 text-center">
           <div className="max-w-sm mx-auto">
@@ -163,10 +250,36 @@ export function ConfiguracoesUsuarios({ onClose }: ConfiguracoesUsuariosProps = 
                   </div>
                 </div>
                 
-                <div className="text-right">
-                  <p className="text-sm text-gray-500">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-gray-500 mr-4">
                     Convidado em {new Date(user.created_at).toLocaleDateString('pt-BR')}
                   </p>
+                  
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remover usuário</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tem certeza que deseja remover o usuário {user.nome}? 
+                          Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Remover
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             </Card>

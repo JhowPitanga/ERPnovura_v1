@@ -16,8 +16,7 @@ import {
   ChevronDown,
   ChevronRight
 } from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
-import { ConfiguracoesModal } from "@/components/ConfiguracoesModal";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import {
   Sidebar,
@@ -43,15 +42,18 @@ const menuItems = [
   { title: "Recursos Seller", url: "/recursos-seller", icon: ShoppingBag },
 ];
 
-
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
-  const [configModalOpen, setConfigModalOpen] = useState(false);
 
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path + "/");
+
+  const handleConfigClick = () => {
+    navigate('/configuracoes');
+  };
 
   return (
     <Sidebar className="border-r-0 bg-white w-60" collapsible="icon">
@@ -101,7 +103,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-
         {/* User Profile */}
         {!isCollapsed && (
           <div className="p-6 mt-auto">
@@ -117,7 +118,7 @@ export function AppSidebar() {
                   </div>
                 </div>
                 <button 
-                  onClick={() => setConfigModalOpen(true)}
+                  onClick={handleConfigClick}
                   className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-gray-100 hover:bg-gray-50 transition-colors"
                 >
                   <Settings className="w-5 h-5 text-gray-600" />
@@ -127,11 +128,6 @@ export function AppSidebar() {
           </div>
         )}
       </SidebarContent>
-      
-      <ConfiguracoesModal 
-        open={configModalOpen} 
-        onOpenChange={setConfigModalOpen} 
-      />
     </Sidebar>
   );
 }

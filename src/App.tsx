@@ -22,6 +22,7 @@ import Cadastro from "./pages/Cadastro";
 import NotFound from "./pages/NotFound";
 import NovuraAcademy from "./pages/NovuraAcademy";
 import Auth from "./pages/Auth";
+import Configuracoes from "./pages/Configuracoes";
 import { NovaEmpresa } from "./pages/NovaEmpresa";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/pedidos" element={<ProtectedRoute><Pedidos /></ProtectedRoute>} />
             <Route path="/estoque" element={<ProtectedRoute><Estoque /></ProtectedRoute>} />
             <Route path="/notas-fiscais" element={<ProtectedRoute><NotasFiscais /></ProtectedRoute>} />
+            <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
             <Route path="/configuracoes/notas-fiscais/nova-empresa" element={<ProtectedRoute><NovaEmpresa /></ProtectedRoute>} />
             <Route path="/novura-academy/*" element={<ProtectedRoute><NovuraAcademy /></ProtectedRoute>} />
             
