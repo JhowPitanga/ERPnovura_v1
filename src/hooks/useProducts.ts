@@ -245,7 +245,7 @@ export function useCreateProduct() {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase.rpc('create_product_with_stock', {
+      const { data, error } = await supabase.rpc('create_product', {
         p_name: productData.name,
         p_sku: productData.sku,
         p_type: productData.type,
@@ -275,7 +275,7 @@ export function useCreateProduct() {
 
       toast({
         title: "Sucesso",
-        description: "Produto criado com sucesso e estoque inicial registrado!",
+        description: "Produto criado com sucesso",
       });
 
       return data;
