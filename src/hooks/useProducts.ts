@@ -64,11 +64,37 @@ export function useProducts() {
     fetchProducts();
   }, [user]);
 
+  const deleteProduct = async (productId: string) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+
+      if (error) throw error;
+      
+      setProducts(prev => prev.filter(p => p.id !== productId));
+      toast({
+        title: "Sucesso",
+        description: "Produto excluído com sucesso",
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao excluir produto';
+      toast({
+        title: "Erro",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
   return {
     products,
     loading,
     error,
     refetch: fetchProducts,
+    deleteProduct,
   };
 }
 
