@@ -434,28 +434,53 @@ export type Database = {
         Returns: undefined
       }
       create_product: {
-        Args: {
-          p_name: string
-          p_sku: string
-          p_category_id: string
-          p_brand_id: string
-          p_description: string
-          p_cost_price: number
-          p_sell_price: number
-          p_barcode: number
-          p_ncm: number
-          p_cest: number
-          p_tax_origin_code: number
-          p_weight: number
-          p_weight_type: string
-          p_package_length: number
-          p_package_width: number
-          p_package_height: number
-          p_image_urls: string[]
-          p_color: string
-          p_size: string
-          p_custom_attributes: Json
-        }
+        Args:
+          | {
+              p_name: string
+              p_sku: string
+              p_category_id: string
+              p_brand_id: string
+              p_description: string
+              p_cost_price: number
+              p_sell_price: number
+              p_barcode: number
+              p_ncm: number
+              p_cest: number
+              p_tax_origin_code: number
+              p_weight: number
+              p_weight_type: string
+              p_package_length: number
+              p_package_width: number
+              p_package_height: number
+              p_image_urls: string[]
+              p_color: string
+              p_size: string
+              p_custom_attributes: Json
+            }
+          | {
+              p_name: string
+              p_sku: string
+              p_category_id: string
+              p_brand_id: string
+              p_description: string
+              p_cost_price: number
+              p_sell_price: number
+              p_barcode: number
+              p_ncm: number
+              p_cest: number
+              p_tax_origin_code: number
+              p_weight: number
+              p_weight_type: string
+              p_package_length: number
+              p_package_width: number
+              p_package_height: number
+              p_image_urls: string[]
+              p_color: string
+              p_size: string
+              p_custom_attributes: Json
+              p_initial_stock_quantity: number
+              p_storage_id: string
+            }
         Returns: string
       }
       create_product_with_stock: {

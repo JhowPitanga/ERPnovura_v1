@@ -275,7 +275,7 @@ export function useCreateProduct() {
 
       toast({
         title: "Sucesso",
-        description: "Produto criado com sucesso",
+        description: "Produto criado com sucesso e estoque inicial registrado!",
       });
 
       return data;

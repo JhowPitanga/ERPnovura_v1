@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { ProductFormData, ProductVariation, VariationType, KitItem, ProductType, VariationStep, KitStep } from "@/types/products";
 import { useCreateProduct, CreateProductData } from "@/hooks/useProducts";
