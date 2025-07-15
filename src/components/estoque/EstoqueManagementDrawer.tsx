@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EstoqueProduct {
   id: string;
@@ -25,6 +26,13 @@ interface EstoqueProduct {
   disponivel: number;
   status: string;
   valor?: number;
+  stock_by_location?: Array<{
+    storage_id: string;
+    storage_name: string;
+    current: number;
+    reserved: number;
+    available: number;
+  }>;
 }
 
 interface EstoqueManagementDrawerProps {
@@ -44,6 +52,7 @@ export function EstoqueManagementDrawer({
 }: EstoqueManagementDrawerProps) {
   const [adjustmentQuantity, setAdjustmentQuantity] = useState<number>(0);
   const [operationType, setOperationType] = useState<"entrada" | "saida">("entrada");
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   if (!product) return null;
@@ -53,7 +62,7 @@ export function EstoqueManagementDrawer({
     setOperationType(amount > 0 ? "entrada" : "saida");
   };
 
-  const handleSaveAdjustment = () => {
+  const handleSaveAdjustment = async () => {
     if (adjustmentQuantity === 0) {
       toast({
         title: "Erro",
@@ -63,47 +72,71 @@ export function EstoqueManagementDrawer({
       return;
     }
 
-    const finalAdjustment = operationType === "entrada" ? adjustmentQuantity : -adjustmentQuantity;
-    const newStockValue = product.estoque + finalAdjustment;
+    let quantity = adjustmentQuantity;
+    if (operationType === "saida") {
+      quantity = -Math.abs(quantity);
+    } else {
+      quantity = Math.abs(quantity);
+    }
 
-    // Verificar se o estoque não pode ficar abaixo do reservado
-    if (operationType === "saida" && newStockValue < product.reservado) {
+    setLoading(true);
+    try {
+      // Use the first storage location or a default one
+      const targetStorageId = product.stock_by_location && product.stock_by_location.length > 0
+        ? product.stock_by_location[0].storage_id
+        : null;
+
+      if (!targetStorageId) {
+        toast({
+          title: "Erro",
+          description: "Galpão não especificado para o ajuste. Verifique a configuração.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase.rpc('upsert_product_stock', {
+        p_product_id: product.id,
+        p_storage_id: targetStorageId,
+        p_quantity: quantity,
+        p_reserved: 0,
+        p_in_transit: 0
+      });
+
+      if (error) {
+        console.error('Erro ao ajustar estoque:', error.message);
+        toast({
+          title: "Erro",
+          description: "Erro ao ajustar estoque: " + error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Sucesso",
+          description: `${operationType === "entrada" ? "Entrada" : "Saída"} de ${adjustmentQuantity} unidades para ${product.produto}`,
+        });
+
+        // Reset form
+        setAdjustmentQuantity(0);
+        setOperationType("entrada");
+        
+        // Callback para recarregar dados
+        if (onStockAdjusted) {
+          onStockAdjusted();
+        }
+        
+        onClose();
+      }
+    } catch (err) {
+      console.error('Erro inesperado:', err);
       toast({
         title: "Erro",
-        description: `Não é possível retirar esta quantidade. Estoque disponível: ${product.disponivel} unidades (${product.reservado} reservadas).`,
+        description: "Ocorreu um erro inesperado ao salvar o ajuste.",
         variant: "destructive",
       });
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    // Verificar se o estoque não pode ficar negativo
-    if (newStockValue < 0) {
-      toast({
-        title: "Erro",
-        description: "O estoque não pode ficar negativo.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Atualizar o estoque
-    onUpdateStock(product.id, newStockValue);
-    
-    toast({
-      title: "Ajuste realizado com sucesso!",
-      description: `${operationType === "entrada" ? "Entrada" : "Saída"} de ${adjustmentQuantity} unidades para ${product.produto}`,
-    });
-
-    // Reset form
-    setAdjustmentQuantity(0);
-    setOperationType("entrada");
-    
-    // Callback para recarregar dados
-    if (onStockAdjusted) {
-      onStockAdjusted();
-    }
-    
-    onClose();
   };
 
   const getStatusColor = (status: string) => {
@@ -142,7 +175,7 @@ export function EstoqueManagementDrawer({
 
   return (
     <Drawer open={isOpen} onOpenChange={handleCloseDrawer} direction="right">
-      <DrawerContent className="fixed inset-y-0 right-0 flex h-full w-3/4 max-w-sm flex-col">
+      <DrawerContent className="fixed inset-y-0 right-0 flex h-full w-3/5 flex-col">
         <DrawerHeader className="border-b border-border">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -215,6 +248,41 @@ export function EstoqueManagementDrawer({
           </div>
 
           <Separator />
+
+          {/* Estoque por Localização */}
+          {product.stock_by_location && product.stock_by_location.length > 0 && (
+            <>
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium text-muted-foreground">Estoque por Localização</h3>
+                
+                <div className="space-y-3">
+                  {product.stock_by_location.map((location) => (
+                    <div key={location.storage_id} className="p-3 bg-muted rounded-lg">
+                      <div className="flex justify-between items-start mb-2">
+                        <p className="font-medium">{location.storage_name}</p>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                          <p className="text-muted-foreground">Atual</p>
+                          <p className="font-bold">{location.current}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Reservado</p>
+                          <p className="font-bold text-orange-500">{location.reserved}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Disponível</p>
+                          <p className="font-bold text-green-500">{location.available}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+            </>
+          )}
 
           {/* Ajuste de Estoque */}
           <div className="space-y-4">
@@ -317,9 +385,13 @@ export function EstoqueManagementDrawer({
         </div>
 
         <div className="border-t border-border p-6">
-          <Button onClick={handleSaveAdjustment} className="w-full">
+          <Button 
+            onClick={handleSaveAdjustment} 
+            className="w-full"
+            disabled={loading}
+          >
             <Settings className="w-4 h-4 mr-2" />
-            Salvar Ajuste
+            {loading ? "Salvando..." : "Salvar Ajuste"}
           </Button>
         </div>
       </DrawerContent>
