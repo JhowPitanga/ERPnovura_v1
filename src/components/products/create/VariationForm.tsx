@@ -1,8 +1,12 @@
 
+import { useState } from "react";
 import { ProductVariation, VariationType, VariationStep } from "@/types/products";
 import { VariationTypeSelector } from "@/components/produtos/criar/VariationTypeSelector";
 import { VariationOptionsForm } from "@/components/produtos/criar/VariationOptionsForm";
 import { VariationDetailsForm } from "@/components/produtos/criar/VariationDetailsForm";
+import { BulkVariationStockDrawer } from "@/components/produtos/criar/BulkVariationStockDrawer";
+import { Button } from "@/components/ui/button";
+import { Package } from "lucide-react";
 
 interface VariationFormProps {
   variations: ProductVariation[];
@@ -21,6 +25,7 @@ export function VariationForm({
   variationTypes,
   onVariationTypesChange
 }: VariationFormProps) {
+  const [bulkDrawerOpen, setBulkDrawerOpen] = useState(false);
   // Convert between English and Portuguese types for compatibility with existing components
   const convertVariationsToPT = (variations: ProductVariation[]) => {
     return variations.map(variation => ({
@@ -44,6 +49,8 @@ export function VariationForm({
       codigoBarras: variation.barcode,
       unidade: variation.unit,
       origem: variation.origin,
+      estoque: variation.stock,
+      armazem: variation.storage,
     }));
   };
 
@@ -69,6 +76,8 @@ export function VariationForm({
       barcode: variation.codigoBarras,
       unit: variation.unidade,
       origin: variation.origem,
+      stock: variation.estoque,
+      storage: variation.armazem,
     }));
   };
 
@@ -125,6 +134,17 @@ export function VariationForm({
 
         {currentStep === "configuration" && (
           <div className="space-y-6">
+            <div className="flex justify-end mb-4">
+              <Button
+                variant="outline"
+                onClick={() => setBulkDrawerOpen(true)}
+                className="flex items-center gap-2"
+              >
+                <Package className="h-4 w-4" />
+                Atualização em Massa
+              </Button>
+            </div>
+            
             {variations.map((variation) => (
               <div key={variation.id} className="border rounded-lg p-4">
                 <h4 className="font-medium mb-4">{variation.name}</h4>
@@ -135,7 +155,9 @@ export function VariationForm({
                     const fieldMap: Record<string, string> = {
                       sku: 'sku',
                       ean: 'ean',
-                      precoCusto: 'costPrice'
+                      precoCusto: 'costPrice',
+                      estoque: 'stock',
+                      armazem: 'storage'
                     };
                     const englishField = fieldMap[field] || field;
                     handleVariationUpdate(variacaoId, englishField, value);
@@ -146,6 +168,13 @@ export function VariationForm({
           </div>
         )}
       </div>
+      
+      <BulkVariationStockDrawer
+        open={bulkDrawerOpen}
+        onOpenChange={setBulkDrawerOpen}
+        variacoes={convertVariationsToPT(variations)}
+        onUpdate={(updatedVariacoes) => onVariationsChange(convertVariationsFromPT(updatedVariacoes))}
+      />
     </div>
   );
 }

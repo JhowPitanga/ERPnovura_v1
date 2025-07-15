@@ -1,6 +1,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Variacao } from "./types";
 
 interface VariationDetailsFormProps {
@@ -47,6 +48,37 @@ export function VariationDetailsForm({ variacao, onUpdate }: VariationDetailsFor
           placeholder="0,00"
           className="mt-2"
         />
+      </div>
+
+      {/* Campos de Estoque e Armazém */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor={`estoque-${variacao.id}`}>Estoque</Label>
+          <Input
+            id={`estoque-${variacao.id}`}
+            type="number"
+            value={variacao.estoque || ""}
+            onChange={(e) => onUpdate(variacao.id, "estoque", e.target.value)}
+            placeholder="Quantidade em estoque"
+            className="mt-2"
+          />
+        </div>
+        <div>
+          <Label htmlFor={`armazem-${variacao.id}`}>Armazém</Label>
+          <Select
+            value={variacao.armazem || ""}
+            onValueChange={(value) => onUpdate(variacao.id, "armazem", value)}
+          >
+            <SelectTrigger className="mt-2">
+              <SelectValue placeholder="Selecione o armazém" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="galpaoPrincipal">Galpão Principal</SelectItem>
+              <SelectItem value="galpaoSecundario">Galpão Secundário</SelectItem>
+              <SelectItem value="deposito">Depósito</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </div>
   );

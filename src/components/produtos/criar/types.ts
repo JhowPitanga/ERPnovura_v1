@@ -22,6 +22,8 @@ export interface Variacao {
   codigoBarras?: string;
   unidade?: string;
   origem?: string;
+  estoque?: string;
+  armazem?: string;
 }
 
 export interface TipoVariacao {

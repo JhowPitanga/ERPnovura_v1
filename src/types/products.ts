@@ -22,6 +22,8 @@ export interface ProductVariation {
   barcode?: string;
   unit?: string;
   origin?: string;
+  stock?: string;
+  storage?: string;
 }
 
 export interface VariationType {

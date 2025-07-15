@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -32,10 +31,10 @@ export async function fetchProductsWithDetailedStock() {
 
   const formattedData = productsData?.map(product => {
     const rawStockData = product.products_stock;
-    const stockArray = rawStockData ? (Array.isArray(rawStockData) ? rawStockData : [rawStockData]) : [];
+    const stockArray: any[] = rawStockData ? (Array.isArray(rawStockData) ? rawStockData : [rawStockData]) : [];
 
-    const totalCurrent = stockArray.reduce((sum, stock) => sum + (stock.current || 0), 0);
-    const totalReserved = stockArray.reduce((sum, stock) => sum + (stock.reserved || 0), 0);
+    const totalCurrent = stockArray.reduce((sum: number, stock: any) => sum + (stock.current || 0), 0);
+    const totalReserved = stockArray.reduce((sum: number, stock: any) => sum + (stock.reserved || 0), 0);
     const totalAvailable = totalCurrent - totalReserved;
 
     return {
