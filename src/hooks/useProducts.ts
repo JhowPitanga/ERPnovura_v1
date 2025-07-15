@@ -245,30 +245,31 @@ export function useCreateProduct() {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase.rpc('create_product', {
-        p_name: productData.name,
-        p_sku: productData.sku,
-        p_type: productData.type,
-        p_description: productData.description || null,
-        p_cost_price: productData.cost_price,
-        p_sell_price: productData.sell_price || null,
-        p_barcode: productData.barcode,
-        p_ncm: productData.ncm,
-        p_cest: productData.cest || null,
-        p_package_height: productData.package_height,
-        p_package_width: productData.package_width,
-        p_package_length: productData.package_length,
-        p_weight: productData.weight || null,
-        p_weight_type: productData.weight_type || null,
-        p_tax_origin_code: productData.tax_origin_code,
-        p_category_id: productData.category_id || null,
-        p_brand_id: productData.brand_id || null,
-        p_color: productData.color || null,
-        p_size: productData.size || null,
-        p_image_urls: productData.image_urls,
-        p_custom_attributes: productData.custom_attributes || null,
-        p_stock_current: productData.stock_current || null,
-        p_storage_id: productData.storage_id || null,
+      const { data, error } = await supabase.rpc('create_product_with_stock', {
+  p_name: productData.name,
+  p_sku: productData.sku,
+  p_category_id: productData.category_id || null,
+  p_brand_id: productData.brand_id || null,
+  p_description: productData.description || null,
+  p_cost_price: productData.cost_price,
+  p_sell_price: productData.sell_price || null,
+  p_barcode: productData.barcode,
+  p_ncm: productData.ncm,
+  p_cest: productData.cest || null,
+  p_tax_origin_code: productData.tax_origin_code,
+  p_weight: productData.weight || null,
+  p_weight_type: productData.weight_type || null,
+  p_package_length: productData.package_length,
+  p_package_width: productData.package_width,
+  p_package_height: productData.package_height,
+  p_image_urls: productData.image_urls,
+  p_color: productData.color || null,
+  p_size: productData.size || null,
+  p_custom_attributes: productData.custom_attributes || null,
+  p_initial_stock_quantity: productData.stock_current || null,
+  p_storage_id: productData.storage_id || null,
+  
+});
       });
 
       if (error) throw error;
