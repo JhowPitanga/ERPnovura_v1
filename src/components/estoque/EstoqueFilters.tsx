@@ -2,7 +2,7 @@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, MapPin } from "lucide-react";
-import { useStorage } from "@/hooks/useProducts";
+import { useStorage } from "@/hooks/useStorage";
 
 interface EstoqueFiltersProps {
   searchTerm: string;

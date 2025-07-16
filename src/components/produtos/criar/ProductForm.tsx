@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ProductFormData } from "@/types/products";
-import { useCategories } from "@/hooks/useProducts";
+import { useCategories } from "@/hooks/useCategories";
 
 interface ProductFormProps {
   formData: ProductFormData;

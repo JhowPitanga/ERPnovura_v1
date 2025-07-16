@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ProductFormData } from "@/types/products";
-import { useStorage } from "@/hooks/useProducts";
+import { useStorage } from "@/hooks/useStorage";
 
 interface StockFormProps {
   formData: ProductFormData;

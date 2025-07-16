@@ -121,13 +121,35 @@ export function useProductForm({ onSuccess }: UseProductFormProps = {}) {
         baseProductData.image_urls = selectedImages.map(img => img.name); // Imagens do produto pai
         // Para variações, 'variations' é um array de objetos que precisa ser mapeado para o formato esperado pelo createProduct
         baseProductData.variations = variations.map(v => ({
-            ...v, // Copia os dados existentes da variação
-            costPrice: String(v.costPrice), // Garante que é string para o useCreateProduct
-            sellPrice: String(v.sellPrice),
-            stock: String(v.stock),
+            id: v.id,
+            name: v.name,
+            sku: v.sku,
+            costPrice: String(v.costPrice || ''),
+            sellPrice: String(v.costPrice || ''), // ProductVariation doesn't have sellPrice, using costPrice
+            stock: String(v.stock || ''),
+            warehouse: String(v.storage || ''),
+            images: v.images.map(img => img.name || ''), // Convert File[] to string[]
+            color: v.color,
+            size: v.size,
+            voltage: v.voltage,
+            customType: v.customType,
+            customValue: v.customValue,
+            ean: v.ean,
+            height: v.height,
+            width: v.width,
+            length: v.length,
+            weight: v.weight,
+            unitType: v.unit,
+            ncm: v.ncm,
+            cest: v.cest,
+            origin: v.origin,
         }));
       } else if (baseProductData.type === 'ITEM') {
-        baseProductData.kitItems = kitItems;
+        baseProductData.kitItems = kitItems.map(k => ({
+          id: k.id,
+          product_id: (k as any).product_id || k.id,
+          quantity: k.quantity,
+        }));
         baseProductData.image_urls = selectedImages.map(img => img.name); // Imagens do kit
       }
 

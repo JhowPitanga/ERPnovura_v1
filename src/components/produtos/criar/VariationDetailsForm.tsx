@@ -2,6 +2,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useStorage } from "@/hooks/useStorage";
 import { Variacao } from "./types";
 
 interface VariationDetailsFormProps {
@@ -10,6 +11,8 @@ interface VariationDetailsFormProps {
 }
 
 export function VariationDetailsForm({ variacao, onUpdate }: VariationDetailsFormProps) {
+  const { storageLocations, loading: storageLoading } = useStorage();
+
   return (
     <div className="space-y-6">
       {/* Campos de SKU e EAN */}
@@ -73,9 +76,11 @@ export function VariationDetailsForm({ variacao, onUpdate }: VariationDetailsFor
               <SelectValue placeholder="Selecione o armazém" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="galpaoPrincipal">Galpão Principal</SelectItem>
-              <SelectItem value="galpaoSecundario">Galpão Secundário</SelectItem>
-              <SelectItem value="deposito">Depósito</SelectItem>
+              {!storageLoading && storageLocations.map((storage) => (
+                <SelectItem key={storage.id} value={storage.id}>
+                  {storage.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

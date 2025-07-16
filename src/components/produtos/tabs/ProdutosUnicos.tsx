@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { ProductTable } from "../ProductTable";
 import { ProductFilters } from "../ProductFilters";
-import { useProducts, useCategories } from "@/hooks/useProducts";
+import { useProducts } from "@/hooks/useProducts";
+import { useCategories } from "@/hooks/useCategories";
 
 export function ProdutosUnicos() {
   const [searchTerm, setSearchTerm] = useState("");
