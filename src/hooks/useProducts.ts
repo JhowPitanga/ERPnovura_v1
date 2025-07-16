@@ -14,74 +14,73 @@ export function useProducts() {
   const { user } = useAuth();
 
   const fetchProducts = async () => {
-  if (!user) {
-    setLoading(false);
-    return;
-  }
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
-  try {
-    setLoading(true);
-    const { data: productsData, error: productsError } = await supabase
-      .from('products')
-      .select(`
-        id,
-        name,
-        sku,
-        cost_price,
-        sell_price,
-        image_urls,
-        categories (
+    try {
+      setLoading(true);
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .select(`
           id,
-          name
-        ),
-        products_stock (
-          id,
-          storage_id,
-          current,
-          reserved,
-          in_transit,
-          storage (
+          name,
+          sku,
+          cost_price,
+          sell_price,
+          image_urls,
+          type,
+          category_id,
+          categories (
+            id,
             name
+          ),
+          products_stock (
+            id,
+            storage_id,
+            current,
+            reserved,
+            in_transit,
+            storage (
+              name
+            )
           )
-        )
-      `)
-      .order('created_at', { ascending: false });
+        `)
+        .order('created_at', { ascending: false });
 
-    if (productsError) throw productsError;
+      if (productsError) throw productsError;
 
-    // Transformar os dados para incluir o estoque consolidado
-    const transformedProducts = productsData?.map(product => {
-      const rawStockData = product.products_stock;
-      // Garante que products_stock é um array, mesmo se for um objeto ou null
-      const stockArray = rawStockData ? (Array.isArray(rawStockData) ? rawStockData : [rawStockData]) : [];
-      
-      const totalCurrent = stockArray.reduce((sum, stock) => sum + (stock.current || 0), 0);
+      // Transformar os dados para incluir o estoque consolidado
+      const transformedProducts = productsData?.map(product => {
+        const rawStockData = product.products_stock;
+        // Garante que products_stock é um array, mesmo se for um objeto ou null
+        const stockArray = rawStockData ? (Array.isArray(rawStockData) ? rawStockData : [rawStockData]) : [];
+        
+        let totalCurrent = 0;
+        stockArray.forEach((stock: any) => {
+          totalCurrent += stock?.current || 0;
+        });
 
-      return {
-        ...product,
-        // Adiciona o total do estoque ao objeto do produto
-        total_current_stock: totalCurrent,
-        // Você pode adicionar total_reserved_stock e total_available_stock aqui se precisar para a ProductTable
-        // total_reserved_stock: stockArray.reduce((sum, stock) => sum + (stock.reserved || 0), 0),
-        // total_available_stock: totalCurrent - stockArray.reduce((sum, stock) => sum + (stock.reserved || 0), 0),
-        // Se precisar dos detalhes por localização na ProductTable, adicione aqui também
-        // stock_by_location: stockArray.map(...)
-      };
-    }) || [];
+        return {
+          ...product,
+          // Adiciona o total do estoque ao objeto do produto
+          total_current_stock: totalCurrent,
+        };
+      }) || [];
 
-    setProducts(transformedProducts as any[]); // Use as any[] ou defina o tipo Product para incluir total_current_stock
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar produtos';
-    setError(errorMessage);
-    toast({
-      title: "Erro",
-      description: errorMessage,
-      variant: "destructive",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+      setProducts(transformedProducts as any[]);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar produtos';
+      toast({
+        title: "Erro",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const deleteProduct = async (productId: string) => {
     try {
