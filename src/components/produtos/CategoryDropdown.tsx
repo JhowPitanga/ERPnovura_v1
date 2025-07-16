@@ -375,14 +375,14 @@ export function CategoryDropdown({ categories, selectedCategory, onCategoryChang
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex-1 p-0">
-                <ScrollArea className="h-96 px-6 pb-6">
+                <ScrollArea className="h-[60vh] px-6 pb-6">
                   <div className="space-y-3">
                     {allCategoriesFlat.map((category) => {
                       const isParent = !category.parent_id;
                       const parentCategory = category.parent_id ? categories.find(c => c.id === category.parent_id) : null;
                       
                       return (
-                        <div key={category.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div key={category.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                           <div className="flex items-center flex-1">
                             {!isParent && (
                               <ChevronDown className="w-4 h-4 mr-2 text-muted-foreground rotate-90" />
@@ -412,7 +412,7 @@ export function CategoryDropdown({ categories, selectedCategory, onCategoryChang
                                   size="sm"
                                   variant="ghost"
                                   onClick={handleCancelEdit}
-                                  className="h-8 w-8 p-0 text-red-600"
+                                  className="h-8 w-8 p-0 text-muted-foreground"
                                 >
                                   <X className="w-4 h-4" />
                                 </Button>
@@ -435,7 +435,7 @@ export function CategoryDropdown({ categories, selectedCategory, onCategoryChang
                                 variant="ghost" 
                                 size="sm"
                                 onClick={() => handleStartEdit(category)}
-                                className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                className="h-8 w-8 p-0 text-primary hover:text-primary/80 hover:bg-primary/10"
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
@@ -503,7 +503,7 @@ export function CategoryDropdown({ categories, selectedCategory, onCategoryChang
         setIsDrawerOpen(open);
         if (!open) resetDrawer();
       }}>
-        <DrawerContent className="max-h-[85vh]">
+        <DrawerContent className="h-screen">
           <DrawerHeader>
             <DrawerTitle>Gerenciar Categorias</DrawerTitle>
           </DrawerHeader>
