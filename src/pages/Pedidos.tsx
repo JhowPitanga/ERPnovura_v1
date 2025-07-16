@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Filter, Settings, FileText, Printer, Bot, TrendingUp, Zap, QrCode, Check, Calendar, Download, X, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, Filter, Settings, FileText, Printer, Bot, TrendingUp, Zap, QrCode, Check, Calendar, Download, X, ChevronDown, ChevronUp, Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,8 +11,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { 
   Pagination,
   PaginationContent,
@@ -28,7 +26,8 @@ import { VincularPedidoModal } from "@/components/pedidos/VincularPedidoModal";
 import { EmissaoNFDrawer } from "@/components/pedidos/EmissaoNFDrawer";
 import { PrintConfigModal } from "@/components/pedidos/PrintConfigModal";
 import { AIIndicator } from "@/components/equipe/AIIndicator";
-import { format } from "date-fns";
+import { PeriodFilter } from "@/components/pedidos/PeriodFilter";
+import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 
 const statusBlocks = [
   { id: "todos", title: "Todos", count: 164, description: "Todos os pedidos" },
@@ -326,7 +325,8 @@ export default function Pedidos() {
   const [selectAll, setSelectAll] = useState(false);
   const [selectAllEmissao, setSelectAllEmissao] = useState(false);
   const [selectAllCancelados, setSelectAllCancelados] = useState(false);
-  const [dateRange, setDateRange] = useState<Date | undefined>(undefined);
+  const [dateStartFilter, setDateStartFilter] = useState<Date | null>(null);
+  const [dateEndFilter, setDateEndFilter] = useState<Date | null>(null);
   const [orderNumberFilter, setOrderNumberFilter] = useState("");
   const [vincularModalOpen, setVincularModalOpen] = useState(false);
   const [selectedPedidoVincular, setSelectedPedidoVincular] = useState(null);
@@ -340,7 +340,19 @@ export default function Pedidos() {
   
   let filteredPedidos = currentPedidos;
   
-  // Apply filters
+  // Apply date range filter
+  if (dateStartFilter && dateEndFilter) {
+    filteredPedidos = filteredPedidos.filter(pedido => {
+      // Convert string date to Date object for comparison
+      const pedidoDate = new Date(pedido.data.split('/').reverse().join('-'));
+      return isWithinInterval(pedidoDate, {
+        start: startOfDay(dateStartFilter),
+        end: endOfDay(dateEndFilter)
+      });
+    });
+  }
+  
+  // Apply other filters
   if (activeStatus === "impressao" && shippingTypeFilter !== "all") {
     filteredPedidos = filteredPedidos.filter(pedido => pedido.tipoEnvio === shippingTypeFilter);
   }
@@ -349,7 +361,6 @@ export default function Pedidos() {
     filteredPedidos = filteredPedidos.filter(pedido => pedido.status === situacaoFilter);
   }
 
-  // Filter for cancelados tab
   if (activeStatus === "cancelados" && canceladosFilter !== "all") {
     filteredPedidos = filteredPedidos.filter(pedido => {
       if (canceladosFilter === "Cancelado") {
@@ -372,6 +383,12 @@ export default function Pedidos() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedPedidos = filteredPedidos.slice(startIndex, endIndex);
+
+  const handleDateRangeChange = (startDate: Date | null, endDate: Date | null) => {
+    setDateStartFilter(startDate);
+    setDateEndFilter(endDate);
+    setCurrentPage(1); // Reset to first page when filtering
+  };
 
   const toggleOrderExpansion = (orderId: string) => {
     setExpandedOrders(prev => 
@@ -541,7 +558,7 @@ export default function Pedidos() {
 
                 {/* Search and Actions */}
                 <div className="flex items-center space-x-4 mb-6">
-                  {/* Order Number Filter - for all tabs */}
+                  {/* Order Number Filter */}
                   <div className="relative max-w-xs">
                     <Input
                       placeholder="Número do pedido..."
@@ -550,6 +567,11 @@ export default function Pedidos() {
                       className="h-12 rounded-2xl border-0 bg-white shadow-lg ring-1 ring-gray-200/60"
                     />
                   </div>
+
+                  {/* Enhanced Period Filter */}
+                  {activeStatus === "todos" && (
+                    <PeriodFilter onDateRangeChange={handleDateRangeChange} />
+                  )}
 
                   {/* Situation Filter - for Todos and Emissao tabs */}
                   {(activeStatus === "todos" || activeStatus === "emissao") && (
@@ -581,29 +603,6 @@ export default function Pedidos() {
                         ))}
                       </SelectContent>
                     </Select>
-                  )}
-
-                  {/* Date Filter - for Todos tab */}
-                  {activeStatus === "todos" && (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="h-12 px-6 rounded-2xl border-0 bg-white shadow-lg ring-1 ring-gray-200/60"
-                        >
-                          <Calendar className="w-4 h-4 mr-2" />
-                          {dateRange ? format(dateRange, "dd/MM/yyyy") : "Período"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 bg-white border shadow-lg" align="start">
-                        <CalendarComponent
-                          mode="single"
-                          selected={dateRange}
-                          onSelect={setDateRange}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
                   )}
 
                   {/* Export Button - for Todos tab */}
@@ -704,36 +703,40 @@ export default function Pedidos() {
                 {/* Pedidos List */}
                 <Card className="border-0 shadow-xl rounded-3xl overflow-hidden bg-white">
                   <CardContent className="p-0">
-                    {/* Table Headers */}
+                    {/* Table Headers - Aligned */}
                     <div className="bg-gray-50 border-b border-gray-100 px-6 py-4">
                       <div className="flex items-center space-x-4">
                         {(activeStatus === "impressao" || activeStatus === "emissao" || 
                           (activeStatus === "cancelados" && canceladosFilter === "Devolução")) && (
-                          <div className="w-8"></div>
+                          <div className="w-8 text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">
+                            SEL
+                          </div>
                         )}
-                        <div className="w-24 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                          ID do Pedido
+                        <div className="w-24 text-xs font-semibold text-gray-600 uppercase tracking-wide text-left">
+                          ID Pedido
                         </div>
                         <div className="w-12"></div>
-                        <div className="flex-1 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                        <div className="flex-1 text-xs font-semibold text-gray-600 uppercase tracking-wide text-left">
                           Produto
                         </div>
-                        <div className="w-20 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                        <div className="w-20 text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">
                           Itens
                         </div>
-                        <div className="w-32 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                          Valor do Pedido
+                        <div className="w-32 text-xs font-semibold text-gray-600 uppercase tracking-wide text-right">
+                          Valor Pedido
                         </div>
-                        <div className="w-32 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                          Tipo de Envio
+                        <div className="w-32 text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">
+                          Tipo Envio
                         </div>
-                        <div className="w-32 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                        <div className="w-32 text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">
                           Marketplace
                         </div>
-                        <div className="w-28 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                        <div className="w-28 text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">
                           ID Plataforma
                         </div>
-                        <div className="w-32"></div>
+                        <div className="w-32 text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">
+                          Ações
+                        </div>
                       </div>
                     </div>
 
@@ -754,54 +757,37 @@ export default function Pedidos() {
                     <div className="space-y-0">
                       {paginatedPedidos.map((pedido) => (
                         <div key={pedido.id}>
-                          <div className="flex items-center justify-between p-3 hover:bg-gray-50 transition-all duration-200 border-b border-gray-100 last:border-0 group">
+                          <div className={`flex items-center justify-between p-3 hover:bg-gray-50 transition-all duration-200 border-b border-gray-100 last:border-0 group ${
+                            pedido.quantidade > 1 ? 'min-h-[120px]' : 'min-h-[80px]'
+                          }`}>
                             <div className="flex items-center space-x-4 flex-1">
                               {(activeStatus === "impressao" || activeStatus === "emissao" || 
                                 (activeStatus === "cancelados" && pedido.status === "Devolução")) && (
-                                <Checkbox
-                                  checked={activeStatus === "impressao" 
-                                    ? selectedPedidosImpressao.includes(pedido.id)
-                                    : activeStatus === "emissao"
-                                    ? selectedPedidosEmissao.includes(pedido.id)
-                                    : selectedPedidosCancelados.includes(pedido.id)
-                                  }
-                                  onCheckedChange={(checked) => 
-                                    activeStatus === "impressao" 
-                                      ? handleSelectPedidoImpressao(pedido.id, checked)
+                                <div className="w-8 flex justify-center">
+                                  <Checkbox
+                                    checked={activeStatus === "impressao" 
+                                      ? selectedPedidosImpressao.includes(pedido.id)
                                       : activeStatus === "emissao"
-                                      ? handleSelectPedidoEmissao(pedido.id, checked)
-                                      : handleSelectPedidoCancelado(pedido.id, checked)
-                                  }
-                                />
+                                      ? selectedPedidosEmissao.includes(pedido.id)
+                                      : selectedPedidosCancelados.includes(pedido.id)
+                                    }
+                                    onCheckedChange={(checked) => 
+                                      activeStatus === "impressao" 
+                                        ? handleSelectPedidoImpressao(pedido.id, checked)
+                                        : activeStatus === "emissao"
+                                        ? handleSelectPedidoEmissao(pedido.id, checked)
+                                        : handleSelectPedidoCancelado(pedido.id, checked)
+                                    }
+                                  />
+                                </div>
                               )}
                               
                               {/* ID do Pedido com Badge de Status */}
                               <div className="w-24">
                                 <div className="flex flex-col space-y-1">
-                                  {/* Status Badge - smaller size */}
                                   <div className="mb-1">
-                                    {(() => {
-                                      switch (pedido.status) {
-                                        case "Pendente":
-                                          return <Badge className="bg-orange-500 text-white text-xs py-0 px-1">Vincular</Badge>;
-                                        case "Vinculado":
-                                          return <Badge className="bg-yellow-500 text-white text-xs py-0 px-1">Emissão de NF-e</Badge>;
-                                        case "NF Emitida":
-                                          return <Badge className="bg-purple-600 text-white text-xs py-0 px-1">Impressão</Badge>;
-                                        case "Aguardando":
-                                          return <Badge className="bg-blue-500 text-white text-xs py-0 px-1">Aguardando coleta</Badge>;
-                                        case "Enviado":
-                                          return <Badge className="bg-green-500 text-white text-xs py-0 px-1">Enviado</Badge>;
-                                        case "Cancelado":
-                                          return <Badge className="bg-gray-500 text-white text-xs py-0 px-1">Cancelado</Badge>;
-                                        case "Devolução":
-                                          return <Badge className="bg-red-500 text-white text-xs py-0 px-1">Emitir devolução</Badge>;
-                                        default:
-                                          return <Badge variant="default" className="text-xs py-0 px-1">Normal</Badge>;
-                                      }
-                                    })()}
+                                    {getStatusBadge(pedido.status)}
                                   </div>
-                                  {/* ID with AI Indicator */}
                                   <div className="flex items-center space-x-1">
                                     <h3 className="text-sm font-bold text-gray-900">{pedido.id}</h3>
                                     {pedido.aiSuggestion && (
@@ -816,36 +802,56 @@ export default function Pedidos() {
                                 </div>
                               </div>
 
-                              {/* Foto */}
-                              <img
-                                src={pedido.image}
-                                alt={pedido.produto}
-                                className="w-12 h-12 rounded-lg object-cover bg-gray-100"
-                              />
-                              
-                              {/* Produto e SKU */}
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm text-gray-900 font-medium truncate">{pedido.produto}</p>
-                                <p className="text-xs text-gray-500">SKU: {pedido.sku}</p>
+                              {/* Products Section - Enhanced for multiple items */}
+                              <div className="flex-1 min-w-0 flex">
+                                {pedido.itens && pedido.itens.length > 0 ? (
+                                  <div className="flex flex-col space-y-2 w-full">
+                                    {pedido.itens.slice(0, 2).map((item: any, index: number) => (
+                                      <div key={index} className="flex items-center space-x-3">
+                                        <img
+                                          src={item.image || "/placeholder.svg"}
+                                          alt={item.produto}
+                                          className="w-10 h-10 rounded-lg object-cover bg-gray-100 flex-shrink-0"
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-sm text-gray-900 font-medium truncate">{item.produto}</p>
+                                          <p className="text-xs text-gray-500">SKU: {item.sku}</p>
+                                          {/* Add variation name below SKU if it's a variation */}
+                                          {item.variacao && (
+                                            <p className="text-xs text-purple-600 font-medium">{item.variacao}</p>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                    {pedido.itens.length > 2 && (
+                                      <p className="text-xs text-gray-500 ml-13">+{pedido.itens.length - 2} mais itens</p>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center space-x-3">
+                                    <img
+                                      src={pedido.image}
+                                      alt={pedido.produto}
+                                      className="w-12 h-12 rounded-lg object-cover bg-gray-100"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm text-gray-900 font-medium truncate">{pedido.produto}</p>
+                                      <p className="text-xs text-gray-500">SKU: {pedido.sku}</p>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                               
-                              {/* Quantidade */}
+                              {/* Quantidade with Purple Indicator */}
                               <div className="w-20 text-center">
                                 <div className="flex items-center justify-center space-x-1">
                                   <p className={`text-sm font-medium ${pedido.quantidade > 1 ? 'text-purple-600' : 'text-gray-900'}`}>
                                     {pedido.quantidade}
                                   </p>
                                   {pedido.quantidade > 1 && (
-                                    <button
-                                      onClick={() => toggleOrderExpansion(pedido.id)}
-                                      className="w-4 h-4 rounded-full bg-purple-600 flex items-center justify-center animate-pulse hover:animate-none transition-all"
-                                    >
-                                      {expandedOrders.includes(pedido.id) ? (
-                                        <ChevronUp className="w-2 h-2 text-white" />
-                                      ) : (
-                                        <ChevronDown className="w-2 h-2 text-white" />
-                                      )}
-                                    </button>
+                                    <div className="w-4 h-4 rounded-full bg-purple-600 flex items-center justify-center">
+                                      <span className="text-xs text-white font-bold">x</span>
+                                    </div>
                                   )}
                                 </div>
                                 <p className="text-xs text-gray-500">itens</p>
@@ -856,7 +862,7 @@ export default function Pedidos() {
                                 <p className="text-lg font-bold text-gray-900">R$ {pedido.valor.toFixed(2)}</p>
                               </div>
                               
-                              {/* Tipo Envio - now with primary color */}
+                              {/* Tipo Envio */}
                               <div className="w-32 text-center">
                                 <Badge className="bg-primary text-primary-foreground border-0">
                                   {pedido.tipoEnvio}
@@ -876,7 +882,7 @@ export default function Pedidos() {
                               </div>
                               
                               {/* Actions */}
-                              <div className="flex items-center space-x-2">
+                              <div className="w-32 flex items-center justify-center space-x-2">
                                 <Drawer>
                                   <DrawerTrigger asChild>
                                     <Button 
@@ -939,33 +945,6 @@ export default function Pedidos() {
                               </div>
                             </div>
                           </div>
-
-                          {/* Expanded Items */}
-                          {expandedOrders.includes(pedido.id) && pedido.itens && pedido.itens.length > 1 && (
-                            <div className="bg-gray-50 border-b border-gray-100">
-                              <div className="space-y-2 p-4 ml-20">
-                                {pedido.itens.map((item, index) => (
-                                  <div key={index} className="flex items-center space-x-4 py-2 bg-white rounded-lg px-4">
-                                    <img
-                                      src={item.image}
-                                      alt={item.produto}
-                                      className="w-8 h-8 rounded object-cover bg-gray-100"
-                                    />
-                                    <div className="flex-1">
-                                      <p className="text-sm font-medium text-gray-900">{item.produto}</p>
-                                      <p className="text-xs text-gray-500">SKU: {item.sku}</p>
-                                    </div>
-                                    <div className="text-sm text-gray-600">
-                                      Qtd: {item.quantidade}
-                                    </div>
-                                    <div className="text-sm font-medium text-gray-900">
-                                      R$ {item.valor.toFixed(2)}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
                         </div>
                       ))}
                     </div>
