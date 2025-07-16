@@ -1,12 +1,10 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Search, X, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useProductsWithStock } from "@/hooks/useProductsWithStock";
-import { useToast } from "@/hooks/use-toast";
 
 interface VincularPedidoModalProps {
   open: boolean;
@@ -14,32 +12,28 @@ interface VincularPedidoModalProps {
   pedido: any;
 }
 
+const mockProdutos = [
+  { id: "1", nome: "iPhone 15 Pro Max 256GB", sku: "IPH15PM-256", estoque: 12, preco: 8999.99, image: "/placeholder.svg" },
+  { id: "2", nome: "MacBook Air M3 16GB 512GB", sku: "MBA-M3-512", estoque: 5, preco: 12999.99, image: "/placeholder.svg" },
+  { id: "3", nome: "Samsung Galaxy S24 Ultra", sku: "SGS24U-256", estoque: 8, preco: 6999.99, image: "/placeholder.svg" },
+  { id: "4", nome: "Nintendo Switch OLED", sku: "NSW-OLED", estoque: 15, preco: 2299.99, image: "/placeholder.svg" },
+  { id: "5", nome: "iPad Air 5ª Geração", sku: "IPAD-AIR5", estoque: 7, preco: 4199.99, image: "/placeholder.svg" },
+];
+
 export function VincularPedidoModal({ open, onOpenChange, pedido }: VincularPedidoModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [itemVinculacoes, setItemVinculacoes] = useState<Record<string, string>>({});
-  const { products, loading } = useProductsWithStock();
-  const { toast } = useToast();
 
-  // Filter products with stock > 0 and apply search term
-  const filteredProdutos = products.filter(produto => {
-    const hasStock = produto.total_current_stock > 0;
-    const matchesSearch = searchTerm === "" || 
-      produto.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      produto.sku.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    return hasStock && matchesSearch;
-  });
+  const filteredProdutos = mockProdutos.filter(produto =>
+    produto.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    produto.sku.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleVincularProduto = (itemId: string, produtoId: string) => {
     // Check if this product is already assigned to another item
     const produtoJaVinculado = Object.values(itemVinculacoes).includes(produtoId);
     if (produtoJaVinculado && itemVinculacoes[itemId] !== produtoId) {
-      toast({
-        title: "Produto já vinculado",
-        description: "Este produto já foi vinculado a outro item do pedido.",
-        variant: "destructive",
-      });
-      return;
+      return; // Don't allow same product to be assigned to multiple items
     }
 
     setItemVinculacoes(prev => ({
@@ -56,32 +50,12 @@ export function VincularPedidoModal({ open, onOpenChange, pedido }: VincularPedi
     });
   };
 
-  const handleSalvar = async () => {
-    if (Object.keys(itemVinculacoes).length === 0) {
-      toast({
-        title: "Nenhuma vinculação",
-        description: "Selecione pelo menos um produto para vincular.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Here you would implement the actual saving logic to your database
-      console.log("Vinculações a serem salvas:", itemVinculacoes);
-      
-      toast({
-        title: "Sucesso",
-        description: "Produtos vinculados com sucesso!",
-      });
-      
-      handleClose();
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao vincular produtos. Tente novamente.",
-        variant: "destructive",
-      });
+  const handleSalvar = () => {
+    if (Object.keys(itemVinculacoes).length > 0) {
+      console.log("Vinculações salvas:", itemVinculacoes);
+      onOpenChange(false);
+      setItemVinculacoes({});
+      setSearchTerm("");
     }
   };
 
@@ -91,22 +65,14 @@ export function VincularPedidoModal({ open, onOpenChange, pedido }: VincularPedi
     setSearchTerm("");
   };
 
-  // Reset state when modal opens
-  useEffect(() => {
-    if (open) {
-      setItemVinculacoes({});
-      setSearchTerm("");
-    }
-  }, [open]);
-
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-5xl h-[85vh] bg-white rounded-2xl p-0 overflow-hidden">
+      <DialogContent className="max-w-6xl h-[80vh] bg-white rounded-2xl p-0 overflow-hidden">
         <DialogHeader className="p-6 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-2xl font-bold">Vincular Produto ao Pedido {pedido?.id}</DialogTitle>
-              <p className="text-gray-600 mt-1">Vincule os produtos do pedido aos produtos cadastrados no sistema</p>
+              <p className="text-gray-600 mt-1">Selecione os produtos para vincular a cada item do pedido</p>
             </div>
             <Button
               variant="ghost"
@@ -120,13 +86,13 @@ export function VincularPedidoModal({ open, onOpenChange, pedido }: VincularPedi
         </DialogHeader>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* Lista de Produtos Cadastrados - Left Side */}
+          {/* Lista de Produtos - Left Side */}
           <div className="flex-1 border-r border-gray-100 flex flex-col">
             <div className="p-4 border-b border-gray-100">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
-                  placeholder="Buscar produtos cadastrados..."
+                  placeholder="Buscar produtos..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 h-12 rounded-2xl border-0 bg-gray-50"
@@ -135,63 +101,42 @@ export function VincularPedidoModal({ open, onOpenChange, pedido }: VincularPedi
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">
-              {loading ? (
-                <div className="text-center text-gray-500 mt-8">
-                  <p>Carregando produtos...</p>
-                </div>
-              ) : filteredProdutos.length === 0 ? (
-                <div className="text-center text-gray-500 mt-8">
-                  <p>Nenhum produto encontrado com estoque disponível</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {filteredProdutos.map((produto) => {
-                    const isUsed = Object.values(itemVinculacoes).includes(produto.id);
-                    return (
-                      <div
-                        key={produto.id}
-                        className={`p-4 rounded-xl border cursor-pointer transition-all hover:shadow-md ${
-                          isUsed ? 'border-green-300 bg-green-50 opacity-60' : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
-                            {produto.image_urls && produto.image_urls.length > 0 ? (
-                              <img
-                                src={produto.image_urls[0]}
-                                alt={produto.name}
-                                className="w-full h-full rounded-lg object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full rounded-lg bg-gray-200 flex items-center justify-center text-gray-400 text-xs">
-                                Sem foto
-                              </div>
-                            )}
+              <div className="space-y-2">
+                {filteredProdutos.map((produto) => {
+                  const isUsed = Object.values(itemVinculacoes).includes(produto.id);
+                  return (
+                    <div
+                      key={produto.id}
+                      className={`p-4 rounded-xl border cursor-pointer transition-all hover:shadow-md ${
+                        isUsed ? 'border-green-300 bg-green-50 opacity-60' : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <img
+                          src={produto.image}
+                          alt={produto.nome}
+                          className="w-12 h-12 rounded-lg object-cover bg-gray-100"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 truncate">{produto.nome}</h3>
+                          <p className="text-sm text-gray-500">SKU: {produto.sku}</p>
+                          <div className="flex items-center justify-between mt-1">
+                            <Badge variant="outline" className="text-xs">
+                              Estoque: {produto.estoque}
+                            </Badge>
+                            <span className="font-bold text-novura-primary">
+                              R$ {produto.preco.toFixed(2)}
+                            </span>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-900 truncate">{produto.name}</h3>
-                            <p className="text-sm text-gray-500">SKU: {produto.sku}</p>
-                            <div className="flex items-center justify-between mt-1">
-                              <Badge variant="outline" className="text-xs">
-                                Estoque: {produto.total_current_stock}
-                              </Badge>
-                              <span className="font-bold text-primary">
-                                {new Intl.NumberFormat('pt-BR', { 
-                                  style: 'currency', 
-                                  currency: 'BRL' 
-                                }).format(produto.sell_price || produto.cost_price)}
-                              </span>
-                            </div>
-                          </div>
-                          {isUsed && (
-                            <Check className="w-5 h-5 text-green-500" />
-                          )}
                         </div>
+                        {isUsed && (
+                          <Check className="w-5 h-5 text-green-500" />
+                        )}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -214,40 +159,26 @@ export function VincularPedidoModal({ open, onOpenChange, pedido }: VincularPedi
                   {pedido.itens.map((item: any, index: number) => {
                     const itemId = `item-${index}`;
                     const produtoVinculado = itemVinculacoes[itemId];
-                    const produto = produtoVinculado ? filteredProdutos.find(p => p.id === produtoVinculado) : null;
+                    const produto = produtoVinculado ? mockProdutos.find(p => p.id === produtoVinculado) : null;
 
                     return (
                       <div key={itemId} className="bg-white p-4 rounded-xl border border-gray-200">
                         <div className="mb-3">
                           <h4 className="font-medium text-gray-900 text-sm">{item.produto}</h4>
                           <p className="text-xs text-gray-500">SKU: {item.sku} | Qtd: {item.quantidade}</p>
-                          {item.variacao && (
-                            <p className="text-xs text-purple-600 font-medium">{item.variacao}</p>
-                          )}
-                          <p className="text-xs text-gray-600">
-                            {new Intl.NumberFormat('pt-BR', { 
-                              style: 'currency', 
-                              currency: 'BRL' 
-                            }).format(item.valor)}
-                          </p>
+                          <p className="text-xs text-gray-600">R$ {item.valor.toFixed(2)}</p>
                         </div>
 
                         {produto ? (
                           <div className="flex items-center justify-between p-2 bg-green-50 rounded-lg border border-green-200">
                             <div className="flex items-center space-x-2">
-                              <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center">
-                                {produto.image_urls && produto.image_urls.length > 0 ? (
-                                  <img
-                                    src={produto.image_urls[0]}
-                                    alt={produto.name}
-                                    className="w-full h-full rounded object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full rounded bg-gray-200"></div>
-                                )}
-                              </div>
+                              <img
+                                src={produto.image}
+                                alt={produto.nome}
+                                className="w-8 h-8 rounded object-cover"
+                              />
                               <div>
-                                <p className="text-xs font-medium text-green-800">{produto.name}</p>
+                                <p className="text-xs font-medium text-green-800">{produto.nome}</p>
                                 <p className="text-xs text-green-600">SKU: {produto.sku}</p>
                               </div>
                             </div>
@@ -277,7 +208,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido }: VincularPedi
                                         : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
                                     }`}
                                   >
-                                    {produto.name.substring(0, 15)}...
+                                    {produto.nome.substring(0, 15)}...
                                   </button>
                                 );
                               })}
@@ -295,7 +226,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido }: VincularPedi
               <Button
                 onClick={handleSalvar}
                 disabled={Object.keys(itemVinculacoes).length === 0}
-                className="w-full h-12 rounded-2xl bg-primary"
+                className="w-full h-12 rounded-2xl bg-novura-primary"
               >
                 Salvar Vinculação ({Object.keys(itemVinculacoes).length})
               </Button>
