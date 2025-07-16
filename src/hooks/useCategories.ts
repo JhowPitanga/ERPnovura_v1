@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client'; // Caminho para seu cliente Supabase
-import { Tables } from '@/integrations/supabase/types'; // Importa tipos de tabela do Supabase
-import { useToast } from '@/hooks/use-toast'; // Importa seu hook de toast
+import { supabase } from '@/integrations/supabase/client';
+import { Tables } from '@/integrations/supabase/types';
+import { useToast } from '@/hooks/use-toast';
 
-// Define o tipo para Category, baseado na sua tabela 'categories'
 export type Category = Tables<'categories'>;
 
 export function useCategories() {
@@ -34,22 +33,23 @@ export function useCategories() {
     }
   };
 
-  const createCategory = async (name: string, parent_id?: string) => {
+  const createCategory = async (name: string, parent_id?: string | null) => {
     try {
       const { data, error } = await supabase
         .from('categories')
-        .insert({ name, parent_id })
+        .insert({ name, parent_id: parent_id || null })
         .select()
         .single();
 
       if (error) throw error;
-
-      setCategories(prev => [...prev, data]);
+      
+      fetchCategories(); 
+      
       toast({
         title: "Sucesso",
         description: "Categoria criada com sucesso",
       });
-
+      
       return data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao criar categoria';
@@ -62,72 +62,14 @@ export function useCategories() {
     }
   };
 
-  const updateCategory = async (categoryId: string, name: string) => {
-    try {
-      const { error } = await supabase
-        .from('categories')
-        .update({ name })
-        .eq('id', categoryId);
-
-      if (error) throw error;
-
-      setCategories(prev => 
-        prev.map(cat => 
-          cat.id === categoryId ? { ...cat, name } : cat
-        )
-      );
-
-      toast({
-        title: "Sucesso",
-        description: "Categoria atualizada com sucesso",
-      });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar categoria';
-      toast({
-        title: "Erro",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      throw err;
-    }
-  };
-
-  const deleteCategory = async (categoryId: string) => {
-    try {
-      const { error } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', categoryId);
-
-      if (error) throw error;
-
-      setCategories(prev => prev.filter(cat => cat.id !== categoryId));
-      
-      toast({
-        title: "Sucesso",
-        description: "Categoria excluída com sucesso",
-      });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao excluir categoria';
-      toast({
-        title: "Erro",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      throw err;
-    }
-  };
-
   useEffect(() => {
     fetchCategories();
-  }, []); // Não há [user] aqui, pois não depende de autenticação para buscar (se necessário, adicione useAuth)
+  }, []);
 
   return {
     categories,
     loading,
     createCategory,
-    updateCategory,
-    deleteCategory,
     refetch: fetchCategories,
   };
 }
