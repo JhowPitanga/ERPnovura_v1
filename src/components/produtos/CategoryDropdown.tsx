@@ -38,6 +38,33 @@ export function CategoryDropdown({ categories, selectedCategory, onCategoryChang
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [editingCategoryName, setEditingCategoryName] = useState("");
 
+  // Organizar categorias em estrutura hierárquica
+  const organizeCategories = (cats: Category[]) => {
+    const categoryMap = new Map<string, Category>();
+    const rootCategories: Category[] = [];
+
+    // Primeiro, criar um mapa de todas as categorias
+    cats.forEach(cat => {
+      categoryMap.set(cat.id, { ...cat, children: [] });
+    });
+
+    // Em seguida, organizar em hierarquia
+    cats.forEach(cat => {
+      const categoryWithChildren = categoryMap.get(cat.id)!;
+      
+      if (cat.parent_id && categoryMap.has(cat.parent_id)) {
+        const parent = categoryMap.get(cat.parent_id)!;
+        parent.children!.push(categoryWithChildren);
+      } else {
+        rootCategories.push(categoryWithChildren);
+      }
+    });
+
+    return rootCategories;
+  };
+
+  const organizedCategories = organizeCategories(categories);
+
   const handleSaveCategory = () => {
     if (newCategoryName.trim()) {
       onAddCategory({ name: newCategoryName.trim() });
@@ -109,7 +136,7 @@ export function CategoryDropdown({ categories, selectedCategory, onCategoryChang
                 <ChevronDown className="w-4 h-4" />
               </DropdownMenuItem>
             </DropdownMenuTrigger>
-            <DropdownMenuContent side="right" align="start">
+            <DropdownMenuContent side="right" align="start" className="w-56">
               <DropdownMenuItem
                 onClick={() => onCategoryChange(category.id)}
                 className={selectedCategory === category.id ? 'bg-muted' : ''}
@@ -145,17 +172,116 @@ export function CategoryDropdown({ categories, selectedCategory, onCategoryChang
 
   const selectedCategoryName = categories.find(cat => cat.id === selectedCategory)?.name || "Todas as categorias";
 
-  const renderAllCategoriesForEdit = (cats: Category[]): Category[] => {
-    const allCategories: Category[] = [];
-    
-    cats.forEach(category => {
-      allCategories.push(category);
-      if (category.children && category.children.length > 0) {
-        allCategories.push(...category.children);
+  const renderAllCategoriesForEdit = () => {
+    const renderCategory = (category: Category, level = 0): JSX.Element[] => {
+      const elements: JSX.Element[] = [];
+      const hasChildren = category.children && category.children.length > 0;
+      const parentCategory = category.parent_id ? categories.find(c => c.id === category.parent_id) : null;
+      
+      elements.push(
+        <div key={category.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+          <div className="flex items-center flex-1">
+            {level > 0 && (
+              <ChevronDown className="w-4 h-4 mr-2 text-muted-foreground rotate-90" />
+            )}
+            
+            {hasChildren && level === 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0 mr-2">
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {category.children?.map((child) => (
+                    <DropdownMenuItem key={child.id}>
+                      {child.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            
+            {editingCategoryId === category.id ? (
+              <div className="flex items-center space-x-2 flex-1">
+                <Input
+                  value={editingCategoryName}
+                  onChange={(e) => setEditingCategoryName(e.target.value)}
+                  className="flex-1"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSaveEdit();
+                    }
+                  }}
+                />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleSaveEdit}
+                  className="h-8 w-8 p-0 text-green-600"
+                >
+                  <Check className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleCancelEdit}
+                  className="h-8 w-8 p-0 text-muted-foreground"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">{category.name}</span>
+                {parentCategory && (
+                  <span className="text-xs text-muted-foreground">
+                    Subcategoria de: {parentCategory.name}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          
+          {editingCategoryId !== category.id && (
+            <div className="flex items-center space-x-1">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => handleStartEdit(category)}
+                className="h-8 w-8 p-0 text-primary hover:text-primary/80 hover:bg-primary/10"
+              >
+                <Edit className="w-4 h-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => handleDeleteCategory(category.id)}
+                className="h-8 w-8 p-0 text-red-600 hover:text-red-800 hover:bg-red-50"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+        </div>
+      );
+
+      // Adicionar filhos se existirem
+      if (hasChildren) {
+        category.children?.forEach(child => {
+          elements.push(...renderCategory(child, level + 1));
+        });
       }
+
+      return elements;
+    };
+
+    const allElements: JSX.Element[] = [];
+    organizedCategories.forEach(category => {
+      allElements.push(...renderCategory(category));
     });
-    
-    return allCategories;
+
+    return allElements;
   };
 
   const renderDrawerContent = () => {
@@ -350,8 +476,6 @@ export function CategoryDropdown({ categories, selectedCategory, onCategoryChang
         );
 
       case 'edit':
-        const allCategoriesFlat = renderAllCategoriesForEdit(categories);
-        
         return (
           <div className="p-6 space-y-6 h-full flex flex-col">
             <div className="flex items-center mb-4">
@@ -375,84 +499,10 @@ export function CategoryDropdown({ categories, selectedCategory, onCategoryChang
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex-1 p-0">
-                <ScrollArea className="h-[60vh] px-6 pb-6">
+                <ScrollArea className="h-[calc(100vh-300px)] px-6 pb-6">
                   <div className="space-y-3">
-                    {allCategoriesFlat.map((category) => {
-                      const isParent = !category.parent_id;
-                      const parentCategory = category.parent_id ? categories.find(c => c.id === category.parent_id) : null;
-                      
-                      return (
-                        <div key={category.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                          <div className="flex items-center flex-1">
-                            {!isParent && (
-                              <ChevronDown className="w-4 h-4 mr-2 text-muted-foreground rotate-90" />
-                            )}
-                            
-                            {editingCategoryId === category.id ? (
-                              <div className="flex items-center space-x-2 flex-1">
-                                <Input
-                                  value={editingCategoryName}
-                                  onChange={(e) => setEditingCategoryName(e.target.value)}
-                                  className="flex-1"
-                                  onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                      handleSaveEdit();
-                                    }
-                                  }}
-                                />
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={handleSaveEdit}
-                                  className="h-8 w-8 p-0 text-green-600"
-                                >
-                                  <Check className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={handleCancelEdit}
-                                  className="h-8 w-8 p-0 text-muted-foreground"
-                                >
-                                  <X className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col">
-                                <span className="text-sm font-medium">{category.name}</span>
-                                {!isParent && parentCategory && (
-                                  <span className="text-xs text-muted-foreground">
-                                    Subcategoria de: {parentCategory.name}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          
-                          {editingCategoryId !== category.id && (
-                            <div className="flex items-center space-x-1">
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => handleStartEdit(category)}
-                                className="h-8 w-8 p-0 text-primary hover:text-primary/80 hover:bg-primary/10"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => handleDeleteCategory(category.id)}
-                                className="h-8 w-8 p-0 text-red-600 hover:text-red-800 hover:bg-red-50"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                    {allCategoriesFlat.length === 0 && (
+                    {renderAllCategoriesForEdit()}
+                    {categories.length === 0 && (
                       <div className="text-center py-8">
                         <Info className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
                         <p className="text-sm text-muted-foreground">Nenhuma categoria cadastrada</p>
@@ -487,7 +537,7 @@ export function CategoryDropdown({ categories, selectedCategory, onCategoryChang
             Todas as categorias
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          {renderCategoryItems(categories)}
+          {renderCategoryItems(organizedCategories)}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => {
             resetDrawer();

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
@@ -62,6 +63,58 @@ export function useCategories() {
     }
   };
 
+  const updateCategory = async (categoryId: string, name: string) => {
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .update({ name, updated_at: new Date().toISOString() })
+        .eq('id', categoryId);
+
+      if (error) throw error;
+      
+      fetchCategories();
+      
+      toast({
+        title: "Sucesso",
+        description: "Categoria atualizada com sucesso",
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar categoria';
+      toast({
+        title: "Erro",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
+  const deleteCategory = async (categoryId: string) => {
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .update({ active: false, updated_at: new Date().toISOString() })
+        .eq('id', categoryId);
+
+      if (error) throw error;
+      
+      fetchCategories();
+      
+      toast({
+        title: "Sucesso",
+        description: "Categoria excluída com sucesso",
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao excluir categoria';
+      toast({
+        title: "Erro",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -70,6 +123,8 @@ export function useCategories() {
     categories,
     loading,
     createCategory,
+    updateCategory,
+    deleteCategory,
     refetch: fetchCategories,
   };
 }
