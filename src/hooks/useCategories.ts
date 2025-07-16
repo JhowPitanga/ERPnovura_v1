@@ -34,11 +34,11 @@ export function useCategories() {
     }
   };
 
-  const createCategory = async (name: string) => {
+  const createCategory = async (name: string, parent_id?: string) => {
     try {
       const { data, error } = await supabase
         .from('categories')
-        .insert({ name })
+        .insert({ name, parent_id })
         .select()
         .single();
 
@@ -62,6 +62,62 @@ export function useCategories() {
     }
   };
 
+  const updateCategory = async (categoryId: string, name: string) => {
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .update({ name })
+        .eq('id', categoryId);
+
+      if (error) throw error;
+
+      setCategories(prev => 
+        prev.map(cat => 
+          cat.id === categoryId ? { ...cat, name } : cat
+        )
+      );
+
+      toast({
+        title: "Sucesso",
+        description: "Categoria atualizada com sucesso",
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar categoria';
+      toast({
+        title: "Erro",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
+  const deleteCategory = async (categoryId: string) => {
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', categoryId);
+
+      if (error) throw error;
+
+      setCategories(prev => prev.filter(cat => cat.id !== categoryId));
+      
+      toast({
+        title: "Sucesso",
+        description: "Categoria excluída com sucesso",
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao excluir categoria';
+      toast({
+        title: "Erro",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
   useEffect(() => {
     fetchCategories();
   }, []); // Não há [user] aqui, pois não depende de autenticação para buscar (se necessário, adicione useAuth)
@@ -70,6 +126,8 @@ export function useCategories() {
     categories,
     loading,
     createCategory,
+    updateCategory,
+    deleteCategory,
     refetch: fetchCategories,
   };
 }

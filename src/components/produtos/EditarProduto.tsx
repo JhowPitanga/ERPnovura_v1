@@ -163,6 +163,8 @@ export function EditarProduto() {
         title: "Sucesso",
         description: "Produto atualizado com sucesso",
       });
+      
+      navigate("/produtos");
     } catch (err) {
       console.error('Error:', err);
       toast({
@@ -295,23 +297,60 @@ export function EditarProduto() {
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pt-4">
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <p className="text-gray-500">Clique para adicionar fotos ou arraste e solte aqui</p>
-                  <p className="text-sm text-gray-400 mt-2">PNG, JPG até 10MB cada</p>
-                  <div className="mt-4 flex flex-wrap gap-4">
-                    {produto.imagens.map((img, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={img}
-                          alt={`Produto ${index + 1}`}
-                          className="w-24 h-24 object-cover rounded-lg border"
-                        />
-                        <button className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center">
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
+                <div className="space-y-4">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      id="image-upload"
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        files.forEach(file => {
+                          const reader = new FileReader();
+                          reader.onload = (e) => {
+                            const newImage = e.target?.result as string;
+                            setProduto(prev => ({
+                              ...prev,
+                              imagens: [...prev.imagens, newImage]
+                            }));
+                          };
+                          reader.readAsDataURL(file);
+                        });
+                      }}
+                    />
+                    <label htmlFor="image-upload" className="cursor-pointer">
+                      <Plus className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                      <p className="text-gray-500">Clique para adicionar fotos ou arraste e solte aqui</p>
+                      <p className="text-sm text-gray-400 mt-2">PNG, JPG até 10MB cada</p>
+                    </label>
                   </div>
+                  
+                  {produto.imagens.length > 0 && (
+                    <div className="flex flex-wrap gap-4">
+                      {produto.imagens.map((img, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={img}
+                            alt={`Produto ${index + 1}`}
+                            className="w-24 h-24 object-cover rounded-lg border"
+                          />
+                          <button 
+                            onClick={() => {
+                              setProduto(prev => ({
+                                ...prev,
+                                imagens: prev.imagens.filter((_, i) => i !== index)
+                              }));
+                            }}
+                            className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </AccordionContent>
             </AccordionItem>

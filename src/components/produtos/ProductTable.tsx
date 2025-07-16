@@ -87,6 +87,9 @@ export function ProductTable({ products, loading, onDeleteProduct, onDuplicatePr
                           src={imageUrl}
                           alt={product.name}
                           className="w-12 h-12 rounded-lg object-cover bg-gray-100"
+                          onError={(e) => {
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=300&h=300&fit=crop';
+                          }}
                         />
                       </TableCell>
                       <TableCell>
@@ -128,11 +131,15 @@ export function ProductTable({ products, loading, onDeleteProduct, onDuplicatePr
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-40">
-                            <DropdownMenuItem onClick={() => window.location.href = `/produtos/editar/${product.id}`}>
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
+                              window.location.href = `/produtos/editar/${product.id}`;
+                            }}>
                               <Edit className="w-4 h-4 mr-2" />
                               Editar
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => {
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
                               if (onDuplicateProduct) {
                                 onDuplicateProduct(product.id);
                               }
@@ -140,9 +147,10 @@ export function ProductTable({ products, loading, onDeleteProduct, onDuplicatePr
                               <Copy className="w-4 h-4 mr-2" />
                               Duplicar
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
+                           <DropdownMenuItem 
                               className="text-red-600"
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setProductToDelete(product);
                                 setDeleteDialogOpen(true);
                               }}

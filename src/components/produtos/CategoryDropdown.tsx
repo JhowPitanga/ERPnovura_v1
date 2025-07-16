@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { ChevronDown, Plus, Tag } from "lucide-react";
+import { ChevronDown, Plus, Tag, Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
@@ -21,9 +21,11 @@ interface CategoryDropdownProps {
   selectedCategory: string;
   onCategoryChange: (categoryId: string) => void;
   onAddCategory: (category: { name: string; parent_id?: string }) => void;
+  onUpdateCategory?: (categoryId: string, name: string) => void;
+  onDeleteCategory?: (categoryId: string) => void;
 }
 
-export function CategoryDropdown({ categories, selectedCategory, onCategoryChange, onAddCategory }: CategoryDropdownProps) {
+export function CategoryDropdown({ categories, selectedCategory, onCategoryChange, onAddCategory, onUpdateCategory, onDeleteCategory }: CategoryDropdownProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newChildCategoryName, setNewChildCategoryName] = useState("");
@@ -93,7 +95,7 @@ export function CategoryDropdown({ categories, selectedCategory, onCategoryChang
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setIsDrawerOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
-            Adicionar categoria
+            Adicionar/Editar
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -101,11 +103,11 @@ export function CategoryDropdown({ categories, selectedCategory, onCategoryChang
       <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle>Adicionar Nova Categoria</DrawerTitle>
+            <DrawerTitle>Gerenciar Categorias</DrawerTitle>
           </DrawerHeader>
           <div className="p-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Card para Categoria Pai */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Card 1 - Cadastrar Categoria */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -133,7 +135,7 @@ export function CategoryDropdown({ categories, selectedCategory, onCategoryChang
                 </CardContent>
               </Card>
 
-              {/* Card para Categoria Filha */}
+              {/* Card 2 - Adicionar Categoria Filho */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -173,6 +175,34 @@ export function CategoryDropdown({ categories, selectedCategory, onCategoryChang
                   >
                     Salvar
                   </Button>
+                </CardContent>
+              </Card>
+
+              {/* Card 3 - Editar Categorias */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Edit className="w-5 h-5 mr-2" />
+                    Editar Categorias
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 max-h-60 overflow-y-auto">
+                  {categories.map((category) => (
+                    <div key={category.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <span className="text-sm">{category.name}</span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => onDeleteCategory?.(category.id)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  {categories.length === 0 && (
+                    <p className="text-sm text-gray-500 text-center">Nenhuma categoria cadastrada</p>
+                  )}
                 </CardContent>
               </Card>
             </div>

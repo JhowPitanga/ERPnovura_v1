@@ -9,7 +9,7 @@ export function ProdutosUnicos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const { products, loading, refetch, deleteProduct, duplicateProduct } = useProducts();
-  const { categories, createCategory } = useCategories();
+  const { categories, createCategory, updateCategory, deleteCategory } = useCategories();
   
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -17,9 +17,25 @@ export function ProdutosUnicos() {
 
   const handleAddCategory = async (newCategory: { name: string; parent_id?: string }) => {
     try {
-      await createCategory(newCategory.name);
+      await createCategory(newCategory.name, newCategory.parent_id);
     } catch (error) {
       console.error("Error creating category:", error);
+    }
+  };
+
+  const handleUpdateCategory = async (categoryId: string, name: string) => {
+    try {
+      await updateCategory(categoryId, name);
+    } catch (error) {
+      console.error("Error updating category:", error);
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    try {
+      await deleteCategory(categoryId);
+    } catch (error) {
+      console.error("Error deleting category:", error);
     }
   };
 
@@ -47,6 +63,8 @@ export function ProdutosUnicos() {
         selectedCategory={selectedCategory}
         onCategoryChange={handleCategoryChange}
         onAddCategory={handleAddCategory}
+        onUpdateCategory={handleUpdateCategory}
+        onDeleteCategory={handleDeleteCategory}
         placeholder="Buscar produtos únicos..."
       />
 

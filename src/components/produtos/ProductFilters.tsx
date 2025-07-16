@@ -10,6 +10,8 @@ interface ProductFiltersProps {
   selectedCategory: string;
   onCategoryChange: (categoryId: string) => void;
   onAddCategory: (newCategory: { name: string; parent_id?: string }) => void;
+  onUpdateCategory?: (categoryId: string, name: string) => void;
+  onDeleteCategory?: (categoryId: string) => void;
   placeholder?: string;
 }
 
@@ -20,6 +22,8 @@ export function ProductFilters({
   selectedCategory,
   onCategoryChange,
   onAddCategory,
+  onUpdateCategory,
+  onDeleteCategory,
   placeholder = "Buscar produtos..."
 }: ProductFiltersProps) {
   return (
@@ -38,6 +42,8 @@ export function ProductFilters({
         selectedCategory={selectedCategory}
         onCategoryChange={onCategoryChange}
         onAddCategory={onAddCategory}
+        onUpdateCategory={onUpdateCategory}
+        onDeleteCategory={onDeleteCategory}
       />
     </div>
   );
