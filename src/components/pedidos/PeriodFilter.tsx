@@ -120,7 +120,13 @@ export function PeriodFilter({ onDateRangeChange }: PeriodFilterProps) {
             <CalendarComponent
               mode="range"
               selected={dateRange}
-              onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })}
+              onSelect={(range) => {
+                if (range) {
+                  setDateRange({ from: range.from, to: range.to });
+                } else {
+                  setDateRange({ from: undefined, to: undefined });
+                }
+              }}
               numberOfMonths={1}
               className="pointer-events-auto"
             />

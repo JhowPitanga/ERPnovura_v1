@@ -33,7 +33,9 @@ export function useProductsWithStock() {
 
       return data?.map(product => ({
         ...product,
-        total_current_stock: product.products_stock?.reduce((total: number, stock: any) => total + (stock.current || 0), 0) || 0
+        total_current_stock: Array.isArray(product.products_stock) 
+          ? product.products_stock.reduce((total: number, stock: any) => total + (stock.current || 0), 0) 
+          : (product.products_stock?.current || 0)
       })) as ProductWithStock[];
     },
   });
