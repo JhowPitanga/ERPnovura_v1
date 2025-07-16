@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Minus, Package, Plus, Settings, X } from "lucide-react";
 import {
@@ -13,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -175,8 +175,8 @@ export function EstoqueManagementDrawer({
 
   return (
     <Drawer open={isOpen} onOpenChange={handleCloseDrawer} direction="right">
-      <DrawerContent className="fixed inset-y-0 right-0 flex h-full w-3/5 flex-col">
-        <DrawerHeader className="border-b border-border">
+      <DrawerContent className="fixed inset-y-0 right-0 flex h-full w-3/5 flex-col max-h-screen">
+        <DrawerHeader className="border-b border-border flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Package className="h-5 w-5 text-primary" />
@@ -196,195 +196,197 @@ export function EstoqueManagementDrawer({
           </DrawerDescription>
         </DrawerHeader>
 
-        <div className="flex-1 p-6 space-y-6">
-          {/* Informações do Produto */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium text-muted-foreground">Informações do Produto</h3>
-            
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <Label className="text-xs text-muted-foreground">Nome</Label>
-                <p className="font-medium">{product.produto}</p>
-              </div>
-              <div>
-                <Label className="text-xs text-muted-foreground">SKU</Label>
-                <p className="font-medium">{product.sku}</p>
-              </div>
-              {product.galpao && (
+        <ScrollArea className="flex-1">
+          <div className="p-6 space-y-6">
+            {/* Informações do Produto */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Informações do Produto</h3>
+              
+              <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Galpão</Label>
-                  <p className="font-medium">{product.galpao}</p>
+                  <Label className="text-xs text-muted-foreground">Nome</Label>
+                  <p className="font-medium">{product.produto}</p>
                 </div>
-              )}
-              <div>
-                <Label className="text-xs text-muted-foreground">Status</Label>
-                <Badge variant={getStatusColor(currentStatus)}>
-                  {currentStatus}
-                </Badge>
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Informações de Estoque Atual */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium text-muted-foreground">Estoque Atual</h3>
-            
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center p-3 bg-muted rounded-lg">
-                <p className="text-2xl font-bold text-primary">{product.estoque}</p>
-                <p className="text-xs text-muted-foreground">Total</p>
-              </div>
-              <div className="text-center p-3 bg-muted rounded-lg">
-                <p className="text-2xl font-bold text-orange-500">{product.reservado}</p>
-                <p className="text-xs text-muted-foreground">Reservado</p>
-              </div>
-              <div className="text-center p-3 bg-muted rounded-lg">
-                <p className="text-2xl font-bold text-green-500">{product.disponivel}</p>
-                <p className="text-xs text-muted-foreground">Disponível</p>
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Estoque por Localização */}
-          {product.stock_by_location && product.stock_by_location.length > 0 && (
-            <>
-              <div className="space-y-4">
-                <h3 className="text-sm font-medium text-muted-foreground">Estoque por Localização</h3>
-                
-                <div className="space-y-3">
-                  {product.stock_by_location.map((location) => (
-                    <div key={location.storage_id} className="p-3 bg-muted rounded-lg">
-                      <div className="flex justify-between items-start mb-2">
-                        <p className="font-medium">{location.storage_name}</p>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-xs">
-                        <div>
-                          <p className="text-muted-foreground">Atual</p>
-                          <p className="font-bold">{location.current}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Reservado</p>
-                          <p className="font-bold text-orange-500">{location.reserved}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Disponível</p>
-                          <p className="font-bold text-green-500">{location.available}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                <div>
+                  <Label className="text-xs text-muted-foreground">SKU</Label>
+                  <p className="font-medium">{product.sku}</p>
                 </div>
-              </div>
-
-              <Separator />
-            </>
-          )}
-
-          {/* Ajuste de Estoque */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium text-muted-foreground">Ajuste de Estoque</h3>
-
-            {/* Botões de Ajuste Rápido */}
-            <div className="space-y-3">
-              <Label className="text-xs text-muted-foreground">Ajustes Rápidos</Label>
-              <div className="grid grid-cols-4 gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleQuickAdjustment(1)}
-                  className="h-8"
-                >
-                  +1
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleQuickAdjustment(10)}
-                  className="h-8"
-                >
-                  +10
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleQuickAdjustment(-1)}
-                  className="h-8"
-                >
-                  -1
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleQuickAdjustment(-10)}
-                  className="h-8"
-                >
-                  -10
-                </Button>
-              </div>
-            </div>
-
-            {/* Tipo de Operação */}
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Tipo de Operação</Label>
-              <div className="flex gap-2">
-                <Button
-                  variant={operationType === "entrada" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setOperationType("entrada")}
-                  className="flex-1"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Entrada
-                </Button>
-                <Button
-                  variant={operationType === "saida" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setOperationType("saida")}
-                  className="flex-1"
-                >
-                  <Minus className="w-4 h-4 mr-1" />
-                  Saída
-                </Button>
-              </div>
-            </div>
-
-            {/* Quantidade de Ajuste */}
-            <div className="space-y-2">
-              <Label htmlFor="adjustment-quantity" className="text-xs text-muted-foreground">
-                Quantidade de Ajuste
-              </Label>
-              <Input
-                id="adjustment-quantity"
-                type="number"
-                min="0"
-                value={adjustmentQuantity || ""}
-                onChange={(e) => setAdjustmentQuantity(Number(e.target.value))}
-                placeholder="Digite a quantidade"
-              />
-            </div>
-
-            {/* Preview do Resultado */}
-            {adjustmentQuantity > 0 && (
-              <div className="p-3 bg-muted rounded-lg space-y-2">
-                <div className="flex justify-between items-center">
-                  <p className="text-sm text-muted-foreground">Novo estoque após ajuste:</p>
-                  <Badge variant={getStatusColor(previewStatus)}>
-                    {previewStatus}
+                {product.galpao && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Galpão</Label>
+                    <p className="font-medium">{product.galpao}</p>
+                  </div>
+                )}
+                <div>
+                  <Label className="text-xs text-muted-foreground">Status</Label>
+                  <Badge variant={getStatusColor(currentStatus)}>
+                    {currentStatus}
                   </Badge>
                 </div>
-                <p className="text-lg font-bold text-primary">
-                  {previewStock} unidades
-                </p>
               </div>
-            )}
-          </div>
-        </div>
+            </div>
 
-        <div className="border-t border-border p-6">
+            <Separator />
+
+            {/* Informações de Estoque Atual */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Estoque Atual</h3>
+              
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-3 bg-muted rounded-lg">
+                  <p className="text-2xl font-bold text-primary">{product.estoque}</p>
+                  <p className="text-xs text-muted-foreground">Total</p>
+                </div>
+                <div className="text-center p-3 bg-muted rounded-lg">
+                  <p className="text-2xl font-bold text-orange-500">{product.reservado}</p>
+                  <p className="text-xs text-muted-foreground">Reservado</p>
+                </div>
+                <div className="text-center p-3 bg-muted rounded-lg">
+                  <p className="text-2xl font-bold text-green-500">{product.disponivel}</p>
+                  <p className="text-xs text-muted-foreground">Disponível</p>
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Estoque por Localização */}
+            {product.stock_by_location && product.stock_by_location.length > 0 && (
+              <>
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-muted-foreground">Estoque por Localização</h3>
+                  
+                  <div className="space-y-3">
+                    {product.stock_by_location.map((location) => (
+                      <div key={location.storage_id} className="p-3 bg-muted rounded-lg">
+                        <div className="flex justify-between items-start mb-2">
+                          <p className="font-medium">{location.storage_name}</p>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-xs">
+                          <div>
+                            <p className="text-muted-foreground">Atual</p>
+                            <p className="font-bold">{location.current}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Reservado</p>
+                            <p className="font-bold text-orange-500">{location.reserved}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Disponível</p>
+                            <p className="font-bold text-green-500">{location.available}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Separator />
+              </>
+            )}
+
+            {/* Ajuste de Estoque */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Ajuste de Estoque</h3>
+
+              {/* Botões de Ajuste Rápido */}
+              <div className="space-y-3">
+                <Label className="text-xs text-muted-foreground">Ajustes Rápidos</Label>
+                <div className="grid grid-cols-4 gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleQuickAdjustment(1)}
+                    className="h-8"
+                  >
+                    +1
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleQuickAdjustment(10)}
+                    className="h-8"
+                  >
+                    +10
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleQuickAdjustment(-1)}
+                    className="h-8"
+                  >
+                    -1
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleQuickAdjustment(-10)}
+                    className="h-8"
+                  >
+                    -10
+                  </Button>
+                </div>
+              </div>
+
+              {/* Tipo de Operação */}
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Tipo de Operação</Label>
+                <div className="flex gap-2">
+                  <Button
+                    variant={operationType === "entrada" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setOperationType("entrada")}
+                    className="flex-1"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Entrada
+                  </Button>
+                  <Button
+                    variant={operationType === "saida" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setOperationType("saida")}
+                    className="flex-1"
+                  >
+                    <Minus className="w-4 h-4 mr-1" />
+                    Saída
+                  </Button>
+                </div>
+              </div>
+
+              {/* Quantidade de Ajuste */}
+              <div className="space-y-2">
+                <Label htmlFor="adjustment-quantity" className="text-xs text-muted-foreground">
+                  Quantidade de Ajuste
+                </Label>
+                <Input
+                  id="adjustment-quantity"
+                  type="number"
+                  min="0"
+                  value={adjustmentQuantity || ""}
+                  onChange={(e) => setAdjustmentQuantity(Number(e.target.value))}
+                  placeholder="Digite a quantidade"
+                />
+              </div>
+
+              {/* Preview do Resultado */}
+              {adjustmentQuantity > 0 && (
+                <div className="p-3 bg-muted rounded-lg space-y-2">
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-muted-foreground">Novo estoque após ajuste:</p>
+                    <Badge variant={getStatusColor(previewStatus)}>
+                      {previewStatus}
+                    </Badge>
+                  </div>
+                  <p className="text-lg font-bold text-primary">
+                    {previewStock} unidades
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </ScrollArea>
+
+        <div className="border-t border-border p-6 flex-shrink-0">
           <Button 
             onClick={handleSaveAdjustment} 
             className="w-full"
