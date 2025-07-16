@@ -518,6 +518,23 @@ export type Database = {
         Args: { kit_product_id: string }
         Returns: number
       }
+      create_order_with_items: {
+        Args: {
+          p_marketplace_order_id: string
+          p_customer_name: string
+          p_customer_email: string
+          p_customer_phone: string
+          p_shipping_address: string
+          p_shipping_city: string
+          p_shipping_state: string
+          p_shipping_zip_code: string
+          p_order_total: number
+          p_order_cost: number
+          p_status: string
+          p_items: Json[]
+        }
+        Returns: string
+      }
       create_product: {
         Args:
           | {
@@ -646,6 +663,26 @@ export type Database = {
       duplicate_product: {
         Args: { original_product_id: string }
         Returns: string
+      }
+      link_order_stock: {
+        Args: { p_order_id: string; p_storage_id_for_reservation: string }
+        Returns: undefined
+      }
+      reserve_stock_for_order_item: {
+        Args: {
+          p_product_id: string
+          p_storage_id: string
+          p_quantity_to_reserve: number
+        }
+        Returns: undefined
+      }
+      update_order_items_and_link_stock: {
+        Args: {
+          p_order_id: string
+          p_linked_items: Json[]
+          p_storage_id_for_reservation: string
+        }
+        Returns: undefined
       }
       upsert_product_stock: {
         Args: {

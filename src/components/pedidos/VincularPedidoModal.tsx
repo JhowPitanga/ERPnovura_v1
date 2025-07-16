@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { Search, X, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -81,7 +82,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
       toast({
         title: "Atenção",
         description: "Selecione um item do pedido à direita para vincular.",
-        variant: "info",
+        variant: "default",
       });
       return;
     }
@@ -94,7 +95,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
       toast({
         title: "Atenção",
         description: "Este produto já está vinculado a outro item do pedido. Desvincule-o primeiro.",
-        variant: "warning",
+        variant: "destructive",
       });
       return;
     }
@@ -125,7 +126,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
       toast({
         title: "Atenção",
         description: "Todos os itens do pedido precisam ser vinculados para salvar.",
-        variant: "warning",
+        variant: "destructive",
       });
       return;
     }
@@ -156,7 +157,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
       toast({
         title: "Sucesso",
         description: "Pedido vinculado e estoque reservado com sucesso!",
-        variant: "success",
+        variant: "default",
       });
       onVinculacaoSucesso();
     } catch (error: any) {
@@ -331,7 +332,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
                       )}
                     </div>
                   );
-                })}
+                })
               )}
             </div>
 
