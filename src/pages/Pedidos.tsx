@@ -444,6 +444,12 @@ export default function Pedidos() {
     setVincularModalOpen(true);
   };
 
+  const handleVinculacaoSucesso = () => {
+    setVincularModalOpen(false);
+    setSelectedPedidoVincular(null);
+    // You can add additional logic here like refreshing the orders list
+  };
+
   const handleEmitirNF = (type: 'single' | 'selected' | 'mass') => {
     setEmissaoDrawerOpen(true);
   };
@@ -1055,6 +1061,7 @@ export default function Pedidos() {
           open={vincularModalOpen} 
           onOpenChange={setVincularModalOpen}
           pedido={selectedPedidoVincular}
+          onVinculacaoSucesso={handleVinculacaoSucesso}
         />
         <EmissaoNFDrawer 
           open={emissaoDrawerOpen} 
