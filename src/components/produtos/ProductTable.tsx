@@ -13,9 +13,10 @@ interface ProductTableProps {
   products: any[];
   loading: boolean;
   onDeleteProduct: (productId: string) => void;
+  onDuplicateProduct?: (productId: string) => void;
 }
 
-export function ProductTable({ products, loading, onDeleteProduct }: ProductTableProps) {
+export function ProductTable({ products, loading, onDeleteProduct, onDuplicateProduct }: ProductTableProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<any>(null);
   if (loading) {
@@ -132,8 +133,9 @@ export function ProductTable({ products, loading, onDeleteProduct }: ProductTabl
                               Editar
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => {
-                              // TODO: Implement duplicate functionality
-                              console.log('Duplicar produto:', product.id);
+                              if (onDuplicateProduct) {
+                                onDuplicateProduct(product.id);
+                              }
                             }}>
                               <Copy className="w-4 h-4 mr-2" />
                               Duplicar

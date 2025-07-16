@@ -8,7 +8,7 @@ import { useCategories } from "@/hooks/useCategories";
 export function ProdutosUnicos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const { products, loading, refetch, deleteProduct } = useProducts();
+  const { products, loading, refetch, deleteProduct, duplicateProduct } = useProducts();
   const { categories, createCategory } = useCategories();
   
   const handleCategoryChange = (categoryId: string) => {
@@ -50,7 +50,12 @@ export function ProdutosUnicos() {
         placeholder="Buscar produtos únicos..."
       />
 
-      <ProductTable products={filteredProducts} loading={loading} onDeleteProduct={deleteProduct} />
+      <ProductTable 
+        products={filteredProducts} 
+        loading={loading} 
+        onDeleteProduct={deleteProduct}
+        onDuplicateProduct={duplicateProduct}
+      />
     </div>
   );
 }

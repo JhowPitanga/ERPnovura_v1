@@ -107,6 +107,34 @@ export function useProducts() {
     }
   };
 
+  const duplicateProduct = async (productId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('duplicate_product', {
+        original_product_id: productId
+      });
+
+      if (error) throw error;
+
+      // Refetch products to show the duplicated one
+      await fetchProducts();
+      
+      toast({
+        title: "Sucesso",
+        description: "Produto duplicado com sucesso",
+      });
+
+      return data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao duplicar produto';
+      toast({
+        title: "Erro",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
   }, [user]);
@@ -116,6 +144,7 @@ export function useProducts() {
     loading,
     refetch: fetchProducts,
     deleteProduct,
+    duplicateProduct,
   };
 }
 
