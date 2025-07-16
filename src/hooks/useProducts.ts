@@ -4,6 +4,7 @@ import { Tables } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
+// Tipos específicos para este hook
 export type Product = Tables<'products'>;
 
 export function useProducts() {
@@ -76,46 +77,15 @@ export function useProducts() {
   };
 }
 
-export interface CreateProductData {
-  name: string;
-  sku: string;
-  type: 'UNICO' | 'VARIACAO_PAI' | 'VARIACAO_ITEM' | 'ITEM'; // Tipos atualizados
-  description?: string;
-  cost_price: number;
-  sell_price?: number;
-  barcode: number;
-  ncm: number;
-  cest?: number;
-  package_height: number;
-  package_width: number;
-  package_length: number;
-  weight?: number;
-  weight_type?: string;
-  tax_origin_code: number;
-  category_id?: string;
-  brand_id?: string;
-  color?: string;
-  size?: string;
-  image_urls: string[];
-  custom_attributes?: Record<string, any>;
-  stock_current?: number; // Para produtos UNICO e VARIAÇÃO_ITEM
-  storage_id?: string; // Para produtos UNICO e VARIAÇÃO_ITEM
-  
-  // Dados específicos para variações
-  variations?: ProductVariationForm[]; // Array de variações com seus próprios dados
-  // Dados específicos para kits
-  kitItems?: KitItemForm[]; // Array de itens do kit
-}
-
 // Definições de tipos auxiliares para o frontend (ajuste conforme seus tipos reais)
 interface ProductVariationForm {
   id: string; // ID temporário do frontend
   name: string;
   sku: string;
-  costPrice: string; // Pode ser string vindo do form
-  sellPrice: string; // Pode ser string vindo do form
-  stock: string; // Pode ser string vindo do form
-  warehouse: string; // Pode ser string (UUID) vindo do form
+  costPrice: string;
+  sellPrice: string;
+  stock: string;
+  warehouse: string;
   images: string[];
   color?: string;
   size?: string;
@@ -136,6 +106,35 @@ interface KitItemForm {
   id: string;
   product_id: string;
   quantity: number;
+}
+
+export interface CreateProductData {
+  name: string;
+  sku: string;
+  type: 'UNICO' | 'VARIACAO_PAI' | 'VARIACAO_ITEM' | 'ITEM';
+  description?: string;
+  cost_price: number;
+  sell_price?: number;
+  barcode: number;
+  ncm: number;
+  cest?: number;
+  package_height: number;
+  package_width: number;
+  package_length: number;
+  weight?: number;
+  weight_type?: string;
+  tax_origin_code: number;
+  category_id?: string;
+  brand_id?: string;
+  color?: string;
+  size?: string;
+  image_urls: string[];
+  custom_attributes?: Record<string, any>;
+  stock_current?: number;
+  storage_id?: string;
+
+  variations?: ProductVariationForm[];
+  kitItems?: KitItemForm[];
 }
 
 
@@ -180,7 +179,6 @@ export function useCreateProduct() {
         currentError = error;
 
       } else if (productData.type === 'VARIACAO_PAI' && productData.variations) {
-        // 1. Criar o produto pai (grupo de variações)
         const { data: parentId, error: parentError } = await supabase.rpc('create_product_variant_group', {
           p_name: productData.name,
           p_sku_base: productData.sku,
@@ -194,24 +192,22 @@ export function useCreateProduct() {
         if (parentError) {
           currentError = parentError;
         } else {
-          resultId = parentId; // Armazena o ID do pai como resultado principal
-
-          // 2. Iterar e criar cada item de variação
+          resultId = parentId;
           for (const variant of productData.variations) {
             const { data: variantItemId, error: variantError } = await supabase.rpc('create_product_variant_item', {
               p_parent_product_id: parentId,
               p_name: variant.name,
               p_sku: variant.sku,
-              p_description: productData.description || null, // Variação pode herdar descrição do pai
+              p_description: productData.description || null,
               p_cost_price: parseFloat(variant.costPrice),
               p_sell_price: variant.sellPrice ? parseFloat(variant.sellPrice) : null,
               p_barcode: variant.ean ? parseInt(variant.ean) : 0,
-              p_ncm: productData.ncm, // Variação herda NCM do pai
-              p_cest: productData.cest || null, // Variação herda CEST do pai
-              p_tax_origin_code: productData.tax_origin_code, // Variação herda Origem do pai
-              p_weight: variant.weight ? parseFloat(variant.weight) : productData.weight || null, // Variação pode ter peso próprio ou herdar
-              p_weight_type: variant.unitType || productData.weight_type || null, // Variação pode ter tipo de unidade próprio ou herdar
-              p_package_length: variant.length ? parseInt(variant.length) : productData.package_length, // Variação pode ter dimensão própria ou herdar
+              p_ncm: productData.ncm,
+              p_cest: productData.cest || null,
+              p_tax_origin_code: productData.tax_origin_code,
+              p_weight: variant.weight ? parseFloat(variant.weight) : productData.weight || null,
+              p_weight_type: variant.unitType || productData.weight_type || null,
+              p_package_length: variant.length ? parseInt(variant.length) : productData.package_length,
               p_package_width: variant.width ? parseInt(variant.width) : productData.package_width,
               p_package_height: variant.height ? parseInt(variant.height) : productData.package_height,
               p_image_urls: variant.images,
@@ -219,18 +215,15 @@ export function useCreateProduct() {
               p_size: variant.size || null,
               p_custom_attributes: variant.customType && variant.customValue ? { [variant.customType]: variant.customValue } : null,
               p_initial_stock_quantity: variant.stock ? parseInt(variant.stock) : 0,
-              p_storage_id: variant.warehouse || null, // Armazém da variação
+              p_storage_id: variant.warehouse || null,
             });
             if (variantError) {
-              currentError = variantError; // Captura o primeiro erro de variação
-              break; // Para de criar variações se uma falhar
+              currentError = variantError;
+              break;
             }
           }
         }
       } else if (productData.type === 'ITEM' && productData.kitItems) {
-        // Lógica para Kits (futuro, aqui apenas um placeholder)
-        // Você precisará de uma função no DB como create_product_kit_group
-        // e outra para vincular os itens do kit
         throw new Error("Criação de Kits não implementada ainda.");
       } else {
         throw new Error("Tipo de produto desconhecido ou dados ausentes.");

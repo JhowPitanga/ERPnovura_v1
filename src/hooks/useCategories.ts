@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Tables } from '@/integrations/supabase/types';
-import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client'; // Caminho para seu cliente Supabase
+import { Tables } from '@/integrations/supabase/types'; // Importa tipos de tabela do Supabase
+import { useToast } from '@/hooks/use-toast'; // Importa seu hook de toast
 
+// Define o tipo para Category, baseado na sua tabela 'categories'
 export type Category = Tables<'categories'>;
 
 export function useCategories() {
@@ -63,7 +64,7 @@ export function useCategories() {
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, []); // Não há [user] aqui, pois não depende de autenticação para buscar (se necessário, adicione useAuth)
 
   return {
     categories,
