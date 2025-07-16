@@ -61,31 +61,32 @@ export function useProductForm({ onSuccess }: UseProductFormProps = {}) {
     handleInputChange("type", type);
   };
 
-  const getProductTypeForDB = (type: string): 'UNICO' | 'VARIANT' | 'ITEM' => {
+  const getProductTypeForDB = (type: string): 'UNICO' | 'VARIACAO_PAI' | 'VARIACAO_ITEM' | 'ITEM' => {
     switch (type) {
       case 'single':
         return 'UNICO';
-      case 'variation':
-        return 'VARIANT';
+      case 'variation': // Este será o tipo para o "pai" das variações
+        return 'VARIACAO_PAI';
       case 'kit':
         return 'ITEM';
       default:
-        return 'UNICO';
+        return 'UNICO'; // Fallback
     }
   };
 
   const handleCreateProduct = async () => {
     try {
+      // Validação base (pode precisar ser mais robusta por tipo de produto)
       if (!formData.name || !formData.sku || !formData.costPrice || !formData.ncm || !formData.origin) {
         toast({
-          title: "Error",
-          description: "Please fill in all required fields",
+          title: "Erro",
+          description: "Por favor, preencha todos os campos obrigatórios.",
           variant: "destructive",
         });
         return;
       }
 
-      const productData: CreateProductData = {
+      const baseProductData: CreateProductData = {
         name: formData.name,
         sku: formData.sku,
         type: getProductTypeForDB(productType as string),
@@ -105,13 +106,33 @@ export function useProductForm({ onSuccess }: UseProductFormProps = {}) {
         brand_id: undefined,
         color: undefined,
         size: undefined,
-        image_urls: [],
+        image_urls: [], // As imagens serão tratadas separadamente ou passadas aqui se forem do produto principal
         custom_attributes: undefined,
-        stock_current: formData.stock ? parseInt(formData.stock) : undefined,
-        storage_id: formData.warehouse || undefined,
+        stock_current: undefined, // Será definido abaixo para single/variation_item
+        storage_id: undefined, // Será definido abaixo para single/variation_item
       };
 
-      await createProduct(productData);
+      // Adiciona dados específicos por tipo de produto
+      if (baseProductData.type === 'UNICO') {
+        baseProductData.stock_current = formData.stock ? parseInt(formData.stock) : 0;
+        baseProductData.storage_id = formData.warehouse || undefined;
+        baseProductData.image_urls = selectedImages.map(img => img.name); // Exemplo: se as imagens são Files
+      } else if (baseProductData.type === 'VARIACAO_PAI') {
+        baseProductData.image_urls = selectedImages.map(img => img.name); // Imagens do produto pai
+        // Para variações, 'variations' é um array de objetos que precisa ser mapeado para o formato esperado pelo createProduct
+        baseProductData.variations = variations.map(v => ({
+            ...v, // Copia os dados existentes da variação
+            costPrice: String(v.costPrice), // Garante que é string para o useCreateProduct
+            sellPrice: String(v.sellPrice),
+            stock: String(v.stock),
+        }));
+      } else if (baseProductData.type === 'ITEM') {
+        baseProductData.kitItems = kitItems;
+        baseProductData.image_urls = selectedImages.map(img => img.name); // Imagens do kit
+      }
+
+      await createProduct(baseProductData); // Chama o useCreateProduct com os dados completos
+
       setProductSaved(true);
       setCurrentStep(currentStep + 1);
       
@@ -119,7 +140,12 @@ export function useProductForm({ onSuccess }: UseProductFormProps = {}) {
         onSuccess();
       }
     } catch (error) {
-      console.error("Error creating product:", error);
+      console.error("Erro ao criar produto:", error);
+      toast({
+        title: "Erro",
+        description: "Falha ao criar produto: " + (error instanceof Error ? error.message : "Erro desconhecido"),
+        variant: "destructive",
+      });
     }
   };
 
@@ -131,9 +157,14 @@ export function useProductForm({ onSuccess }: UseProductFormProps = {}) {
         } else if (kitStep === "products") {
           setCurrentStep(currentStep + 1);
         }
-      } else if (currentStep === 5 && !productSaved && productType !== "kit") {
+      } else if (currentStep === 5 && !productSaved && productType !== "kit" && productType !== "variation") {
+        // Salva produto único
         await handleCreateProduct();
-      } else {
+      } else if (currentStep === 5 && !productSaved && productType === "variation") {
+        // Salva produto variação (pai e itens)
+        await handleCreateProduct();
+      }
+      else {
         setCurrentStep(currentStep + 1);
       }
     }
@@ -173,7 +204,7 @@ export function useProductForm({ onSuccess }: UseProductFormProps = {}) {
     backStep,
     handleInputChange,
     handleProductTypeChange,
-    handleCreateProduct,
+    handleCreateProduct, // Exportar para que possa ser chamado diretamente no botão "Salvar"
     getMaxSteps,
   };
 }
