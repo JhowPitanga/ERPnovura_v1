@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useProducts } from "@/hooks/useProducts";
+import { useProductsWithStock } from "@/hooks/useProductsWithStock";
 import { useToast } from "@/hooks/use-toast";
 
 interface VincularPedidoModalProps {
@@ -17,7 +17,7 @@ interface VincularPedidoModalProps {
 export function VincularPedidoModal({ open, onOpenChange, pedido }: VincularPedidoModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [itemVinculacoes, setItemVinculacoes] = useState<Record<string, string>>({});
-  const { products, loading } = useProducts();
+  const { products, loading } = useProductsWithStock();
   const { toast } = useToast();
 
   // Filter products with stock > 0 and apply search term
@@ -101,7 +101,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido }: VincularPedi
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-6xl h-[80vh] bg-white rounded-2xl p-0 overflow-hidden">
+      <DialogContent className="max-w-5xl h-[85vh] bg-white rounded-2xl p-0 overflow-hidden">
         <DialogHeader className="p-6 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <div>
@@ -176,7 +176,10 @@ export function VincularPedidoModal({ open, onOpenChange, pedido }: VincularPedi
                                 Estoque: {produto.total_current_stock}
                               </Badge>
                               <span className="font-bold text-primary">
-                                R$ {(produto.sell_price || produto.cost_price)?.toFixed(2)}
+                                {new Intl.NumberFormat('pt-BR', { 
+                                  style: 'currency', 
+                                  currency: 'BRL' 
+                                }).format(produto.sell_price || produto.cost_price)}
                               </span>
                             </div>
                           </div>
@@ -218,7 +221,15 @@ export function VincularPedidoModal({ open, onOpenChange, pedido }: VincularPedi
                         <div className="mb-3">
                           <h4 className="font-medium text-gray-900 text-sm">{item.produto}</h4>
                           <p className="text-xs text-gray-500">SKU: {item.sku} | Qtd: {item.quantidade}</p>
-                          <p className="text-xs text-gray-600">R$ {item.valor.toFixed(2)}</p>
+                          {item.variacao && (
+                            <p className="text-xs text-purple-600 font-medium">{item.variacao}</p>
+                          )}
+                          <p className="text-xs text-gray-600">
+                            {new Intl.NumberFormat('pt-BR', { 
+                              style: 'currency', 
+                              currency: 'BRL' 
+                            }).format(item.valor)}
+                          </p>
                         </div>
 
                         {produto ? (

@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Calendar, CalendarIcon, Check } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -121,7 +121,7 @@ export function PeriodFilter({ onDateRangeChange }: PeriodFilterProps) {
               mode="range"
               selected={dateRange}
               onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })}
-              numberOfMonths={2}
+              numberOfMonths={1}
               className="pointer-events-auto"
             />
           </div>
