@@ -40,34 +40,18 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
 
   const { products: produtosDisponiveis, loading: loadingProdutos, refetch: refetchProdutos } = useProducts();
 
-  useEffect(() => {
-      console.log('>>> VincularPedidoModal: selectedOrderItemId atual:', selectedOrderItemId);
-      if (selectedOrderItemId) {
-          console.log('>>> VincularPedidoModal: Item do pedido ESTÁ selecionado:', selectedOrderItemId);
-      } else {
-          console.log('>>> VincularPedidoModal: Nenhum item do pedido SELECIONADO.');
-      }
-  }, [selectedOrderItemId]);
 
   const filteredProdutos = useMemo(() => {
-    console.log('>>> VincularPedidoModal: Recalculando filteredProdutos...');
-    console.log('>>> VincularPedidoModal: produtosDisponiveis para filtro:', produtosDisponiveis ? produtosDisponiveis.length : 'null/undefined');
-    console.log('>>> VincularPedidoModal: searchTerm:', searchTerm);
-
     if (!produtosDisponiveis) return [];
     
     if (searchTerm.length === 0) {
-      console.log('>>> VincularPedidoModal: searchTerm vazio, retornando todos os produtos disponíveis.');
       return produtosDisponiveis;
     }
     
-    const filtered = produtosDisponiveis.filter(produto =>
+    return produtosDisponiveis.filter(produto =>
       produto.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       produto.sku.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
-    console.log('>>> VincularPedidoModal: Produtos filtrados:', filtered.length, 'itens.');
-    return filtered;
   }, [produtosDisponiveis, searchTerm]);
 
   useEffect(() => {
@@ -81,15 +65,16 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
       setItemVinculacoes(initialVinculacoes);
       setSearchTerm("");
       setSelectedOrderItemId(null);
-      console.log('>>> VincularPedidoModal: Modal aberto/Pedido inicializado. selectedOrderItemId resetado.');
-      refetchProdutos();
-      console.log('>>> VincularPedidoModal: Forçando refetch de produtos do sistema.');
+      
+      // Só refetch se necessário (quando o modal abre pela primeira vez)
+      if (produtosDisponiveis.length === 0) {
+        refetchProdutos();
+      }
     }
-  }, [open, pedido?.id, pedido?.itens, refetchProdutos]);
+  }, [open, pedido?.id, pedido?.itens]); // Removido refetchProdutos das dependências
 
   const handleSetSelectedOrderItemId = useCallback((id: string) => {
     setSelectedOrderItemId(id);
-    console.log(">>> VincularPedidoModal: Item do pedido selecionado (handleSetSelectedOrderItemId):", id);
   }, []);
 
   const handleVincularProduto = useCallback((produtoSistemaId: string) => {
