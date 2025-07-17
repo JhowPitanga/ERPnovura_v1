@@ -7,8 +7,13 @@ import { useAuth } from '@/hooks/useAuth';
 // Tipos específicos para este hook
 export type Product = Tables<'products'>;
 
+// Enhanced product type with computed stock
+export interface ProductWithStock extends Product {
+  total_current_stock: number;
+}
+
 export function useProducts() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductWithStock[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -66,10 +71,10 @@ export function useProducts() {
           ...product,
           // Adiciona o total do estoque ao objeto do produto
           total_current_stock: totalCurrent,
-        };
+        } as ProductWithStock;
       }) || [];
 
-      setProducts(transformedProducts as any[]);
+      setProducts(transformedProducts);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar produtos';
       toast({
@@ -207,7 +212,6 @@ export interface CreateProductData {
   variations?: ProductVariationForm[];
   kitItems?: KitItemForm[];
 }
-
 
 export function useCreateProduct() {
   const [loading, setLoading] = useState(false);
