@@ -1,169 +1,35 @@
-
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useProductSync } from './useProductSync';
 
-// Tipos específicos para este hook
-export type Product = Tables<'products'>;
+export type Product = Tables<'products'> & {
+  products_stock?: Array<{
+      id: number;
+      current: number;
+      reserved: number | null;
+      in_transit: number | null;
+      storage_id: string;
+      storage: { name: string } | null;
+  }> | {
+      id: number;
+      current: number;
+      reserved: number | null;
+      in_transit: number | null;
+      storage_id: string;
+      storage: { name: string } | null;
+  } | null;
+  total_current_stock?: number;
+  total_reserved_stock?: number;
+  total_available_stock?: number;
+};
 
-// Enhanced product type with computed stock
-export interface ProductWithStock extends Product {
-  total_current_stock: number;
-}
+export type Category = Tables<'categories'>;
 
-export function useProducts() {
-  const [products, setProducts] = useState<ProductWithStock[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-  const { user } = useAuth();
-
-  const fetchProducts = useCallback(async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      console.log('Fetching products for user:', user.id);
-      
-      const { data: productsData, error: productsError } = await supabase
-        .from('products')
-        .select(`
-          *,
-          categories (
-            id,
-            name
-          ),
-          products_stock (
-            id,
-            storage_id,
-            current,
-            reserved,
-            in_transit,
-            storage (
-              name
-            )
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (productsError) {
-        console.error('Error fetching products:', productsError);
-        throw productsError;
-      }
-
-      console.log('Products fetched successfully:', productsData?.length || 0);
-
-      // Transformar os dados para incluir o estoque consolidado
-      const transformedProducts = productsData?.map(product => {
-        const rawStockData = product.products_stock;
-        // Garante que products_stock é um array, mesmo se for um objeto ou null
-        const stockArray = rawStockData ? (Array.isArray(rawStockData) ? rawStockData : [rawStockData]) : [];
-        
-        let totalCurrent = 0;
-        stockArray.forEach((stock: any) => {
-          totalCurrent += stock?.current || 0;
-        });
-
-        // Remove the nested properties and add the computed stock
-        const { products_stock, categories, ...productBase } = product;
-
-        return {
-          ...productBase,
-          // Adiciona o total do estoque ao objeto do produto
-          total_current_stock: totalCurrent,
-        } as ProductWithStock;
-      }) || [];
-
-      setProducts(transformedProducts);
-    } catch (err) {
-      console.error('Error in fetchProducts:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar produtos';
-      toast({
-        title: "Erro",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      // Set empty array on error to prevent UI issues
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [user, toast]);
-
-  const deleteProduct = async (productId: string) => {
-    try {
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', productId);
-
-      if (error) throw error;
-
-      setProducts(prev => prev.filter(product => product.id !== productId));
-      toast({
-        title: "Sucesso",
-        description: "Produto excluído com sucesso",
-      });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao excluir produto';
-      toast({
-        title: "Erro",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      throw err;
-    }
-  };
-
-  const duplicateProduct = async (productId: string) => {
-    try {
-      const { data, error } = await supabase.rpc('duplicate_product', {
-        original_product_id: productId
-      });
-
-      if (error) throw error;
-
-      // Refetch products to show the duplicated one
-      await fetchProducts();
-      
-      toast({
-        title: "Sucesso",
-        description: "Produto duplicado com sucesso",
-      });
-
-      return data;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao duplicar produto';
-      toast({
-        title: "Erro",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      throw err;
-    }
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
-
-  return {
-    products,
-    loading,
-    refetch: fetchProducts,
-    deleteProduct,
-    duplicateProduct,
-  };
-}
-
-// Definições de tipos auxiliares para o frontend (ajuste conforme seus tipos reais)
 interface ProductVariationForm {
-  id: string; // ID temporário do frontend
+  id: string;
   name: string;
   sku: string;
   costPrice: string;
@@ -216,9 +82,122 @@ export interface CreateProductData {
   custom_attributes?: Record<string, any>;
   stock_current?: number;
   storage_id?: string;
-
+  
   variations?: ProductVariationForm[];
   kitItems?: KitItemForm[];
+}
+
+export function useProducts() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const { lastUpdate } = useProductSync();
+
+  const fetchProducts = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .select(`
+          id,
+          name,
+          sku,
+          cost_price,
+          sell_price,
+          image_urls,
+          categories (
+            id,
+            name
+          ),
+          products_stock (
+            id,
+            storage_id,
+            current,
+            reserved,
+            in_transit,
+            storage (
+              id,
+              name
+            )
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (productsError) throw productsError;
+
+      const transformedProducts = productsData?.map(product => {
+        const rawStockData = product.products_stock;
+        const stockArray = rawStockData ? (Array.isArray(rawStockData) ? rawStockData : [rawStockData]) : [];
+        
+        const totalCurrent = stockArray.reduce((sum, stock) => sum + (stock.current || 0), 0);
+        const totalReserved = stockArray.reduce((sum, stock) => sum + (stock.reserved || 0), 0);
+        const totalAvailable = totalCurrent - totalReserved;
+
+        return {
+          ...product,
+          total_current_stock: totalCurrent,
+          total_reserved_stock: totalReserved,
+          total_available_stock: totalAvailable,
+        };
+      }) || [];
+
+      setProducts(transformedProducts as Product[]);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar produtos';
+      setError(errorMessage);
+      toast({
+        title: "Erro",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, [user, lastUpdate]);
+
+  const deleteProduct = async (productId: string) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+
+      if (error) throw error;
+      
+      setProducts(prev => prev.filter(p => p.id !== productId));
+      toast({
+        title: "Sucesso",
+        description: "Produto excluído com sucesso",
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao excluir produto';
+      toast({
+        title: "Erro",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
+  return {
+    products,
+    loading,
+    error,
+    refetch: fetchProducts,
+    deleteProduct,
+  };
 }
 
 export function useCreateProduct() {
@@ -229,7 +208,7 @@ export function useCreateProduct() {
     try {
       setLoading(true);
 
-      let resultId: string | null = null; // Para armazenar o ID do produto principal ou último item
+      let resultId: string | null = null;
       let currentError: any = null;
 
       if (productData.type === 'UNICO') {
