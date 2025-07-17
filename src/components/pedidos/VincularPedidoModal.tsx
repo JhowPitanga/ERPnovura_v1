@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Search, X, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -6,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
-import { useProducts } from "@/hooks/useProducts"; // Importa useProducts, que contém a lista de produtos do sistema
+import { useProducts, ProductWithStock } from "@/hooks/useProducts";
 
 interface OrderItem {
   id: string; // ID do item do pedido (do DB)
@@ -79,12 +80,12 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
       toast({
         title: "Atenção",
         description: "Selecione um item do pedido à esquerda para vincular.",
-        variant: "destructive", // Mudado para default ou warning para ser mais visível
+        variant: "destructive",
       });
       return;
     }
 
-    const produtoSelecionado = produtosDisponiveis.find(p => p.id === produtoSistemaId);
+    const produtoSelecionado = produtosDisponiveis?.find(p => p.id === produtoSistemaId);
     const itemPedidoSelecionado = pedido?.itens?.find(item => item.id === selectedOrderItemId);
 
     if (!produtoSelecionado || !itemPedidoSelecionado) {
@@ -132,7 +133,6 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
       ...prev,
       [selectedOrderItemId]: produtoSistemaId
     }));
-    // Não limpa setSelectedOrderItemId aqui, permitindo que o usuário desvincule/vincule o mesmo item
   }, [itemVinculacoes, selectedOrderItemId, toast, produtosDisponiveis, pedido?.itens]);
 
   const handleRemoverVinculacao = useCallback((linkedOrderItemId: string) => {
@@ -155,7 +155,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
       toast({
         title: "Atenção",
         description: "Todos os itens do pedido precisam ser vinculados para salvar.",
-        variant: "warning",
+        variant: "destructive",
       });
       return;
     }
@@ -213,7 +213,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
   }, [pedido?.itens, selectedOrderItemId]);
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}> // FORCANDO RECOMPILACAO
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-6xl h-[80vh] bg-white rounded-2xl p-0 overflow-hidden flex flex-col">
         <DialogHeader className="p-6 border-b border-gray-100 flex-row items-center justify-between flex-none">
           <div>
@@ -250,15 +250,15 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
                   {pedido.itens.map((item: OrderItem) => {
                     const isSelected = selectedOrderItemId === item.id;
                     const produtoVinculadoId = itemVinculacoes[item.id];
-                    const produtoDoSistema = produtoVinculadoId ? produtosDisponiveis.find(p => p.id === produtoVinculadoId) : null;
-                    const isPreLinkedFromDB = item.product_id !== null && !!produtoDoSistema; // Se já veio vinculado do DB
+                    const produtoDoSistema = produtoVinculadoId ? produtosDisponiveis?.find(p => p.id === produtoVinculadoId) : null;
+                    const isPreLinkedFromDB = item.product_id !== null && !!produtoDoSistema;
 
                     return (
                       <div
                         key={item.id}
                         className={`bg-white p-4 rounded-xl border cursor-pointer transition-all ${
                           isSelected ? 'border-novura-primary shadow-md ring-2 ring-novura-primary/20'
-                          : isPreLinkedFromDB ? 'border-green-300 bg-green-50 opacity-90' // Pré-vinculado do DB
+                          : isPreLinkedFromDB ? 'border-green-300 bg-green-50 opacity-90'
                           : 'border-gray-200 hover:border-gray-300'
                         }`}
                         onClick={() => setSelectedOrderItemId(item.id)}
@@ -341,4 +341,91 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
                 <h3 className="font-semibold text-gray-900">Produtos do Sistema</h3>
                 {selectedOrderItem && (
                   <Badge variant="outline" className="text-sm bg-blue-50 text-blue-700 border-blue-200">
-                    Item
+                    Item selecionado: {selectedOrderItem.product}
+                  </Badge>
+                )}
+              </div>
+              
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Buscar produtos por nome ou SKU..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4">
+              {loadingProdutos ? (
+                <div className="text-center text-gray-500 mt-8">
+                  <p>Carregando produtos...</p>
+                </div>
+              ) : !filteredProdutos || filteredProdutos.length === 0 ? (
+                <div className="text-center text-gray-500 mt-8">
+                  <p>Nenhum produto encontrado</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {filteredProdutos.map((produto: ProductWithStock) => {
+                    const isLinkedToAnotherItem = Object.values(itemVinculacoes).includes(produto.id);
+                    const isLinkedToSelectedItem = selectedOrderItemId && itemVinculacoes[selectedOrderItemId] === produto.id;
+
+                    return (
+                      <div
+                        key={produto.id}
+                        className={`bg-white p-4 rounded-xl border transition-all cursor-pointer ${
+                          isLinkedToSelectedItem ? 'border-green-500 bg-green-50' :
+                          isLinkedToAnotherItem ? 'border-gray-300 bg-gray-50 opacity-50' :
+                          'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                        }`}
+                        onClick={() => !isLinkedToAnotherItem && handleVincularProduto(produto.id)}
+                      >
+                        <div className="flex items-start space-x-3">
+                          <img
+                            src={produto.image_urls?.[0] || "/placeholder.svg"}
+                            alt={produto.name}
+                            className="w-16 h-16 rounded-lg object-cover bg-gray-100 flex-shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-gray-900 text-sm truncate">{produto.name}</h4>
+                            <p className="text-xs text-gray-500 mb-2">SKU: {produto.sku}</p>
+                            
+                            <div className="flex items-center justify-between">
+                              <Badge
+                                variant={produto.total_current_stock > 0 ? "default" : "destructive"}
+                                className="text-xs"
+                              >
+                                Estoque: {produto.total_current_stock}
+                              </Badge>
+                              
+                              {isLinkedToSelectedItem && (
+                                <div className="flex items-center text-green-600">
+                                  <Check className="w-4 h-4" />
+                                  <span className="text-xs ml-1">Vinculado</span>
+                                </div>
+                              )}
+                              
+                              {isLinkedToAnotherItem && !isLinkedToSelectedItem && (
+                                <span className="text-xs text-gray-500">Já vinculado</span>
+                              )}
+                            </div>
+
+                            <p className="text-xs text-gray-600 mt-1">
+                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.sell_price || 0)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
