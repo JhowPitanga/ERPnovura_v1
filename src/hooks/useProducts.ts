@@ -29,14 +29,7 @@ export function useProducts() {
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select(`
-          id,
-          name,
-          sku,
-          cost_price,
-          sell_price,
-          image_urls,
-          type,
-          category_id,
+          *,
           categories (
             id,
             name
@@ -67,8 +60,11 @@ export function useProducts() {
           totalCurrent += stock?.current || 0;
         });
 
+        // Remove the nested properties and add the computed stock
+        const { products_stock, categories, ...productBase } = product;
+
         return {
-          ...product,
+          ...productBase,
           // Adiciona o total do estoque ao objeto do produto
           total_current_stock: totalCurrent,
         } as ProductWithStock;
