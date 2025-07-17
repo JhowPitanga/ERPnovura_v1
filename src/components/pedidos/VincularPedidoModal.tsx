@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Search, X, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -38,16 +38,26 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
   const [loadingVinculacao, setLoadingVinculacao] = useState(false);
   const [selectedOrderItemId, setSelectedOrderItemId] = useState<string | null>(null);
 
-  // Use the useProducts hook to get user's products
-  const { products: produtosDisponiveis, loading: loadingProdutos, refetch: refetchProducts } = useProducts();
+  // Use the useProducts hook to get user's products - only fetch once
+  const { products: produtosDisponiveis, loading: loadingProdutos } = useProducts();
+
+  // Memoize filtered products to prevent unnecessary recalculations
+  const filteredProdutos = useMemo(() => {
+    if (!produtosDisponiveis || searchTerm.length === 0) {
+      return produtosDisponiveis;
+    }
+    
+    return produtosDisponiveis.filter(produto =>
+      produto.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      produto.sku.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [produtosDisponiveis, searchTerm]);
 
   useEffect(() => {
-    if (open) {
-      // Refetch products when modal opens
-      refetchProducts();
-
+    if (open && pedido?.itens) {
+      console.log('Modal opened, initializing vinculacoes for pedido:', pedido.id);
       const initialVinculacoes: Record<string, string> = {};
-      pedido?.itens?.forEach((item) => {
+      pedido.itens.forEach((item) => {
         if (item.product_id) {
           initialVinculacoes[item.id] = item.product_id;
         }
@@ -56,12 +66,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
       setSearchTerm("");
       setSelectedOrderItemId(null);
     }
-  }, [open, pedido?.id, pedido?.itens, refetchProducts]);
-
-  const filteredProdutos = produtosDisponiveis.filter(produto =>
-    produto.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    produto.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  }, [open, pedido?.id, pedido?.itens]);
 
   const handleVincularProduto = useCallback((produtoSistemaId: string) => {
     if (!selectedOrderItemId) {
@@ -170,6 +175,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
       });
       onVinculacaoSucesso();
     } catch (error: any) {
+      console.error('Error saving vinculacao:', error);
       toast({
         title: "Erro",
         description: error?.message || "Falha ao vincular pedido.",
@@ -190,9 +196,9 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
   const totalItensVinculados = Object.keys(itemVinculacoes).length;
   const isSaveButtonDisabled = loadingVinculacao || totalItensVinculados === 0 || totalItensVinculados !== (pedido?.itens?.length || 0);
 
-  const getSelectedOrderItem = () => {
+  const getSelectedOrderItem = useCallback(() => {
     return pedido?.itens?.find(item => item.id === selectedOrderItemId);
-  };
+  }, [pedido?.itens, selectedOrderItemId]);
 
   const selectedOrderItem = getSelectedOrderItem();
 
@@ -344,10 +350,12 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
                 </div>
               ) : loadingProdutos ? (
                 <div className="text-center text-gray-500 mt-8">Carregando produtos do sistema...</div>
-              ) : filteredProdutos.length === 0 ? (
+              ) : !filteredProdutos || filteredProdutos.length === 0 ? (
                 <div className="text-center text-gray-500 mt-8">
-                  <p>Nenhum produto encontrado no sistema.</p>
-                  <p className="text-sm mt-2">Verifique se você tem produtos cadastrados ou tente uma busca diferente.</p>
+                  <p>Nenhum produto encontrado.</p>
+                  <p className="text-sm mt-2">
+                    {searchTerm ? 'Tente uma busca diferente.' : 'Cadastre produtos no sistema para vinculá-los aos pedidos.'}
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -356,8 +364,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
                     const isLinkedToSelectedOrderItem = selectedOrderItemId !== null && itemVinculacoes[selectedOrderItemId] === produto.id;
                     const isDisabled = isUsed && !isLinkedToSelectedOrderItem;
                     const hasInsufficientStock = produto.total_current_stock <= 0;
-                    const selectedItem = getSelectedOrderItem();
-                    const hasInsufficientStockForQuantity = selectedItem && produto.total_current_stock < selectedItem.quantidade;
+                    const hasInsufficientStockForQuantity = selectedOrderItem && produto.total_current_stock < selectedOrderItem.quantidade;
 
                     return (
                       <div
@@ -389,9 +396,9 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
                               >
                                 Estoque: {produto.total_current_stock}
                               </Badge>
-                              {selectedItem && (
+                              {selectedOrderItem && (
                                 <span className="text-xs text-gray-600">
-                                  Necessário: {selectedItem.quantidade}
+                                  Necessário: {selectedOrderItem.quantidade}
                                 </span>
                               )}
                             </div>

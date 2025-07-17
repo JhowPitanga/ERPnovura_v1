@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
@@ -18,7 +19,7 @@ export function useProducts() {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
@@ -26,6 +27,8 @@ export function useProducts() {
 
     try {
       setLoading(true);
+      console.log('Fetching products for user:', user.id);
+      
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select(`
@@ -45,9 +48,15 @@ export function useProducts() {
             )
           )
         `)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (productsError) throw productsError;
+      if (productsError) {
+        console.error('Error fetching products:', productsError);
+        throw productsError;
+      }
+
+      console.log('Products fetched successfully:', productsData?.length || 0);
 
       // Transformar os dados para incluir o estoque consolidado
       const transformedProducts = productsData?.map(product => {
@@ -72,16 +81,19 @@ export function useProducts() {
 
       setProducts(transformedProducts);
     } catch (err) {
+      console.error('Error in fetchProducts:', err);
       const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar produtos';
       toast({
         title: "Erro",
         description: errorMessage,
         variant: "destructive",
       });
+      // Set empty array on error to prevent UI issues
+      setProducts([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, toast]);
 
   const deleteProduct = async (productId: string) => {
     try {
@@ -138,7 +150,7 @@ export function useProducts() {
 
   useEffect(() => {
     fetchProducts();
-  }, [user]);
+  }, [fetchProducts]);
 
   return {
     products,
