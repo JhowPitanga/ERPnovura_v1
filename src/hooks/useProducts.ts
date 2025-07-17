@@ -106,12 +106,7 @@ export function useProducts() {
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select(`
-          id,
-          name,
-          sku,
-          cost_price,
-          sell_price,
-          image_urls,
+          *,
           categories (
             id,
             name
@@ -128,6 +123,7 @@ export function useProducts() {
             )
           )
         `)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (productsError) throw productsError;
@@ -191,12 +187,41 @@ export function useProducts() {
     }
   };
 
+  const duplicateProduct = async (productId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('duplicate_product', {
+        original_product_id: productId
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Sucesso",
+        description: "Produto duplicado com sucesso",
+      });
+
+      // Refresh products list
+      await fetchProducts();
+      
+      return data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao duplicar produto';
+      toast({
+        title: "Erro",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
   return {
     products,
     loading,
     error,
     refetch: fetchProducts,
     deleteProduct,
+    duplicateProduct,
   };
 }
 

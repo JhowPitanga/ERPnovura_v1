@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
-import { useProducts, Product } from "@/hooks/useProducts"; // Certifique-se que este import está correto e inclui 'Product'
+import { useProducts, Product } from "@/hooks/useProducts";
 
 interface OrderItem {
   id: string;
@@ -170,12 +170,12 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
       toast({
         title: "Atenção",
         description: "Todos os itens do pedido precisam ser vinculados para salvar.",
-        variant: "warning",
+        variant: "destructive",
       });
       return;
     }
 
-    const defaultStorageId = "COLOQUE_AQUI_O_UUID_DO_SEU_GALPAO_PADRAO"; // <<< ATUALIZE COM O ID REAL DO SEU GALPÃO PADRÃO
+    const defaultStorageId = "COLOQUE_AQUI_O_UUID_DO_SEU_GALPAO_PADRAO";
     if (!defaultStorageId) {
         toast({ title: "Erro", description: "ID do galpão padrão não configurado.", variant: "destructive" });
         return;
