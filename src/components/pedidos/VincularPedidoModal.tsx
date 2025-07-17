@@ -213,7 +213,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
   }, [pedido?.itens, selectedOrderItemId]);
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={handleClose}> // FORCANDO RECOMPILACAO
       <DialogContent className="max-w-6xl h-[80vh] bg-white rounded-2xl p-0 overflow-hidden flex flex-col">
         <DialogHeader className="p-6 border-b border-gray-100 flex-row items-center justify-between flex-none">
           <div>
