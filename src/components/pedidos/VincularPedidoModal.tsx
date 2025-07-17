@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from '@/integrations/supabase/client';
-import { fetchProductsWithDetailedStock } from "@/hooks/useStockData";
 import { useToast } from "@/hooks/use-toast";
+import { useProducts } from "@/hooks/useProducts";
 
 interface OrderItem {
   id: string;
@@ -36,29 +36,16 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [itemVinculacoes, setItemVinculacoes] = useState<Record<string, string>>({});
-  const [produtosDisponiveis, setProdutosDisponiveis] = useState<any[]>([]);
-  const [loadingProdutos, setLoadingProdutos] = useState(true);
   const [loadingVinculacao, setLoadingVinculacao] = useState(false);
   const [selectedOrderItemId, setSelectedOrderItemId] = useState<string | null>(null);
 
+  // Use the useProducts hook to get user's products
+  const { products: produtosDisponiveis, loading: loadingProdutos, refetch: refetchProducts } = useProducts();
+
   useEffect(() => {
     if (open) {
-      const loadProdutos = async () => {
-        setLoadingProdutos(true);
-        try {
-          const data = await fetchProductsWithDetailedStock();
-          setProdutosDisponiveis(data);
-        } catch (error) {
-          toast({
-            title: "Erro",
-            description: "Não foi possível carregar os produtos do sistema.",
-            variant: "destructive",
-          });
-        } finally {
-          setLoadingProdutos(false);
-        }
-      };
-      loadProdutos();
+      // Refetch products when modal opens
+      refetchProducts();
 
       const initialVinculacoes: Record<string, string> = {};
       pedido?.itens?.forEach((item) => {
@@ -70,7 +57,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
       setSearchTerm("");
       setSelectedOrderItemId(null);
     }
-  }, [open, pedido?.id, pedido?.itens]);
+  }, [open, pedido?.id, pedido?.itens, refetchProducts]);
 
   const filteredProdutos = produtosDisponiveis.filter(produto =>
     produto.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -229,7 +216,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
         </DialogHeader>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* Itens do Pedido - Agora à esquerda */}
+          {/* Itens do Pedido - À esquerda */}
           <div className="w-96 flex flex-col bg-gray-50 border-r border-gray-100">
             <div className="p-4 border-b border-gray-200 flex-none">
               <h3 className="font-semibold text-gray-900">Itens do Pedido</h3>
@@ -329,7 +316,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
             </div>
           </div>
 
-          {/* Lista de Produtos - Agora à direita */}
+          {/* Lista de Produtos do Sistema - À direita */}
           <div className="flex-1 flex flex-col">
             <div className="p-4 border-b border-gray-100 flex-none">
               <div className="flex items-center justify-between mb-4">
@@ -343,7 +330,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
-                  placeholder="Buscar produtos..."
+                  placeholder="Buscar produtos cadastrados no sistema..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 h-12 rounded-2xl border-0 bg-gray-50"
@@ -357,9 +344,12 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
                   <p>Selecione um item do pedido à esquerda para vincular</p>
                 </div>
               ) : loadingProdutos ? (
-                <div className="text-center text-gray-500 mt-8">Carregando produtos...</div>
+                <div className="text-center text-gray-500 mt-8">Carregando produtos do sistema...</div>
               ) : filteredProdutos.length === 0 ? (
-                <div className="text-center text-gray-500 mt-8">Nenhum produto encontrado.</div>
+                <div className="text-center text-gray-500 mt-8">
+                  <p>Nenhum produto encontrado no sistema.</p>
+                  <p className="text-sm mt-2">Verifique se você tem produtos cadastrados ou tente uma busca diferente.</p>
+                </div>
               ) : (
                 <div className="space-y-2">
                   {filteredProdutos.map((produto) => {
@@ -394,7 +384,8 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
                                 variant="outline" 
                                 className={`text-xs ${
                                   produto.total_current_stock <= 0 ? 'border-red-500 text-red-500 bg-red-50' : 
-                                  hasInsufficientStockForQuantity ? 'border-orange-500 text-orange-500 bg-orange-50' : ''
+                                  hasInsufficientStockForQuantity ? 'border-orange-500 text-orange-500 bg-orange-50' : 
+                                  'border-green-500 text-green-600 bg-green-50'
                                 }`}
                               >
                                 Estoque: {produto.total_current_stock}
