@@ -132,8 +132,14 @@ export function useProducts() {
         const rawStockData = product.products_stock;
         const stockArray = rawStockData ? (Array.isArray(rawStockData) ? rawStockData : [rawStockData]) : [];
         
-        const totalCurrent = stockArray.reduce((sum, stock) => sum + (stock.current || 0), 0);
-        const totalReserved = stockArray.reduce((sum, stock) => sum + (stock.reserved || 0), 0);
+        let totalCurrent = 0;
+        let totalReserved = 0;
+        
+        for (const stock of stockArray) {
+          totalCurrent += stock?.current || 0;
+          totalReserved += stock?.reserved || 0;
+        }
+        
         const totalAvailable = totalCurrent - totalReserved;
 
         return {
