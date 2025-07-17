@@ -42,11 +42,11 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
 
   const filteredProdutos = useMemo(() => {
     if (!produtosDisponiveis) return [];
-
+    
     if (searchTerm.length === 0) {
       return produtosDisponiveis;
     }
-
+    
     return produtosDisponiveis.filter(produto =>
       produto.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       produto.sku.toLowerCase().includes(searchTerm.toLowerCase())
@@ -67,6 +67,12 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
       refetchProdutos();
     }
   }, [open, pedido?.id, pedido?.itens, refetchProdutos]);
+
+  // FUNÇÃO PARA SETAR selectedOrderItemId E ADICIONAR LOG
+  const handleSetSelectedOrderItemId = useCallback((id: string) => {
+    setSelectedOrderItemId(id);
+    console.log(">>> VincularPedidoModal: Item do pedido selecionado:", id); // LOG DE DEBUG
+  }, []);
 
   const handleVincularProduto = useCallback((produtoSistemaId: string) => {
     if (!selectedOrderItemId) {
@@ -223,7 +229,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
         </DialogHeader>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* Itens do Pedido - Lado Esquerdo (agora é o lado esquerdo) */}
+          {/* Itens do Pedido - Lado Esquerdo */}
           <div className="w-96 flex flex-col bg-gray-50 border-r border-gray-100">
             <div className="p-4 border-b border-gray-200 flex-none">
               <h3 className="font-semibold text-gray-900">Itens do Pedido</h3>
@@ -243,17 +249,17 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
                     const isSelected = selectedOrderItemId === item.id;
                     const produtoVinculadoId = itemVinculacoes[item.id];
                     const produtoDoSistema = produtoVinculadoId ? produtosDisponiveis?.find(p => p.id === produtoVinculadoId) : null;
-                    const isPreLinkedFromDB = item.product_id !== null && !!produtoDoSistema; // Se já veio vinculado do DB
+                    const isPreLinkedFromDB = item.product_id !== null && !!produtoDoSistema;
 
                     return (
                       <div
                         key={item.id}
                         className={`bg-white p-4 rounded-xl border cursor-pointer transition-all ${
                           isSelected ? 'border-novura-primary shadow-md ring-2 ring-novura-primary/20'
-                          : isPreLinkedFromDB ? 'border-green-300 bg-green-50 opacity-90' // Pré-vinculado do DB
+                          : isPreLinkedFromDB ? 'border-green-300 bg-green-50 opacity-90'
                           : 'border-gray-200 hover:border-gray-300'
                         }`}
-                        onClick={() => setSelectedOrderItemId(item.id)} // Seleciona o item do pedido pelo ID real
+                        onClick={() => handleSetSelectedOrderItemId(item.id)} // <<< AQUI É ONDE SELECIONA O ITEM DO PEDIDO
                       >
                         <div className="flex items-start space-x-3 mb-3">
                           <img
@@ -284,145 +290,4 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
                                 className="w-8 h-8 rounded object-cover"
                               />
                               <div>
-                                <p className="text-xs font-medium text-green-800">{produtoDoSistema.name}</p>
-                                <p className="text-xs text-green-600">SKU: {produtoDoSistema.sku}</p>
-                                <p className="text-xs text-green-600">Estoque: {produtoDoSistema.total_current_stock} un.</p>
-                              </div>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoverVinculacao(item.id);
-                              }}
-                              className="p-1 h-auto rounded-full hover:bg-red-50 hover:text-red-600"
-                            >
-                              <X className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="text-center py-2 text-gray-500">
-                            <p className="text-xs">
-                              {isSelected ? "Escolha um produto à direita para vincular." : "Clique para selecionar este item do pedido."}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <div className="p-4 border-t border-gray-200 flex-none">
-              <Button
-                onClick={handleSalvar}
-                disabled={isSaveButtonDisabled}
-                className="w-full h-12 rounded-2xl bg-novura-primary"
-              >
-                {loadingVinculacao ? "Salvando..." : `Salvar Vinculação (${totalItensVinculados})`}
-              </Button>
-            </div>
-          </div>
-
-          {/* Lista de Produtos do Sistema - Lado Direito (agora é o lado direito) */}
-          <div className="flex-1 flex flex-col">
-            <div className="p-4 border-b border-gray-100 flex-none">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900">Produtos do Sistema</h3>
-                {selectedOrderItem && (
-                  <Badge variant="outline" className="text-sm bg-blue-50 text-blue-700 border-blue-200">
-                    Item selecionado: {selectedOrderItem.product} (Qtd: {selectedOrderItem.quantidade})
-                  </Badge>
-                )}
-              </div>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Buscar produtos por nome ou SKU..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4">
-              {!selectedOrderItemId ? (
-                <div className="text-center text-gray-500 mt-8">
-                  <p>Selecione um item do pedido à esquerda para ver os produtos compatíveis.</p>
-                </div>
-              ) : loadingProdutos ? (
-                <div className="text-center text-gray-500 mt-8">Carregando produtos do sistema...</div>
-              ) : !filteredProdutos || filteredProdutos.length === 0 ? (
-                <div className="text-center text-gray-500 mt-8">
-                  <p>Nenhum produto encontrado.</p>
-                  <p className="text-sm mt-2">
-                    {searchTerm ? 'Tente uma busca diferente.' : 'Cadastre produtos no sistema para vinculá-los aos pedidos.'}
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {filteredProdutos.map((produto: any) => { // ProductWithStock
-                    const isUsed = Object.values(itemVinculacoes).includes(produto.id);
-                    const isLinkedToSelectedOrderItem = selectedOrderItemId !== null && itemVinculacoes[selectedOrderItemId] === produto.id;
-                    const isDisabled = isUsed && !isLinkedToSelectedOrderItem;
-                    const hasInsufficientStock = produto.total_current_stock <= 0;
-                    const hasInsufficientStockForQuantity = selectedOrderItem && produto.total_current_stock < selectedOrderItem.quantidade;
-
-                    return (
-                      <div
-                        key={produto.id}
-                        onClick={() => !isDisabled && !hasInsufficientStock && !hasInsufficientStockForQuantity && handleVincularProduto(produto.id)}
-                        className={`bg-white p-4 rounded-xl border transition-all cursor-pointer ${
-                          isLinkedToSelectedItem ? 'border-novura-primary bg-novura-primary-light' :
-                          isDisabled || hasInsufficientStock || hasInsufficientStockForQuantity ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed' :
-                          'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                        }`}
-                      >
-                        <div className="flex items-start space-x-3">
-                          <img
-                            src={produto.image_urls?.[0] || "/placeholder.svg"}
-                            alt={produto.name}
-                            className="w-16 h-16 rounded-lg object-cover bg-gray-100 flex-shrink-0"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-gray-900 text-sm truncate">{produto.name}</h4>
-                            <p className="text-xs text-gray-500 mb-2">SKU: {produto.sku}</p>
-
-                            <div className="flex items-center justify-between">
-                              <Badge
-                                variant="outline"
-                                className={`text-xs ${
-                                  produto.total_current_stock <= 0 ? 'border-red-500 text-red-500 bg-red-50' :
-                                  hasInsufficientStockForQuantity ? 'border-orange-500 text-orange-500 bg-orange-50' :
-                                  'border-green-500 text-green-600 bg-green-50'
-                                }`}
-                              >
-                                Estoque: {produto.total_current_stock}
-                              </Badge>
-                              {selectedOrderItem && (
-                                <span className="text-xs text-gray-600">
-                                  Necessário: {selectedOrderItem.quantidade}
-                                </span>
-                              )}
-                            </div>
-
-                            <p className="text-xs text-gray-600 mt-1">
-                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.sell_price || 0)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
+                                <p className="text-xs font-medium text-green-800">{produtoDo
