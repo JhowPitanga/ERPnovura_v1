@@ -166,7 +166,8 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
       return;
     }
 
-    const defaultStorageId = "COLOQUE_AQUI_O_UUID_DO_SEU_GALPAO_PADRAO";
+    // Usar um storage ID válido do banco de dados
+    const defaultStorageId = "be821e81-3546-4c4f-ba46-018d4b4827b6";
     if (!defaultStorageId) {
         toast({ title: "Erro", description: "ID do galpão padrão não configurado.", variant: "destructive" });
         return;
@@ -225,7 +226,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
       return;
     }
 
-    const defaultStorageId = "COLOQUE_AQUI_O_UUID_DO_SEU_GALPAO_PADRAO";
+    const defaultStorageId = "be821e81-3546-4c4f-ba46-018d4b4827b6";
     if (!defaultStorageId) {
         toast({ title: "Erro", description: "ID do galpão padrão não configurado.", variant: "destructive" });
         return;
