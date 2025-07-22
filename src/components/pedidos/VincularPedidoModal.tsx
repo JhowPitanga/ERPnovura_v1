@@ -77,7 +77,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
     setSelectedOrderItemId(id);
   }, []);
 
-  const handleVincularProduto = useCallback((produtoSistemaId: string) => {
+  const handleVincularProduto = useCallback(async (produtoSistemaId: string) => {
     if (!selectedOrderItemId) {
       toast({
         title: "Atenção",
@@ -129,10 +129,27 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
       return;
     }
 
-    setItemVinculacoes(prev => ({
-      ...prev,
+    // Atualizar as vinculações e automaticamente salvar
+    const newVinculacoes = {
+      ...itemVinculacoes,
       [selectedOrderItemId]: produtoSistemaId
-    }));
+    };
+    setItemVinculacoes(newVinculacoes);
+
+    // Salvar automaticamente se todos os itens estão vinculados
+    const todosItensVinculados = pedido?.itens?.every(item => 
+      item.id === selectedOrderItemId ? true : !!newVinculacoes[item.id]
+    );
+
+    if (todosItensVinculados) {
+      await salvarVinculacao(newVinculacoes);
+    } else {
+      toast({
+        title: "Produto Vinculado",
+        description: `${produtoSelecionado.name} vinculado com sucesso!`,
+        variant: "default",
+      });
+    }
   }, [itemVinculacoes, selectedOrderItemId, toast, produtosDisponiveis, pedido?.itens]);
 
   const handleRemoverVinculacao = useCallback((linkedOrderItemId: string) => {
@@ -142,6 +159,54 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
       return newVinculacoes;
     });
   }, []);
+
+  const salvarVinculacao = async (vinculacoes: Record<string, string>) => {
+    if (!pedido || !pedido.id || !pedido.itens) {
+      toast({ title: "Erro", description: "Pedido inválido.", variant: "destructive" });
+      return;
+    }
+
+    const defaultStorageId = "COLOQUE_AQUI_O_UUID_DO_SEU_GALPAO_PADRAO";
+    if (!defaultStorageId) {
+        toast({ title: "Erro", description: "ID do galpão padrão não configurado.", variant: "destructive" });
+        return;
+    }
+
+    setLoadingVinculacao(true);
+    try {
+      const linkedItemsForDB = pedido.itens.map(originalItem => ({
+        order_item_id: originalItem.id,
+        product_system_id: vinculacoes[originalItem.id],
+      }));
+
+      const { error: vinculacaoError } = await supabase.rpc('update_order_items_and_link_stock', {
+        p_order_id: pedido.id,
+        p_linked_items: linkedItemsForDB,
+        p_storage_id_for_reservation: defaultStorageId,
+      });
+
+      if (vinculacaoError) throw vinculacaoError;
+
+      toast({
+        title: "Sucesso",
+        description: "Pedido vinculado e estoque reservado com sucesso!",
+        variant: "default",
+      });
+      
+      // Fechar modal automaticamente e executar callback
+      handleClose();
+      onVinculacaoSucesso();
+    } catch (error: any) {
+      console.error('Error saving vinculacao:', error);
+      toast({
+        title: "Erro",
+        description: error?.message || "Falha ao vincular pedido.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingVinculacao(false);
+    }
+  };
 
   const handleSalvar = async () => {
     if (!pedido || !pedido.id || !pedido.itens) {
@@ -247,53 +312,54 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
                   <p>Nenhum item no pedido</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className={`space-y-${pedido.itens.length >= 2 ? '3' : '4'}`}>
                   {pedido.itens.map((item: OrderItem) => {
                     const isSelected = selectedOrderItemId === item.id;
                     const produtoVinculadoId = itemVinculacoes[item.id];
                     const produtoDoSistema = produtoVinculadoId ? produtosDisponiveis?.find(p => p.id === produtoVinculadoId) : null;
                     const isPreLinkedFromDB = item.product_id !== null && !!produtoDoSistema;
+                    const isCompactMode = pedido.itens.length >= 2;
 
                     return (
                       <div
                         key={item.id}
-                        className={`bg-white p-6 rounded-2xl border-2 cursor-pointer transition-all shadow-sm hover:shadow-md ${
+                        className={`bg-white ${isCompactMode ? 'p-4' : 'p-6'} rounded-2xl border-2 cursor-pointer transition-all shadow-sm hover:shadow-md ${
                           isSelected ? 'border-primary shadow-lg ring-4 ring-primary/10 transform scale-[1.02]'
                           : isPreLinkedFromDB ? 'border-green-300 bg-green-50'
                           : 'border-gray-200 hover:border-gray-300'
                         }`}
                         onClick={() => handleSetSelectedOrderItemId(item.id)}
                       >
-                        {/* Header do Card */}
-                        <div className="flex items-center justify-between mb-4">
+                        {/* Header do Card - Compacto quando há múltiplos itens */}
+                        <div className={`flex items-center justify-between ${isCompactMode ? 'mb-3' : 'mb-4'}`}>
                           <div className="flex items-center gap-3">
-                            <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-slate-100 to-gray-200 flex items-center justify-center shadow-inner">
+                            <div className={`${isCompactMode ? 'w-16 h-16' : 'w-20 h-20'} rounded-xl bg-gradient-to-br from-slate-100 to-gray-200 flex items-center justify-center shadow-inner`}>
                               <img
                                 src="/placeholder.svg"
                                 alt={item.product}
-                                className="w-16 h-16 rounded-lg object-cover"
+                                className={`${isCompactMode ? 'w-12 h-12' : 'w-16 h-16'} rounded-lg object-cover`}
                               />
                             </div>
                             
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-gray-900 text-base mb-1 leading-tight">{item.product}</h4>
-                              <p className="text-sm text-gray-500 mb-2">SKU: {item.sku}</p>
+                              <h4 className={`font-semibold text-gray-900 ${isCompactMode ? 'text-sm' : 'text-base'} mb-1 leading-tight`}>{item.product}</h4>
+                              <p className={`${isCompactMode ? 'text-xs' : 'text-sm'} text-gray-500 mb-2`}>SKU: {item.sku}</p>
                               
                               {/* Quantidade com destaque */}
                               <div className="flex items-center gap-2">
                                 <Badge 
                                   variant="secondary" 
-                                  className={`text-sm font-bold ${item.quantidade > 1 ? 'bg-orange-100 text-orange-800 border-orange-200' : 'bg-blue-100 text-blue-800 border-blue-200'}`}
+                                  className={`${isCompactMode ? 'text-xs' : 'text-sm'} font-bold ${item.quantidade > 1 ? 'bg-orange-100 text-orange-800 border-orange-200' : 'bg-blue-100 text-blue-800 border-blue-200'}`}
                                 >
-                                  {item.quantidade > 1 ? `${item.quantidade}x unidades` : '1 unidade'}
+                                  {item.quantidade > 1 ? `x${item.quantidade}` : '1 un'}
                                 </Badge>
                               </div>
                             </div>
                           </div>
 
-                          {/* Preço */}
+                          {/* Preço - Compacto quando há múltiplos itens */}
                           <div className="text-right">
-                            <p className="text-lg font-bold text-gray-900">
+                            <p className={`${isCompactMode ? 'text-base' : 'text-lg'} font-bold text-gray-900`}>
                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor)}
                             </p>
                             {item.quantidade > 1 && (
@@ -389,7 +455,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                   {filteredProdutos.map((produto: Product) => {
                     const isUsed = Object.values(itemVinculacoes).includes(produto.id);
                     const isLinkedToSelectedItem = selectedOrderItemId !== null && itemVinculacoes[selectedOrderItemId] === produto.id;
@@ -413,22 +479,22 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
                             handleVincularProduto(produto.id);
                           }
                         }}
-                        className={`bg-white p-4 rounded-xl border transition-all cursor-pointer ${
-                          isLinkedToSelectedItem ? 'border-primary bg-blue-50' :
+                        className={`bg-white p-6 rounded-xl border transition-all cursor-pointer shadow-sm hover:shadow-md ${
+                          isLinkedToSelectedItem ? 'border-primary bg-blue-50 ring-2 ring-primary/10' :
                           isDisabled || hasInsufficientStock || hasInsufficientStockForQuantity ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed' :
-                          !selectedOrderItemId ? 'border-gray-200 hover:border-blue-300 hover:shadow-sm' :
-                          'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                          !selectedOrderItemId ? 'border-gray-200 hover:border-blue-300' :
+                          'border-gray-200 hover:border-gray-300'
                         }`}
                       >
-                        <div className="flex items-start space-x-3">
+                        <div className="flex items-start space-x-4">
                           <img
                             src={produto.image_urls?.[0] || "/placeholder.svg"}
                             alt={produto.name}
-                            className="w-16 h-16 rounded-lg object-cover bg-gray-100 flex-shrink-0"
+                            className="w-20 h-20 rounded-lg object-cover bg-gray-100 flex-shrink-0"
                           />
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-gray-900 text-sm truncate">{produto.name}</h4>
-                            <p className="text-xs text-gray-500 mb-2">SKU: {produto.sku}</p>
+                            <h4 className="font-semibold text-gray-900 text-base truncate">{produto.name}</h4>
+                            <p className="text-sm text-gray-500 mb-3">SKU: {produto.sku}</p>
                             
                             <div className="flex items-center justify-between">
                               <Badge
