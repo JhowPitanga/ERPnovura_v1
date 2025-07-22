@@ -232,22 +232,22 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
         </DialogHeader>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* Itens do Pedido - Lado Esquerdo */}
-          <div className="w-96 flex flex-col bg-gray-50 border-r border-gray-100">
-            <div className="p-4 border-b border-gray-200 flex-none">
-              <h3 className="font-semibold text-gray-900">Itens do Pedido</h3>
+          {/* Itens do Pedido - Cards Melhorados */}
+          <div className="w-[28rem] flex flex-col bg-gradient-to-br from-slate-50 to-gray-100 border-r border-gray-200">
+            <div className="p-6 border-b border-gray-200 flex-none bg-white">
+              <h3 className="text-lg font-bold text-gray-900 mb-1">Itens do Pedido</h3>
               <p className="text-sm text-gray-600">
                 {totalItensVinculados} de {pedido?.itens?.length || 0} item(s) vinculado(s)
               </p>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto p-6">
               {!pedido?.itens || pedido.itens.length === 0 ? (
                 <div className="text-center text-gray-500 mt-8">
                   <p>Nenhum item no pedido</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {pedido.itens.map((item: OrderItem) => {
                     const isSelected = selectedOrderItemId === item.id;
                     const produtoVinculadoId = itemVinculacoes[item.id];
@@ -257,63 +257,84 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
                     return (
                       <div
                         key={item.id}
-                        className={`bg-white p-4 rounded-xl border cursor-pointer transition-all ${
-                          isSelected ? 'border-novura-primary shadow-md ring-2 ring-novura-primary/20'
-                          : isPreLinkedFromDB ? 'border-green-300 bg-green-50 opacity-90'
+                        className={`bg-white p-6 rounded-2xl border-2 cursor-pointer transition-all shadow-sm hover:shadow-md ${
+                          isSelected ? 'border-primary shadow-lg ring-4 ring-primary/10 transform scale-[1.02]'
+                          : isPreLinkedFromDB ? 'border-green-300 bg-green-50'
                           : 'border-gray-200 hover:border-gray-300'
                         }`}
                         onClick={() => handleSetSelectedOrderItemId(item.id)}
                       >
-                        <div className="flex items-start space-x-3 mb-3">
-                          <img
-                            src="/placeholder.svg"
-                            alt={item.product}
-                            className="w-12 h-12 rounded-lg object-cover bg-gray-100 flex-shrink-0"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-gray-900 text-sm truncate">{item.product}</h4>
-                            <p className="text-xs text-gray-500">SKU: {item.sku}</p>
-                            <div className="flex items-center justify-between mt-1">
-                              <Badge variant="outline" className="text-xs">
-                                Qtd: {item.quantidade}
-                              </Badge>
-                              <span className="text-xs text-gray-600">
-                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor)}
-                              </span>
+                        {/* Header do Card */}
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-slate-100 to-gray-200 flex items-center justify-center shadow-inner">
+                              <img
+                                src="/placeholder.svg"
+                                alt={item.product}
+                                className="w-16 h-16 rounded-lg object-cover"
+                              />
                             </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-gray-900 text-base mb-1 leading-tight">{item.product}</h4>
+                              <p className="text-sm text-gray-500 mb-2">SKU: {item.sku}</p>
+                              
+                              {/* Quantidade com destaque */}
+                              <div className="flex items-center gap-2">
+                                <Badge 
+                                  variant="secondary" 
+                                  className={`text-sm font-bold ${item.quantidade > 1 ? 'bg-orange-100 text-orange-800 border-orange-200' : 'bg-blue-100 text-blue-800 border-blue-200'}`}
+                                >
+                                  {item.quantidade > 1 ? `${item.quantidade}x unidades` : '1 unidade'}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Preço */}
+                          <div className="text-right">
+                            <p className="text-lg font-bold text-gray-900">
+                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor)}
+                            </p>
+                            {item.quantidade > 1 && (
+                              <p className="text-xs text-gray-500">
+                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor / item.quantidade)} cada
+                              </p>
+                            )}
                           </div>
                         </div>
 
+                        {/* Status de Vinculação */}
                         {produtoDoSistema ? (
-                          <div className="flex items-center justify-between p-2 bg-green-50 rounded-lg border border-green-200">
-                            <div className="flex items-center space-x-2">
-                              <img
-                                src={produtoDoSistema.image_urls?.[0] || "/placeholder.svg"}
-                                alt={produtoDoSistema.name}
-                                className="w-8 h-8 rounded object-cover"
-                              />
-                              <div>
-                                <p className="text-xs font-medium text-green-800">{produtoDoSistema.name}</p>
-                                <p className="text-xs text-green-600">SKU: {produtoDoSistema.sku}</p>
-                                <p className="text-xs text-green-600">Estoque: {produtoDoSistema.total_current_stock} un.</p>
+                          <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                                  <Check className="w-5 h-5 text-green-600" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-semibold text-green-800 mb-1">Produto Vinculado</p>
+                                  <p className="text-xs text-green-700">{produtoDoSistema.name}</p>
+                                  <p className="text-xs text-green-600">Estoque: {produtoDoSistema.total_current_stock} disponíveis</p>
+                                </div>
                               </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemoverVinculacao(item.id);
+                                }}
+                                className="p-2 h-auto rounded-full hover:bg-red-50 hover:text-red-600 transition-colors"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoverVinculacao(item.id);
-                              }}
-                              className="p-1 h-auto rounded-full hover:bg-red-50 hover:text-red-600"
-                            >
-                              <X className="w-3 h-3" />
-                            </Button>
                           </div>
                         ) : (
-                          <div className="text-center py-2 text-gray-500">
-                            <p className="text-xs">
-                              {isSelected ? "Escolha um produto à direita para vincular." : "Clique para selecionar este item do pedido."}
+                          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center">
+                            <p className="text-sm text-gray-600">
+                              {isSelected ? "👉 Escolha um produto à direita para vincular" : "Clique para selecionar este item"}
                             </p>
                           </div>
                         )}
