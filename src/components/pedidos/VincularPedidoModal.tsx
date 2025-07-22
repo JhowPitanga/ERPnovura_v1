@@ -379,11 +379,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">
-              {!selectedOrderItemId ? (
-                <div className="text-center text-gray-500 mt-8">
-                  <p>Selecione um item do pedido à esquerda para ver os produtos compatíveis.</p>
-                </div>
-              ) : loadingProdutos ? (
+              {loadingProdutos ? (
                 <div className="text-center text-gray-500 mt-8">Carregando produtos do sistema...</div>
               ) : filteredProdutos.length === 0 ? (
                 <div className="text-center text-gray-500 mt-8">
@@ -394,20 +390,33 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {filteredProdutos.map((produto: Product) => { // Usando o tipo Product importado
+                  {filteredProdutos.map((produto: Product) => {
                     const isUsed = Object.values(itemVinculacoes).includes(produto.id);
                     const isLinkedToSelectedItem = selectedOrderItemId !== null && itemVinculacoes[selectedOrderItemId] === produto.id;
-                    const isDisabled = isUsed && !isLinkedToSelectedItem;
+                    const isDisabled = isUsed && !isLinkedToSelectedItem && selectedOrderItemId !== null;
                     const hasInsufficientStock = produto.total_current_stock === undefined || produto.total_current_stock <= 0;
                     const hasInsufficientStockForQuantity = selectedOrderItem && produto.total_current_stock !== undefined && produto.total_current_stock < selectedOrderItem.quantidade;
 
                     return (
                       <div
                         key={produto.id}
-                        onClick={() => !isDisabled && !hasInsufficientStock && !hasInsufficientStockForQuantity && handleVincularProduto(produto.id)}
+                        onClick={() => {
+                          if (!selectedOrderItemId) {
+                            toast({
+                              title: "Atenção",
+                              description: "Selecione um item do pedido à esquerda primeiro.",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          if (!isDisabled && !hasInsufficientStock && !hasInsufficientStockForQuantity) {
+                            handleVincularProduto(produto.id);
+                          }
+                        }}
                         className={`bg-white p-4 rounded-xl border transition-all cursor-pointer ${
-                          isLinkedToSelectedItem ? 'border-novura-primary bg-novura-primary-light' :
+                          isLinkedToSelectedItem ? 'border-primary bg-blue-50' :
                           isDisabled || hasInsufficientStock || hasInsufficientStockForQuantity ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed' :
+                          !selectedOrderItemId ? 'border-gray-200 hover:border-blue-300 hover:shadow-sm' :
                           'border-gray-200 hover:border-gray-300 hover:shadow-sm'
                         }`}
                       >
@@ -430,7 +439,7 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
                                   'border-green-500 text-green-600 bg-green-50'
                                 }`}
                               >
-                                Estoque: {produto.total_current_stock}
+                                Estoque: {produto.total_current_stock || 0}
                               </Badge>
                               {selectedOrderItem && (
                                 <span className="text-xs text-gray-600">
@@ -442,6 +451,23 @@ export function VincularPedidoModal({ open, onOpenChange, pedido, onVinculacaoSu
                             <p className="text-xs text-gray-600 mt-1">
                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.sell_price || 0)}
                             </p>
+
+                            {/* Indicador de status de vinculação */}
+                            {!selectedOrderItemId && (
+                              <div className="mt-2">
+                                <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                                  Selecione um item para vincular
+                                </Badge>
+                              </div>
+                            )}
+
+                            {isLinkedToSelectedItem && (
+                              <div className="mt-2">
+                                <Badge variant="default" className="text-xs bg-green-100 text-green-700">
+                                  ✓ Vinculado ao item selecionado
+                                </Badge>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
