@@ -112,61 +112,232 @@ export function ImpressaoLista({ onOpenDetalhesPedido }: ImpressaoListaProps) {
     fetchPedidos();
   }, [fetchPedidos]);
 
-  const handleImprimir = async (pedido: OrderData) => {
-    console.log('>>> Botão "Imprimir" clicado para o pedido:', pedido.id);
-    console.log('>>> Estado das configurações:', settings);
-    console.log('>>> Estado de carregamento das configurações:', settingsLoading);
-    
-    if (settingsLoading) {
-      toast({ title: "Aguarde", description: "Carregando configurações de impressão...", variant: "default" });
-      return;
-    }
+  const handleImprimir = async (pedido: OrderData) => {
+    console.log('>>> Botão "Imprimir" clicado para o pedido:', pedido.id);
+    console.log('>>> Estado das configurações:', settings);
+    console.log('>>> Estado de carregamento das configurações:', settingsLoading);
+    
+    if (settingsLoading) {
+      toast({ title: "Aguarde", description: "Carregando configurações de impressão...", variant: "default" });
+      return;
+    }
 
-    toast({
-      title: "Simulação de Impressão",
-      description: `Preparando impressão para o pedido ${pedido.marketplace_order_id}...`,
-    });
+    if (!settings) {
+        toast({ title: "Erro", description: "Configurações de impressão não carregadas.", variant: "destructive" });
+        return;
+    }
 
-    if (!settings) {
-        toast({ title: "Erro", description: "Configurações de impressão não carregadas.", variant: "destructive" });
-        return;
-    }
-    
-    const mockPdfContent = `
-      <html>
-        <head>
-          <title>Etiqueta de Envio</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-            .label-a4 { width: 210mm; height: 297mm; border: 1px dashed black; }
-            .label-10x15 { width: 100mm; height: 150mm; border: 1px solid black; }
-          </style>
-        </head>
-        <body style="${settings.print_type === 'Impressão Zebra' ? 'width: 100mm; height: 150mm;' : 'width: 210mm; height: 297mm;'}">
-          <div class="${settings.print_type === 'Impressão Zebra' ? 'label-10x15' : 'label-a4'}">
-            <h1>Etiqueta de Envio</h1>
-            <p><strong>Pedido:</strong> ${pedido.marketplace_order_id}</p>
-            <p><strong>NF-e:</strong> ${pedido.nfe_data.nfe_number}</p>
-            <p><strong>Chave:</strong> ${pedido.nfe_data.nfe_key}</p>
-            <p><strong>Formato:</strong> ${settings.print_type}</p>
-            <p><strong>Opção:</strong> ${settings.label_format}</p>
-          </div>
-        </body>
-      </html>
-    `;
+    toast({
+      title: "Gerando Etiqueta",
+      description: `Preparando impressão para o pedido ${pedido.marketplace_order_id}...`,
+    });
 
-    const newWindow = window.open('', '_blank', 'noopener,noreferrer');
-    if (newWindow) {
-      newWindow.document.write(mockPdfContent);
-      newWindow.document.close();
-    }
+    // Generate PDF content based on print type
+    const isZebraPrint = settings.print_type === 'Impressão Zebra';
+    const isDanfeSimplificada = settings.label_format === 'Imprimir etiqueta com DANFE SIMPLIFICADA';
+    
+    const pdfContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Etiqueta de Envio - ${pedido.marketplace_order_id}</title>
+          <meta charset="UTF-8">
+          <style>
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            
+            body {
+              font-family: Arial, sans-serif;
+              ${isZebraPrint ? `
+                width: 10cm;
+                height: 15cm;
+                padding: 0.5cm;
+              ` : `
+                width: 10.5cm;
+                height: 7.4cm;
+                padding: 0.3cm;
+              `}
+              background: white;
+              font-size: ${isZebraPrint ? '12px' : '10px'};
+              line-height: 1.2;
+            }
+            
+            .etiqueta-container {
+              width: 100%;
+              height: 100%;
+              border: 2px solid #000;
+              padding: ${isZebraPrint ? '8px' : '6px'};
+              display: flex;
+              flex-direction: column;
+            }
+            
+            .header {
+              text-align: center;
+              border-bottom: 1px solid #000;
+              padding-bottom: 4px;
+              margin-bottom: 6px;
+            }
+            
+            .titulo {
+              font-weight: bold;
+              font-size: ${isZebraPrint ? '14px' : '12px'};
+              margin-bottom: 2px;
+            }
+            
+            .info-section {
+              margin-bottom: 4px;
+            }
+            
+            .info-row {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 2px;
+            }
+            
+            .label {
+              font-weight: bold;
+            }
+            
+            .value {
+              text-align: right;
+            }
+            
+            .nfe-section {
+              border-top: 1px solid #000;
+              padding-top: 4px;
+              margin-top: 4px;
+              flex-grow: 1;
+            }
+            
+            .chave-nfe {
+              font-size: ${isZebraPrint ? '8px' : '7px'};
+              word-break: break-all;
+              margin-top: 2px;
+            }
+            
+            .qr-placeholder {
+              width: ${isZebraPrint ? '40px' : '30px'};
+              height: ${isZebraPrint ? '40px' : '30px'};
+              border: 1px solid #000;
+              margin: 4px auto;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 8px;
+            }
 
+            .items-section {
+              border-top: 1px solid #000;
+              padding-top: 4px;
+              margin-top: 4px;
+            }
+
+            .item {
+              font-size: ${isZebraPrint ? '10px' : '9px'};
+              margin-bottom: 1px;
+            }
+            
+            @media print {
+              body {
+                ${isZebraPrint ? `
+                  width: 10cm;
+                  height: 15cm;
+                ` : `
+                  width: 10.5cm;
+                  height: 7.4cm;
+                `}
+              }
+              
+              .etiqueta-container {
+                page-break-inside: avoid;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="etiqueta-container">
+            <div class="header">
+              <div class="titulo">ETIQUETA DE TRANSPORTE</div>
+              <div>Pedido: ${pedido.marketplace_order_id}</div>
+            </div>
+            
+            <div class="info-section">
+              <div class="info-row">
+                <span class="label">Marketplace:</span>
+                <span class="value">${pedido.marketplace}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Cliente:</span>
+                <span class="value">${pedido.customer_name}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Total:</span>
+                <span class="value">R$ ${pedido.order_total.toFixed(2)}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Data:</span>
+                <span class="value">${new Date(pedido.created_at).toLocaleDateString('pt-BR')}</span>
+              </div>
+            </div>
+
+            ${isDanfeSimplificada ? `
+              <div class="nfe-section">
+                <div class="info-row">
+                  <span class="label">NF-e:</span>
+                  <span class="value">#${pedido.nfe_data.nfe_number}</span>
+                </div>
+                <div class="chave-nfe">
+                  <strong>Chave:</strong> ${pedido.nfe_data.nfe_key}
+                </div>
+                <div class="qr-placeholder">QR</div>
+              </div>
+            ` : ''}
+
+            <div class="items-section">
+              <div class="label" style="margin-bottom: 2px;">Itens:</div>
+              ${pedido.order_items?.map(item => `
+                <div class="item">${item.quantity}x ${item.product_name} (${item.sku})</div>
+              `).join('')}
+            </div>
+
+            <div style="margin-top: auto; text-align: center; font-size: 8px; border-top: 1px solid #000; padding-top: 2px;">
+              Formato: ${settings.print_type} | ${settings.label_format}
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    // Open new window with the PDF content
+    const newWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+    if (newWindow) {
+      newWindow.document.write(pdfContent);
+      newWindow.document.close();
+      
+      // Auto-trigger print dialog after content loads
+      newWindow.onload = () => {
+        setTimeout(() => {
+          newWindow.print();
+        }, 500);
+      };
+    } else {
+      toast({
+        title: "Erro",
+        description: "Não foi possível abrir a janela de impressão. Verifique se pop-ups estão bloqueados.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Mark order as printed
     try {
-      // Mock marking order as printed
       console.log(`Pedido ${pedido.id} marcado como impresso`);
       toast({
         title: "Sucesso",
-        description: "Etiqueta impressa e pedido atualizado.",
+        description: "Etiqueta gerada e pedido atualizado.",
       });
       fetchPedidos();
     } catch (error: any) {
@@ -176,7 +347,7 @@ export function ImpressaoLista({ onOpenDetalhesPedido }: ImpressaoListaProps) {
         variant: "destructive",
       });
     }
-  };
+  };
 
   const totalPedidos = 8;
 
