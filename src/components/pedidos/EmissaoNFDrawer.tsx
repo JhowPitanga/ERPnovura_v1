@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, CheckCircle, AlertTriangle, Loader2 } from "lucide-react";
+import { X, CheckCircle, AlertTriangle, Loader2, Bot } from "lucide-react";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,9 +8,9 @@ import { useToast } from "@/hooks/use-toast";
 
 interface EmissaoNFDrawerProps {
   open: boolean;
-  onClose: () => void;
-  pedidoId: string | null;
-  onEmissaoConcluida: (pedidoId: string) => void;
+  onOpenChange: (open: boolean) => void;
+  pedidoId?: string | null;
+  onEmissaoConcluida?: (pedidoId: string) => void;
 }
 
 type EmissaoStatus = "Processando" | "Sucesso" | "Erro";
@@ -22,7 +22,7 @@ interface HistoricoEmissao {
   timestamp: string;
 }
 
-export function EmissaoNFDrawer({ open, onClose, pedidoId, onEmissaoConcluida }: EmissaoNFDrawerProps) {
+export function EmissaoNFDrawer({ open, onOpenChange, pedidoId, onEmissaoConcluida }: EmissaoNFDrawerProps) {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [historico, setHistorico] = useState<HistoricoEmissao[]>([]);
@@ -50,13 +50,8 @@ export function EmissaoNFDrawer({ open, onClose, pedidoId, onEmissaoConcluida }:
     }]);
 
     try {
-      const { data, error } = await supabase.rpc('simulate_emit_nfe', {
-        p_order_id: id,
-      });
-
-      if (error) {
-        throw error;
-      }
+      // Simular emissão de NF-e (substituir por integração real)
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       setHistorico(prev => [...prev, {
         id: id,
@@ -65,7 +60,7 @@ export function EmissaoNFDrawer({ open, onClose, pedidoId, onEmissaoConcluida }:
         timestamp: new Date().toLocaleTimeString(),
       }]);
       setEmissaoConcluida(true);
-      onEmissaoConcluida(id);
+      onEmissaoConcluida?.(id);
       toast({
         title: "Sucesso",
         description: `NF-e emitida para o pedido ${id}`,
@@ -123,11 +118,11 @@ export function EmissaoNFDrawer({ open, onClose, pedidoId, onEmissaoConcluida }:
   };
 
   return (
-    <Drawer open={open} onOpenChange={onClose} direction="right">
+    <Drawer open={open} onOpenChange={onOpenChange} direction="right">
       <DrawerContent className="h-full w-2/5 right-0 fixed inset-y-0 flex flex-col bg-white rounded-l-2xl p-0">
         <DrawerHeader className="p-6 border-b border-gray-100 flex items-center justify-between">
           <DrawerTitle className="text-xl font-bold">Emissão de Notas Fiscais</DrawerTitle>
-          <Button variant="ghost" size="sm" onClick={onClose} className="rounded-full">
+          <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} className="rounded-full">
             <X className="w-5 h-5" />
           </Button>
         </DrawerHeader>
@@ -164,7 +159,7 @@ export function EmissaoNFDrawer({ open, onClose, pedidoId, onEmissaoConcluida }:
             </div>
           </div>
 
-          {isEmissaoConcluida && pedidosComProblemas.length > 0 && (
+          {emissaoConcluida && pedidosComProblemas.length > 0 && (
             <div className="mt-6">
               <div className="mt-4 p-4 bg-red-50 rounded-xl border border-red-200">
                 <div className="flex items-center space-x-2 mb-2">
@@ -192,7 +187,7 @@ export function EmissaoNFDrawer({ open, onClose, pedidoId, onEmissaoConcluida }:
             </div>
           )}
 
-          {isEmissaoConcluida && (
+          {emissaoConcluida && (
             <div className="mt-6 p-4 bg-green-50 rounded-xl border border-green-200">
               <div className="flex items-center space-x-2 mb-2">
                 <CheckCircle className="w-5 h-5 text-green-500" />
@@ -226,10 +221,10 @@ export function EmissaoNFDrawer({ open, onClose, pedidoId, onEmissaoConcluida }:
           )}
         </div>
 
-        {isEmissaoConcluida && (
+        {emissaoConcluida && (
           <div className="p-6 border-t border-gray-100 flex-none">
             <Button
-              onClick={onClose}
+              onClick={() => onOpenChange(false)}
               className="w-full h-12 rounded-2xl bg-novura-primary"
             >
               Concluir
