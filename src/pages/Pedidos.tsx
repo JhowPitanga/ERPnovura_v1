@@ -27,6 +27,7 @@ import { ScannerModal } from "@/components/pedidos/ScannerModal";
 import { VincularPedidoModal } from "@/components/pedidos/VincularPedidoModal";
 import { EmissaoNFDrawer } from "@/components/pedidos/EmissaoNFDrawer";
 import { PrintConfigModal } from "@/components/pedidos/PrintConfigModal";
+import { NfeEmitirLista } from "@/components/pedidos/NfeEmitirLista";
 import { AIIndicator } from "@/components/equipe/AIIndicator";
 import { format } from "date-fns";
 
@@ -708,349 +709,351 @@ export default function Pedidos() {
                 </div>
 
                 {/* Pedidos List */}
-                <Card className="border-0 shadow-xl rounded-3xl overflow-hidden bg-white">
-                  <CardContent className="p-0">
-                    {/* Table Headers */}
-                    <div className="bg-gray-50 border-b border-gray-100 px-6 py-4">
-                      <div className="flex items-center space-x-4">
-                        {(activeStatus === "impressao" || activeStatus === "emissao" || 
-                          (activeStatus === "cancelados" && canceladosFilter === "Devolução")) && (
-                          <div className="w-8"></div>
-                        )}
-                        <div className="w-24 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                          ID do Pedido
+                {activeStatus === "emissao" ? (
+                  <NfeEmitirLista
+                    onOpenDetalhesPedido={(pedidoId) => {
+                      // Open details drawer for the order
+                      const pedido = mockPedidos.emissao.find(p => p.id === pedidoId);
+                      if (pedido) {
+                        setSelectedPedido(pedido);
+                      }
+                    }}
+                    onRefreshPedidos={() => {
+                      // Refresh orders list logic here
+                      console.log("Refreshing orders list...");
+                    }}
+                  />
+                ) : (
+                  <Card className="border-0 shadow-xl rounded-3xl overflow-hidden bg-white">
+                    <CardContent className="p-0">
+                      {/* Table Headers */}
+                      <div className="bg-gray-50 border-b border-gray-100 px-6 py-4">
+                        <div className="flex items-center space-x-4">
+                          {(activeStatus === "impressao" || 
+                            (activeStatus === "cancelados" && canceladosFilter === "Devolução")) && (
+                            <div className="w-8"></div>
+                          )}
+                          <div className="w-24 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                            ID do Pedido
+                          </div>
+                          <div className="w-12"></div>
+                          <div className="flex-1 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                            Produto
+                          </div>
+                          <div className="w-20 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                            Itens
+                          </div>
+                          <div className="w-32 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                            Valor do Pedido
+                          </div>
+                          <div className="w-32 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                            Tipo de Envio
+                          </div>
+                          <div className="w-32 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                            Marketplace
+                          </div>
+                          <div className="w-28 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                            ID Plataforma
+                          </div>
+                          <div className="w-32"></div>
                         </div>
-                        <div className="w-12"></div>
-                        <div className="flex-1 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                          Produto
-                        </div>
-                        <div className="w-20 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                          Itens
-                        </div>
-                        <div className="w-32 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                          Valor do Pedido
-                        </div>
-                        <div className="w-32 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                          Tipo de Envio
-                        </div>
-                        <div className="w-32 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                          Marketplace
-                        </div>
-                        <div className="w-28 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                          ID Plataforma
-                        </div>
-                        <div className="w-32"></div>
                       </div>
-                    </div>
 
-                    {/* Select All Row */}
-                    {(activeStatus === "impressao" || activeStatus === "emissao" || 
-                      (activeStatus === "cancelados" && canceladosFilter === "Devolução")) && (
-                      <div className="flex items-center space-x-4 p-4 bg-gray-50 border-b border-gray-100">
-                        <Checkbox
-                          checked={activeStatus === "impressao" ? selectAll : activeStatus === "emissao" ? selectAllEmissao : selectAllCancelados}
-                          onCheckedChange={activeStatus === "impressao" ? handleSelectAll : activeStatus === "emissao" ? handleSelectAllEmissao : handleSelectAllCancelados}
-                        />
-                        <span className="text-sm font-medium text-gray-700">
-                          Selecionar todos ({paginatedPedidos.length} pedidos{activeStatus === "cancelados" ? " para devolução" : ""})
-                        </span>
-                      </div>
-                    )}
-                    
-                    <div className="space-y-0">
-                      {paginatedPedidos.map((pedido) => (
-                        <div key={pedido.id}>
-                          <div className="flex items-center justify-between p-3 hover:bg-gray-50 transition-all duration-200 border-b border-gray-100 last:border-0 group">
-                            <div className="flex items-center space-x-4 flex-1">
-                              {(activeStatus === "impressao" || activeStatus === "emissao" || 
-                                (activeStatus === "cancelados" && pedido.status === "Devolução")) && (
-                                <Checkbox
-                                  checked={activeStatus === "impressao" 
-                                    ? selectedPedidosImpressao.includes(pedido.id)
-                                    : activeStatus === "emissao"
-                                    ? selectedPedidosEmissao.includes(pedido.id)
-                                    : selectedPedidosCancelados.includes(pedido.id)
-                                  }
-                                  onCheckedChange={(checked) => 
-                                    activeStatus === "impressao" 
-                                      ? handleSelectPedidoImpressao(pedido.id, checked)
-                                      : activeStatus === "emissao"
-                                      ? handleSelectPedidoEmissao(pedido.id, checked)
-                                      : handleSelectPedidoCancelado(pedido.id, checked)
-                                  }
-                                />
-                              )}
-                              
-                              {/* ID do Pedido com Badge de Status */}
-                              <div className="w-24">
-                                <div className="flex flex-col space-y-1">
-                                  {/* Status Badge - smaller size */}
-                                  <div className="mb-1">
-                                    {(() => {
-                                      switch (pedido.status) {
-                                        case "Pendente":
-                                          return <Badge className="bg-orange-500 text-white text-xs py-0 px-1">Vincular</Badge>;
-                                        case "Vinculado":
-                                          return <Badge className="bg-yellow-500 text-white text-xs py-0 px-1">Emissão de NF-e</Badge>;
-                                        case "NF Emitida":
-                                          return <Badge className="bg-purple-600 text-white text-xs py-0 px-1">Impressão</Badge>;
-                                        case "Aguardando":
-                                          return <Badge className="bg-blue-500 text-white text-xs py-0 px-1">Aguardando coleta</Badge>;
-                                        case "Enviado":
-                                          return <Badge className="bg-green-500 text-white text-xs py-0 px-1">Enviado</Badge>;
-                                        case "Cancelado":
-                                          return <Badge className="bg-gray-500 text-white text-xs py-0 px-1">Cancelado</Badge>;
-                                        case "Devolução":
-                                          return <Badge className="bg-red-500 text-white text-xs py-0 px-1">Emitir devolução</Badge>;
-                                        default:
-                                          return <Badge variant="default" className="text-xs py-0 px-1">Normal</Badge>;
-                                      }
-                                    })()}
+                      {/* Select All Row */}
+                      {(activeStatus === "impressao" || 
+                        (activeStatus === "cancelados" && canceladosFilter === "Devolução")) && (
+                        <div className="flex items-center space-x-4 p-4 bg-gray-50 border-b border-gray-100">
+                          <Checkbox
+                            checked={activeStatus === "impressao" ? selectAll : selectAllCancelados}
+                            onCheckedChange={activeStatus === "impressao" ? handleSelectAll : handleSelectAllCancelados}
+                          />
+                          <span className="text-sm font-medium text-gray-700">
+                            Selecionar todos ({paginatedPedidos.length} pedidos{activeStatus === "cancelados" ? " para devolução" : ""})
+                          </span>
+                        </div>
+                      )}
+                      
+                      <div className="space-y-0">
+                        {paginatedPedidos.map((pedido) => (
+                          <div key={pedido.id}>
+                            <div className="flex items-center justify-between p-3 hover:bg-gray-50 transition-all duration-200 border-b border-gray-100 last:border-0 group">
+                              <div className="flex items-center space-x-4 flex-1">
+                                {(activeStatus === "impressao" || 
+                                  (activeStatus === "cancelados" && pedido.status === "Devolução")) && (
+                                  <Checkbox
+                                    checked={activeStatus === "impressao" 
+                                      ? selectedPedidosImpressao.includes(pedido.id)
+                                      : selectedPedidosCancelados.includes(pedido.id)
+                                    }
+                                    onCheckedChange={(checked) => 
+                                      activeStatus === "impressao" 
+                                        ? handleSelectPedidoImpressao(pedido.id, checked)
+                                        : handleSelectPedidoCancelado(pedido.id, checked)
+                                    }
+                                  />
+                                )}
+                                
+                                {/* ID do Pedido com Badge de Status */}
+                                <div className="w-24">
+                                  <div className="flex flex-col space-y-1">
+                                    {/* Status Badge - smaller size */}
+                                    <div className="mb-1">
+                                      {(() => {
+                                        switch (pedido.status) {
+                                          case "Pendente":
+                                            return <Badge className="bg-orange-500 text-white text-xs py-0 px-1">Vincular</Badge>;
+                                          case "Vinculado":
+                                            return <Badge className="bg-yellow-500 text-white text-xs py-0 px-1">Emissão de NF-e</Badge>;
+                                          case "NF Emitida":
+                                            return <Badge className="bg-purple-600 text-white text-xs py-0 px-1">Impressão</Badge>;
+                                          case "Aguardando":
+                                            return <Badge className="bg-blue-500 text-white text-xs py-0 px-1">Aguardando coleta</Badge>;
+                                          case "Enviado":
+                                            return <Badge className="bg-green-500 text-white text-xs py-0 px-1">Enviado</Badge>;
+                                          case "Cancelado":
+                                            return <Badge className="bg-gray-500 text-white text-xs py-0 px-1">Cancelado</Badge>;
+                                          case "Devolução":
+                                            return <Badge className="bg-red-500 text-white text-xs py-0 px-1">Emitir devolução</Badge>;
+                                          default:
+                                            return <Badge variant="default" className="text-xs py-0 px-1">Normal</Badge>;
+                                        }
+                                      })()}
+                                    </div>
+                                    {/* ID with AI Indicator */}
+                                    <div className="flex items-center space-x-1">
+                                      <h3 className="text-sm font-bold text-gray-900">{pedido.id}</h3>
+                                      {pedido.aiSuggestion && (
+                                        <AIIndicator
+                                          type={pedido.aiSuggestion.type}
+                                          suggestion={pedido.aiSuggestion.suggestion}
+                                          details={pedido.aiSuggestion.details}
+                                        />
+                                      )}
+                                    </div>
+                                    <p className="text-xs text-gray-500">{pedido.data}</p>
                                   </div>
-                                  {/* ID with AI Indicator */}
-                                  <div className="flex items-center space-x-1">
-                                    <h3 className="text-sm font-bold text-gray-900">{pedido.id}</h3>
-                                    {pedido.aiSuggestion && (
-                                      <AIIndicator
-                                        type={pedido.aiSuggestion.type}
-                                        suggestion={pedido.aiSuggestion.suggestion}
-                                        details={pedido.aiSuggestion.details}
-                                      />
+                                </div>
+
+                                {/* Foto */}
+                                <img
+                                  src={pedido.image}
+                                  alt={pedido.produto}
+                                  className="w-12 h-12 rounded-lg object-cover bg-gray-100"
+                                />
+                                
+                                {/* Produto e SKU */}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-gray-900 font-medium truncate">{pedido.produto}</p>
+                                  <p className="text-xs text-gray-500">SKU: {pedido.sku}</p>
+                                </div>
+                                
+                                {/* Quantidade */}
+                                <div className="w-20 text-center">
+                                  <div className="flex items-center justify-center space-x-1">
+                                    <p className={`text-sm font-medium ${pedido.quantidade > 1 ? 'text-purple-600' : 'text-gray-900'}`}>
+                                      {pedido.quantidade}
+                                    </p>
+                                    {pedido.quantidade > 1 && (
+                                      <button
+                                        onClick={() => toggleOrderExpansion(pedido.id)}
+                                        className="w-4 h-4 rounded-full bg-purple-600 flex items-center justify-center animate-pulse hover:animate-none transition-all"
+                                      >
+                                        {expandedOrders.includes(pedido.id) ? (
+                                          <ChevronUp className="w-2 h-2 text-white" />
+                                        ) : (
+                                          <ChevronDown className="w-2 h-2 text-white" />
+                                        )}
+                                      </button>
                                     )}
                                   </div>
-                                  <p className="text-xs text-gray-500">{pedido.data}</p>
+                                  <p className="text-xs text-gray-500">itens</p>
                                 </div>
-                              </div>
-
-                              {/* Foto */}
-                              <img
-                                src={pedido.image}
-                                alt={pedido.produto}
-                                className="w-12 h-12 rounded-lg object-cover bg-gray-100"
-                              />
-                              
-                              {/* Produto e SKU */}
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm text-gray-900 font-medium truncate">{pedido.produto}</p>
-                                <p className="text-xs text-gray-500">SKU: {pedido.sku}</p>
-                              </div>
-                              
-                              {/* Quantidade */}
-                              <div className="w-20 text-center">
-                                <div className="flex items-center justify-center space-x-1">
-                                  <p className={`text-sm font-medium ${pedido.quantidade > 1 ? 'text-purple-600' : 'text-gray-900'}`}>
-                                    {pedido.quantidade}
-                                  </p>
-                                  {pedido.quantidade > 1 && (
-                                    <button
-                                      onClick={() => toggleOrderExpansion(pedido.id)}
-                                      className="w-4 h-4 rounded-full bg-purple-600 flex items-center justify-center animate-pulse hover:animate-none transition-all"
+                                
+                                {/* Valor Total */}
+                                <div className="w-32 text-right">
+                                  <p className="text-lg font-bold text-gray-900">R$ {pedido.valor.toFixed(2)}</p>
+                                </div>
+                                
+                                {/* Tipo Envio - now with primary color */}
+                                <div className="w-32 text-center">
+                                  <Badge className="bg-primary text-primary-foreground border-0">
+                                    {pedido.tipoEnvio}
+                                  </Badge>
+                                </div>
+                                
+                                {/* Marketplace */}
+                                <div className="w-32 text-center">
+                                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                    {pedido.marketplace}
+                                  </Badge>
+                                </div>
+                                
+                                {/* ID Plataforma */}
+                                <div className="w-28 text-center">
+                                  <p className="text-xs font-mono text-gray-600">{pedido.idPlataforma}</p>
+                                </div>
+                                
+                                {/* Actions */}
+                                <div className="flex items-center space-x-2">
+                                  <Drawer>
+                                    <DrawerTrigger asChild>
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="rounded-2xl border-0 bg-white shadow-md ring-1 ring-gray-200/60 hover:shadow-lg transition-all"
+                                        onClick={() => setSelectedPedido(pedido)}
+                                      >
+                                        Detalhes
+                                      </Button>
+                                    </DrawerTrigger>
+                                    <DrawerContent className="bg-white">
+                                      <DrawerHeader>
+                                        <DrawerTitle className="text-2xl">Detalhes do Pedido {pedido.id}</DrawerTitle>
+                                        <DrawerDescription>
+                                          Informações completas e detalhamento financeiro
+                                        </DrawerDescription>
+                                      </DrawerHeader>
+                                      <div className="p-6 overflow-y-auto max-h-[80vh]">
+                                        <PedidoDetails pedido={pedido} />
+                                      </div>
+                                    </DrawerContent>
+                                  </Drawer>
+                                  
+                                  {activeStatus === "impressao" && (
+                                    <Button size="sm" variant="outline" className="rounded-2xl">
+                                      <Printer className="w-4 h-4 mr-1" />
+                                      Etiqueta
+                                    </Button>
+                                  )}
+                                  
+                                  {activeStatus === "vincular" && (
+                                    <Button 
+                                      size="sm" 
+                                      className="rounded-2xl bg-primary shadow-lg"
+                                      onClick={() => handleVincularPedido(pedido)}
                                     >
-                                      {expandedOrders.includes(pedido.id) ? (
-                                        <ChevronUp className="w-2 h-2 text-white" />
-                                      ) : (
-                                        <ChevronDown className="w-2 h-2 text-white" />
-                                      )}
-                                    </button>
+                                      Vincular
+                                    </Button>
+                                  )}
+
+                                  {activeStatus === "cancelados" && pedido.status === "Devolução" && (
+                                    <Button 
+                                      size="sm" 
+                                      className="rounded-2xl bg-primary shadow-lg"
+                                    >
+                                      Emitir NF-e Devolução
+                                    </Button>
                                   )}
                                 </div>
-                                <p className="text-xs text-gray-500">itens</p>
-                              </div>
-                              
-                              {/* Valor Total */}
-                              <div className="w-32 text-right">
-                                <p className="text-lg font-bold text-gray-900">R$ {pedido.valor.toFixed(2)}</p>
-                              </div>
-                              
-                              {/* Tipo Envio - now with primary color */}
-                              <div className="w-32 text-center">
-                                <Badge className="bg-primary text-primary-foreground border-0">
-                                  {pedido.tipoEnvio}
-                                </Badge>
-                              </div>
-                              
-                              {/* Marketplace */}
-                              <div className="w-32 text-center">
-                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                                  {pedido.marketplace}
-                                </Badge>
-                              </div>
-                              
-                              {/* ID Plataforma */}
-                              <div className="w-28 text-center">
-                                <p className="text-xs font-mono text-gray-600">{pedido.idPlataforma}</p>
-                              </div>
-                              
-                              {/* Actions */}
-                              <div className="flex items-center space-x-2">
-                                <Drawer>
-                                  <DrawerTrigger asChild>
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm" 
-                                      className="rounded-2xl border-0 bg-white shadow-md ring-1 ring-gray-200/60 hover:shadow-lg transition-all"
-                                      onClick={() => setSelectedPedido(pedido)}
-                                    >
-                                      Detalhes
-                                    </Button>
-                                  </DrawerTrigger>
-                                  <DrawerContent className="bg-white">
-                                    <DrawerHeader>
-                                      <DrawerTitle className="text-2xl">Detalhes do Pedido {pedido.id}</DrawerTitle>
-                                      <DrawerDescription>
-                                        Informações completas e detalhamento financeiro
-                                      </DrawerDescription>
-                                    </DrawerHeader>
-                                    <div className="p-6 overflow-y-auto max-h-[80vh]">
-                                      <PedidoDetails pedido={pedido} />
-                                    </div>
-                                  </DrawerContent>
-                                </Drawer>
-                                
-                                {activeStatus === "impressao" && (
-                                  <Button size="sm" variant="outline" className="rounded-2xl">
-                                    <Printer className="w-4 h-4 mr-1" />
-                                    Etiqueta
-                                  </Button>
-                                )}
-                                
-                                {activeStatus === "vincular" && (
-                                  <Button 
-                                    size="sm" 
-                                    className="rounded-2xl bg-primary shadow-lg"
-                                    onClick={() => handleVincularPedido(pedido)}
-                                  >
-                                    Vincular
-                                  </Button>
-                                )}
-
-                                {activeStatus === "emissao" && (
-                                  <Button 
-                                    size="sm" 
-                                    className="rounded-2xl bg-primary shadow-lg"
-                                    onClick={() => handleEmitirNF('single')}
-                                  >
-                                    Emitir NF
-                                  </Button>
-                                )}
-
-                                {activeStatus === "cancelados" && pedido.status === "Devolução" && (
-                                  <Button 
-                                    size="sm" 
-                                    className="rounded-2xl bg-primary shadow-lg"
-                                  >
-                                    Emitir NF-e Devolução
-                                  </Button>
-                                )}
                               </div>
                             </div>
+
+                            {/* Expanded Items */}
+                            {expandedOrders.includes(pedido.id) && pedido.itens && pedido.itens.length > 1 && (
+                              <div className="bg-gray-50 border-b border-gray-100">
+                                <div className="space-y-2 p-4 ml-20">
+                                  {pedido.itens.map((item, index) => (
+                                    <div key={index} className="flex items-center space-x-4 py-2 bg-white rounded-lg px-4">
+                                      <img
+                                        src={item.image}
+                                        alt={item.produto}
+                                        className="w-8 h-8 rounded object-cover bg-gray-100"
+                                      />
+                                      <div className="flex-1">
+                                        <p className="text-sm font-medium text-gray-900">{item.produto}</p>
+                                        <p className="text-xs text-gray-500">SKU: {item.sku}</p>
+                                      </div>
+                                      <div className="text-sm text-gray-600">
+                                        Qtd: {item.quantidade}
+                                      </div>
+                                      <div className="text-sm font-medium text-gray-900">
+                                        R$ {item.valor.toFixed(2)}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
-
-                          {/* Expanded Items */}
-                          {expandedOrders.includes(pedido.id) && pedido.itens && pedido.itens.length > 1 && (
-                            <div className="bg-gray-50 border-b border-gray-100">
-                              <div className="space-y-2 p-4 ml-20">
-                                {pedido.itens.map((item, index) => (
-                                  <div key={index} className="flex items-center space-x-4 py-2 bg-white rounded-lg px-4">
-                                    <img
-                                      src={item.image}
-                                      alt={item.produto}
-                                      className="w-8 h-8 rounded object-cover bg-gray-100"
-                                    />
-                                    <div className="flex-1">
-                                      <p className="text-sm font-medium text-gray-900">{item.produto}</p>
-                                      <p className="text-xs text-gray-500">SKU: {item.sku}</p>
-                                    </div>
-                                    <div className="text-sm text-gray-600">
-                                      Qtd: {item.quantidade}
-                                    </div>
-                                    <div className="text-sm font-medium text-gray-900">
-                                      R$ {item.valor.toFixed(2)}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Pagination */}
-                    <div className="flex items-center justify-between p-6 border-t border-gray-100">
-                      <div className="flex items-center space-x-4">
-                        <span className="text-sm text-gray-600">Itens por página:</span>
-                        <Select 
-                          value={itemsPerPage.toString()} 
-                          onValueChange={(value) => {
-                            setItemsPerPage(parseInt(value));
-                            setCurrentPage(1);
-                          }}
-                        >
-                          <SelectTrigger className="w-40 h-10 rounded-xl border bg-white shadow-sm">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="bg-white border shadow-lg">
-                            {itemsPerPageOptions.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <span className="text-sm text-gray-600">
-                          Página {currentPage} de {totalPages}
-                        </span>
+                        ))}
                       </div>
 
-                      <Pagination>
-                        <PaginationContent>
-                          <PaginationItem>
-                            <PaginationPrevious 
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (currentPage > 1) setCurrentPage(currentPage - 1);
-                              }}
-                              className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
-                            />
-                          </PaginationItem>
-                          
-                          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                            const pageNumber = i + 1;
-                            return (
-                              <PaginationItem key={pageNumber}>
-                                <PaginationLink
-                                  href="#"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    setCurrentPage(pageNumber);
-                                  }}
-                                  isActive={currentPage === pageNumber}
-                                >
-                                  {pageNumber}
-                                </PaginationLink>
-                              </PaginationItem>
-                            );
-                          })}
-                          
-                          {totalPages > 5 && <PaginationEllipsis />}
-                          
-                          <PaginationItem>
-                            <PaginationNext
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-                              }}
-                              className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
-                            />
-                          </PaginationItem>
-                        </PaginationContent>
-                      </Pagination>
-                    </div>
-                  </CardContent>
-                </Card>
+                      {/* Pagination */}
+                      <div className="flex items-center justify-between p-6 border-t border-gray-100">
+                        <div className="flex items-center space-x-4">
+                          <span className="text-sm text-gray-600">Itens por página:</span>
+                          <Select 
+                            value={itemsPerPage.toString()} 
+                            onValueChange={(value) => {
+                              setItemsPerPage(parseInt(value));
+                              setCurrentPage(1);
+                            }}
+                          >
+                            <SelectTrigger className="w-40 h-10 rounded-xl border bg-white shadow-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white border shadow-lg">
+                              {itemsPerPageOptions.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <span className="text-sm text-gray-600">
+                            Página {currentPage} de {totalPages}
+                          </span>
+                        </div>
+
+                        <Pagination>
+                          <PaginationContent>
+                            <PaginationItem>
+                              <PaginationPrevious 
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (currentPage > 1) setCurrentPage(currentPage - 1);
+                                }}
+                                className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                              />
+                            </PaginationItem>
+                            
+                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                              const pageNumber = i + 1;
+                              return (
+                                <PaginationItem key={pageNumber}>
+                                  <PaginationLink
+                                    href="#"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      setCurrentPage(pageNumber);
+                                    }}
+                                    isActive={currentPage === pageNumber}
+                                  >
+                                    {pageNumber}
+                                  </PaginationLink>
+                                </PaginationItem>
+                              );
+                            })}
+                            
+                            {totalPages > 5 && <PaginationEllipsis />}
+                            
+                            <PaginationItem>
+                              <PaginationNext
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                                }}
+                                className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                              />
+                            </PaginationItem>
+                          </PaginationContent>
+                        </Pagination>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </main>
           </div>
