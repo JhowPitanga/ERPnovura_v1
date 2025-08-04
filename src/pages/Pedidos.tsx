@@ -451,8 +451,18 @@ export default function Pedidos() {
     // You can add additional logic here like refreshing the orders list
   };
 
-  const handleEmitirNF = (type: 'single' | 'selected' | 'mass') => {
+  const handleEmitirNF = (type: 'single' | 'selected' | 'mass', pedidoId?: string) => {
+    if (type === 'single' && pedidoId) {
+      // For single pedido emission, we can store the pedidoId if needed
+      console.log('Emitindo NF para pedido:', pedidoId);
+    }
     setEmissaoDrawerOpen(true);
+  };
+
+  const handleEmissaoConcluida = (pedidoId: string) => {
+    console.log('Emissão concluída para pedido:', pedidoId);
+    setEmissaoDrawerOpen(false);
+    // Refresh orders list or update status
   };
 
   const shippingTypes = [
@@ -915,7 +925,17 @@ export default function Pedidos() {
                                     </Button>
                                   )}
                                   
-                                  {activeStatus === "vincular" && (
+                                {activeStatus === "emissao" && (
+                                  <Button 
+                                    size="sm" 
+                                    className="rounded-2xl bg-primary shadow-lg"
+                                    onClick={() => handleEmitirNF('single', pedido.id)}
+                                  >
+                                    Emitir NF-e
+                                  </Button>
+                                )}
+
+                                {activeStatus === "vincular" && (
                                     <Button 
                                       size="sm" 
                                       className="rounded-2xl bg-primary shadow-lg"
@@ -1057,6 +1077,8 @@ export default function Pedidos() {
         <EmissaoNFDrawer 
           open={emissaoDrawerOpen} 
           onOpenChange={setEmissaoDrawerOpen}
+          pedidoId={null}
+          onEmissaoConcluida={handleEmissaoConcluida}
         />
         <PrintConfigModal 
           open={printConfigOpen} 
