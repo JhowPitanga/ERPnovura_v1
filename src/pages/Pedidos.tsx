@@ -709,85 +709,74 @@ export default function Pedidos() {
                 </div>
 
                 {/* Pedidos List */}
-                {activeStatus === "emissao" ? (
-                  <NfeEmitirLista
-                    onOpenDetalhesPedido={(pedidoId) => {
-                      // Open details drawer for the order
-                      const pedido = mockPedidos.emissao.find(p => p.id === pedidoId);
-                      if (pedido) {
-                        setSelectedPedido(pedido);
-                      }
-                    }}
-                    onRefreshPedidos={() => {
-                      // Refresh orders list logic here
-                      console.log("Refreshing orders list...");
-                    }}
-                  />
-                ) : (
-                  <Card className="border-0 shadow-xl rounded-3xl overflow-hidden bg-white">
-                    <CardContent className="p-0">
-                      {/* Table Headers */}
-                      <div className="bg-gray-50 border-b border-gray-100 px-6 py-4">
-                        <div className="flex items-center space-x-4">
-                          {(activeStatus === "impressao" || 
-                            (activeStatus === "cancelados" && canceladosFilter === "Devolução")) && (
-                            <div className="w-8"></div>
-                          )}
-                          <div className="w-24 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                            ID do Pedido
-                          </div>
-                          <div className="w-12"></div>
-                          <div className="flex-1 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                            Produto
-                          </div>
-                          <div className="w-20 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                            Itens
-                          </div>
-                          <div className="w-32 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                            Valor do Pedido
-                          </div>
-                          <div className="w-32 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                            Tipo de Envio
-                          </div>
-                          <div className="w-32 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                            Marketplace
-                          </div>
-                          <div className="w-28 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                            ID Plataforma
-                          </div>
-                          <div className="w-32"></div>
+                <Card className="border-0 shadow-xl rounded-3xl overflow-hidden bg-white">
+                  <CardContent className="p-0">
+                    {/* Table Headers */}
+                    <div className="bg-gray-50 border-b border-gray-100 px-6 py-4">
+                      <div className="flex items-center space-x-4">
+                        {(activeStatus === "impressao" || activeStatus === "emissao" || 
+                          (activeStatus === "cancelados" && canceladosFilter === "Devolução")) && (
+                          <div className="w-8"></div>
+                        )}
+                        <div className="w-24 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          ID do Pedido
                         </div>
+                        <div className="w-12"></div>
+                        <div className="flex-1 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          Produto
+                        </div>
+                        <div className="w-20 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          Itens
+                        </div>
+                        <div className="w-32 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          Valor do Pedido
+                        </div>
+                        <div className="w-32 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          Tipo de Envio
+                        </div>
+                        <div className="w-32 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          Marketplace
+                        </div>
+                        <div className="w-28 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          ID Plataforma
+                        </div>
+                        <div className="w-32"></div>
                       </div>
+                    </div>
 
-                      {/* Select All Row */}
-                      {(activeStatus === "impressao" || 
-                        (activeStatus === "cancelados" && canceladosFilter === "Devolução")) && (
-                        <div className="flex items-center space-x-4 p-4 bg-gray-50 border-b border-gray-100">
-                          <Checkbox
-                            checked={activeStatus === "impressao" ? selectAll : selectAllCancelados}
-                            onCheckedChange={activeStatus === "impressao" ? handleSelectAll : handleSelectAllCancelados}
-                          />
-                          <span className="text-sm font-medium text-gray-700">
-                            Selecionar todos ({paginatedPedidos.length} pedidos{activeStatus === "cancelados" ? " para devolução" : ""})
-                          </span>
-                        </div>
-                      )}
+                    {/* Select All Row */}
+                    {(activeStatus === "impressao" || activeStatus === "emissao" || 
+                      (activeStatus === "cancelados" && canceladosFilter === "Devolução")) && (
+                      <div className="flex items-center space-x-4 p-4 bg-gray-50 border-b border-gray-100">
+                        <Checkbox
+                          checked={activeStatus === "impressao" ? selectAll : activeStatus === "emissao" ? selectAllEmissao : selectAllCancelados}
+                          onCheckedChange={activeStatus === "impressao" ? handleSelectAll : activeStatus === "emissao" ? handleSelectAllEmissao : handleSelectAllCancelados}
+                        />
+                        <span className="text-sm font-medium text-gray-700">
+                          Selecionar todos ({paginatedPedidos.length} pedidos{activeStatus === "cancelados" ? " para devolução" : ""})
+                        </span>
+                      </div>
+                    )}
                       
                       <div className="space-y-0">
                         {paginatedPedidos.map((pedido) => (
                           <div key={pedido.id}>
                             <div className="flex items-center justify-between p-3 hover:bg-gray-50 transition-all duration-200 border-b border-gray-100 last:border-0 group">
                               <div className="flex items-center space-x-4 flex-1">
-                                {(activeStatus === "impressao" || 
+                                {(activeStatus === "impressao" || activeStatus === "emissao" || 
                                   (activeStatus === "cancelados" && pedido.status === "Devolução")) && (
                                   <Checkbox
                                     checked={activeStatus === "impressao" 
                                       ? selectedPedidosImpressao.includes(pedido.id)
+                                      : activeStatus === "emissao"
+                                      ? selectedPedidosEmissao.includes(pedido.id)
                                       : selectedPedidosCancelados.includes(pedido.id)
                                     }
                                     onCheckedChange={(checked) => 
                                       activeStatus === "impressao" 
                                         ? handleSelectPedidoImpressao(pedido.id, checked)
+                                        : activeStatus === "emissao"
+                                        ? handleSelectPedidoEmissao(pedido.id, checked)
                                         : handleSelectPedidoCancelado(pedido.id, checked)
                                     }
                                   />
@@ -1053,7 +1042,6 @@ export default function Pedidos() {
                       </div>
                     </CardContent>
                   </Card>
-                )}
               </div>
             </main>
           </div>
