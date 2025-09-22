@@ -29,13 +29,13 @@ interface VincularPedidoModalProps {
 }
 
 export function VincularPedidoModal({ isOpen, onClose, onSave, pedidoId, anunciosParaVincular }: VincularPedidoModalProps) {
-    const { products, loading, error } = useBindableProducts();
+    const {bindableProducts, loading, error } = useBindableProducts();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedAnuncio, setSelectedAnuncio] = useState<string | null>(null);
     const [vinculacoes, setVinculacoes] = useState<{ [anuncioId: string]: string }>({});
 
     // Filtra os produtos com base no termo de busca
-    const filteredProducts = products.filter(produto =>
+    const filteredProducts = bindableProducts.filter(produto =>
         produto.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         produto.sku.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -199,7 +199,7 @@ export function VincularPedidoModal({ isOpen, onClose, onSave, pedidoId, anuncio
                                 {anunciosParaVincular
                                     .filter(anuncio => vinculacoes[anuncio.id])
                                     .map(anuncio => {
-                                        const produtoVinculado = products.find(p => p.id === vinculacoes[anuncio.id]);
+                                        const produtoVinculado = bindableProducts.find(p => p.id === vinculacoes[anuncio.id]);
                                         return (
                                             <div key={anuncio.id} className="p-4 rounded-lg border bg-white flex flex-col justify-between">
                                                 <div className="font-semibold text-sm mb-1">{anuncio.nome}</div>

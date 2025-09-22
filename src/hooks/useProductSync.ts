@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+
 // Hook para sincronizar dados entre produtos e estoque
 export function useProductSync() {
   const [lastUpdate, setLastUpdate] = useState<number>(Date.now());

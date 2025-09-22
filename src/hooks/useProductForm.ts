@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ProductFormData, ProductVariation, VariationType, KitItem, ProductType, VariationStep, KitStep, CreateProductData } from "@/types/products";
-import { useCreateProduct } from '../hooks/useProducts';
+import { useCreateProduct } from './useProducts';
 import { useToast } from "@/hooks/use-toast";
 
 interface UseProductFormProps {
@@ -75,45 +75,43 @@ export function useProductForm({ onSuccess }: UseProductFormProps = {}) {
   };
 
   const handleCreateProduct = async () => {
-    try {
-      if (!formData.name || !formData.sku || !formData.costPrice || !formData.ncm || !formData.origin) {
-        toast({
-          title: "Erro",
-          description: "Por favor, preencha todos os campos obrigatórios.",
-          variant: "destructive",
-        });
-        return;
-      }
+  try {
+    if (!formData.name || !formData.sku || !formData.costPrice || !formData.ncm || !formData.origin) {
+      toast({
+        title: "Erro",
+        description: "Por favor, preencha todos os campos obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-      const baseProductData: CreateProductData = {
-        name: formData.name,
-        sku: formData.sku,
-        type: getProductTypeForDB(productType as string),
-        description: formData.description || undefined,
-        cost_price: parseFloat(formData.costPrice),
-        sell_price: formData.sellPrice ? parseFloat(formData.sellPrice) : undefined,
-        barcode: parseInt(formData.barcode) || 0,
-        ncm: parseInt(formData.ncm),
-        cest: formData.cest ? parseInt(formData.cest) : undefined,
-        package_height: parseInt(formData.height) || 0,
-        package_width: parseInt(formData.width) || 0,
-        package_length: parseInt(formData.length) || 0,
-        weight: formData.weight ? parseFloat(formData.weight) : undefined,
-        weight_type: formData.unitType || undefined,
-        tax_origin_code: parseInt(formData.origin),
-        category_id: formData.category || undefined,
-        brand_id: undefined,
-        color: undefined,
-        size: undefined,
-        image_urls: [],
-        custom_attributes: undefined,
-        stock_current: undefined,
-        storage_id: undefined,
+    const baseProductData: CreateProductData = {
+      name: formData.name,
+      sku: formData.sku,
+      type: getProductTypeForDB(productType as string),
+      description: formData.description || undefined,
+      cost_price: parseFloat(formData.costPrice),
+      sell_price: formData.sellPrice ? parseFloat(formData.sellPrice) : undefined,
+      barcode: parseInt(formData.barcode) || 0,
+      ncm: parseInt(formData.ncm),
+      cest: formData.cest ? parseInt(formData.cest) : undefined,
+      package_height: parseInt(formData.height) || 0,
+      package_width: parseInt(formData.width) || 0,
+      package_length: parseInt(formData.length) || 0,
+      weight: formData.weight ? parseFloat(formData.weight) : undefined,
+      weight_type: formData.unitType || undefined,
+      tax_origin_code: parseInt(formData.origin),
+      category_id: formData.category || undefined,
+      brand_id: undefined,
+      color: undefined,
+      size: undefined,
+      image_urls: [],
+      custom_attributes: undefined,
+        stock_current: undefined, // Esta propriedade será usada na tabela products_stock
+        storage_id: undefined, // Esta propriedade será usada na tabela products_stock
       };
 
       if (baseProductData.type === 'UNICO') {
-        baseProductData.stock_current = formData.stock ? parseInt(formData.stock) : 0;
-        baseProductData.storage_id = formData.warehouse || undefined;
         baseProductData.image_urls = selectedImages.map(img => img.name);
       } else if (baseProductData.type === 'VARIACAO_PAI') {
         baseProductData.image_urls = selectedImages.map(img => img.name);
@@ -150,7 +148,24 @@ export function useProductForm({ onSuccess }: UseProductFormProps = {}) {
         baseProductData.image_urls = selectedImages.map(img => img.name);
       }
 
-      await createProduct(baseProductData);
+      const createdProduct = await createProduct(baseProductData);
+
+      // Inserir o estoque na tabela 'products_stock'
+      if (createdProduct && createdProduct.id) {
+        const stockDataToInsert = {
+          product_id: createdProduct.id,
+          stock_current: formData.stock ? parseInt(formData.stock) : 0,
+          storage_id: formData.warehouse || undefined,
+        };
+
+        const { error: stockError } = await supabase
+          .from('products_stock')
+          .insert([stockDataToInsert]);
+
+        if (stockError) {
+          throw stockError;
+        }
+      }
 
       setProductSaved(true);
       setCurrentStep(currentStep + 1);
@@ -158,11 +173,19 @@ export function useProductForm({ onSuccess }: UseProductFormProps = {}) {
       if (onSuccess) {
         onSuccess();
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Erro ao criar produto:", error);
+      
+      let errorMessage = "Erro desconhecido.";
+      if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = (error as { message: string }).message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+
       toast({
         title: "Erro",
-        description: "Falha ao criar produto: " + (error instanceof Error ? error.message : "Erro desconhecido"),
+        description: `Falha ao criar produto: ${errorMessage}`,
         variant: "destructive",
       });
     }
