@@ -1,14 +1,13 @@
-
 import { useState } from "react";
 import { ProductTable } from "../ProductTable";
 import { ProductFilters } from "../ProductFilters";
-import { useProducts } from "@/hooks/useProducts";
+import { useBindableProducts } from '@/hooks/useProducts';
 import { useCategories } from "@/hooks/useCategories";
 
 export function ProdutosUnicos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const { products, loading, refetch, deleteProduct, duplicateProduct } = useProducts();
+  const { products, loading, refetch, deleteProduct, duplicateProduct } = useBindableProducts();
   const { categories, createCategory, updateCategory, deleteCategory } = useCategories();
   
   const handleCategoryChange = (categoryId: string) => {

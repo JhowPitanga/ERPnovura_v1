@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { ProductFormData, ProductVariation, VariationType, KitItem, ProductType, VariationStep, KitStep } from "@/types/products";
-import { useCreateProduct, CreateProductData } from "@/hooks/useProducts";
+import { ProductFormData, ProductVariation, VariationType, KitItem, ProductType, VariationStep, KitStep, CreateProductData } from "@/types/products";
+import { useCreateProduct } from '../hooks/useProducts';
 import { useToast } from "@/hooks/use-toast";
 
 interface UseProductFormProps {
@@ -65,18 +65,17 @@ export function useProductForm({ onSuccess }: UseProductFormProps = {}) {
     switch (type) {
       case 'single':
         return 'UNICO';
-      case 'variation': // Este será o tipo para o "pai" das variações
+      case 'variation':
         return 'VARIACAO_PAI';
       case 'kit':
         return 'ITEM';
       default:
-        return 'UNICO'; // Fallback
+        return 'UNICO';
     }
   };
 
   const handleCreateProduct = async () => {
     try {
-      // Validação base (pode precisar ser mais robusta por tipo de produto)
       if (!formData.name || !formData.sku || !formData.costPrice || !formData.ncm || !formData.origin) {
         toast({
           title: "Erro",
@@ -106,43 +105,41 @@ export function useProductForm({ onSuccess }: UseProductFormProps = {}) {
         brand_id: undefined,
         color: undefined,
         size: undefined,
-        image_urls: [], // As imagens serão tratadas separadamente ou passadas aqui se forem do produto principal
+        image_urls: [],
         custom_attributes: undefined,
-        stock_current: undefined, // Será definido abaixo para single/variation_item
-        storage_id: undefined, // Será definido abaixo para single/variation_item
+        stock_current: undefined,
+        storage_id: undefined,
       };
 
-      // Adiciona dados específicos por tipo de produto
       if (baseProductData.type === 'UNICO') {
         baseProductData.stock_current = formData.stock ? parseInt(formData.stock) : 0;
         baseProductData.storage_id = formData.warehouse || undefined;
-        baseProductData.image_urls = selectedImages.map(img => img.name); // Exemplo: se as imagens são Files
+        baseProductData.image_urls = selectedImages.map(img => img.name);
       } else if (baseProductData.type === 'VARIACAO_PAI') {
-        baseProductData.image_urls = selectedImages.map(img => img.name); // Imagens do produto pai
-        // Para variações, 'variations' é um array de objetos que precisa ser mapeado para o formato esperado pelo createProduct
+        baseProductData.image_urls = selectedImages.map(img => img.name);
         baseProductData.variations = variations.map(v => ({
-            id: v.id,
-            name: v.name,
-            sku: v.sku,
-            costPrice: String(v.costPrice || ''),
-            sellPrice: String(v.costPrice || ''), // ProductVariation doesn't have sellPrice, using costPrice
-            stock: String(v.stock || ''),
-            warehouse: String(v.storage || ''),
-            images: v.images.map(img => img.name || ''), // Convert File[] to string[]
-            color: v.color,
-            size: v.size,
-            voltage: v.voltage,
-            customType: v.customType,
-            customValue: v.customValue,
-            ean: v.ean,
-            height: v.height,
-            width: v.width,
-            length: v.length,
-            weight: v.weight,
-            unitType: v.unit,
-            ncm: v.ncm,
-            cest: v.cest,
-            origin: v.origin,
+          id: v.id,
+          name: v.name,
+          sku: v.sku,
+          costPrice: String(v.costPrice || ''),
+          sellPrice: String(v.costPrice || ''),
+          stock: String(v.stock || ''),
+          warehouse: String(v.storage || ''),
+          images: v.images.map(img => img.name || ''),
+          color: v.color,
+          size: v.size,
+          voltage: v.voltage,
+          customType: v.customType,
+          customValue: v.customValue,
+          ean: v.ean,
+          height: v.height,
+          width: v.width,
+          length: v.length,
+          weight: v.weight,
+          unitType: v.unit,
+          ncm: v.ncm,
+          cest: v.cest,
+          origin: v.origin,
         }));
       } else if (baseProductData.type === 'ITEM') {
         baseProductData.kitItems = kitItems.map(k => ({
@@ -150,10 +147,10 @@ export function useProductForm({ onSuccess }: UseProductFormProps = {}) {
           product_id: (k as any).product_id || k.id,
           quantity: k.quantity,
         }));
-        baseProductData.image_urls = selectedImages.map(img => img.name); // Imagens do kit
+        baseProductData.image_urls = selectedImages.map(img => img.name);
       }
 
-      await createProduct(baseProductData); // Chama o useCreateProduct com os dados completos
+      await createProduct(baseProductData);
 
       setProductSaved(true);
       setCurrentStep(currentStep + 1);
@@ -180,10 +177,8 @@ export function useProductForm({ onSuccess }: UseProductFormProps = {}) {
           setCurrentStep(currentStep + 1);
         }
       } else if (currentStep === 5 && !productSaved && productType !== "kit" && productType !== "variation") {
-        // Salva produto único
         await handleCreateProduct();
       } else if (currentStep === 5 && !productSaved && productType === "variation") {
-        // Salva produto variação (pai e itens)
         await handleCreateProduct();
       }
       else {
@@ -201,7 +196,6 @@ export function useProductForm({ onSuccess }: UseProductFormProps = {}) {
   };
 
   return {
-    // State
     currentStep,
     productType,
     selectedImages,
@@ -214,19 +208,17 @@ export function useProductForm({ onSuccess }: UseProductFormProps = {}) {
     formData,
     createLoading,
     
-    // Setters
     setSelectedImages,
     setVariations,
     setVariationStep,
     setVariationTypes,
     setKitItems,
     
-    // Actions
     nextStep,
     backStep,
     handleInputChange,
     handleProductTypeChange,
-    handleCreateProduct, // Exportar para que possa ser chamado diretamente no botão "Salvar"
+    handleCreateProduct,
     getMaxSteps,
   };
 }
