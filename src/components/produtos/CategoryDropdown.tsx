@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
 interface Category {
   id: string;
@@ -168,6 +169,57 @@ export function CategoryDropdown({ categories, selectedCategory, onCategoryChang
         </DropdownMenuItem>
       );
     });
+  };
+
+  // Nova renderização em formato de accordion
+  const renderAccordionFilter = () => {
+    return (
+      <div className="space-y-1">
+        <Accordion type="multiple" collapsible className="w-full">
+          {organizedCategories.map((category) => {
+            const hasChildren = category.children && category.children.length > 0;
+            if (hasChildren) {
+              return (
+                <AccordionItem key={category.id} value={category.id}>
+                  <AccordionTrigger className={`text-sm ${selectedCategory === category.id ? 'bg-muted font-bold rounded-md px-2' : 'font-bold'}`}>
+                    {category.name}
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="flex flex-col">
+                      <DropdownMenuItem
+                        onClick={() => onCategoryChange(category.id)}
+                        className={`${selectedCategory === category.id ? 'bg-muted' : ''}`}
+                      >
+                        Todas de {category.name}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      {category.children?.map((child) => (
+                        <DropdownMenuItem
+                          key={child.id}
+                          onClick={() => onCategoryChange(child.id)}
+                          className={`${selectedCategory === child.id ? 'bg-muted' : ''}`}
+                        >
+                          {child.name}
+                        </DropdownMenuItem>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            }
+            return (
+              <DropdownMenuItem
+                key={category.id}
+                onClick={() => onCategoryChange(category.id)}
+                className={`${selectedCategory === category.id ? 'bg-muted font-bold' : ''}`}
+              >
+                {category.name}
+              </DropdownMenuItem>
+            );
+          })}
+        </Accordion>
+      </div>
+    );
   };
 
   const selectedCategoryName = categories.find(cat => cat.id === selectedCategory)?.name || "Todas as categorias";
@@ -529,7 +581,7 @@ export function CategoryDropdown({ categories, selectedCategory, onCategoryChang
             <ChevronDown className="w-4 h-4 ml-2" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-56">
+        <DropdownMenuContent align="start" className="w-72">
           <DropdownMenuItem
             onClick={() => onCategoryChange("")}
             className={selectedCategory === "" ? 'bg-muted' : ''}
@@ -537,7 +589,7 @@ export function CategoryDropdown({ categories, selectedCategory, onCategoryChang
             Todas as categorias
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          {renderCategoryItems(organizedCategories)}
+          {renderAccordionFilter()}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => {
             resetDrawer();

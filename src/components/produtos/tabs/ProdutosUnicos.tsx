@@ -1,14 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProductTable } from "../ProductTable";
 import { ProductFilters } from "../ProductFilters";
 import { useBindableProducts } from '@/hooks/useProducts';
 import { useCategories } from "@/hooks/useCategories";
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export function ProdutosUnicos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const { products, loading, refetch, deleteProduct, duplicateProduct } = useBindableProducts();
+  const { bindableProducts, loading } = useBindableProducts();
   const { categories, createCategory, updateCategory, deleteCategory } = useCategories();
+  const { toast } = useToast();
+
+  const [list, setList] = useState<any[]>([]);
+  useEffect(() => {
+    setList(bindableProducts || []);
+  }, [bindableProducts]);
   
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -38,8 +46,33 @@ export function ProdutosUnicos() {
     }
   };
 
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+
+      if (error) throw error;
+
+      setList((prev) => prev.filter((p) => p.id !== productId));
+
+      toast({
+        title: "Sucesso",
+        description: "Produto excluído com sucesso",
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao excluir produto';
+      toast({
+        title: "Erro",
+        description: message,
+        variant: "destructive",
+      });
+    }
+  };
+
   // Filtrar produtos únicos pela categoria selecionada e termo de busca
-  const filteredProducts = products
+  const filteredProducts = (list || [])
     .filter(product => product.type === 'UNICO')
     .filter(product => {
       if (!selectedCategory) return true;
@@ -70,8 +103,7 @@ export function ProdutosUnicos() {
       <ProductTable 
         products={filteredProducts} 
         loading={loading} 
-        onDeleteProduct={deleteProduct}
-        onDuplicateProduct={duplicateProduct}
+        onDeleteProduct={handleDeleteProduct}
       />
     </div>
   );
