@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client'; // Caminho para seu cliente Supabase
 import { useToast } from '@/hooks/use-toast'; // Importa seu hook de toast
 import { useProductSync } from '@/hooks/useProductSync'; // Importa seu hook useProductSync
+import { useAuth } from '@/hooks/useAuth';
 
 // Se você usa o Product Type do Supabase, importe de lá
 // export type Product = Tables<'products'>;
@@ -48,9 +49,9 @@ interface FormattedProductStockData extends ProductFromDB {
 }
 
 
-export async function fetchProductsWithDetailedStock(): Promise<FormattedProductStockData[]> {
+export async function fetchProductsWithDetailedStock(userId?: string): Promise<FormattedProductStockData[]> {
   try {
-    const { data: productsData, error: productsError } = await supabase
+    let query = supabase
       .from('products')
       .select(`
         id,
@@ -69,7 +70,15 @@ export async function fetchProductsWithDetailedStock(): Promise<FormattedProduct
             name
           )
         )
-      `);
+      `)
+      .in('type', ['UNICO', 'VARIACAO_ITEM']);
+
+    // Filtra por usuário atual para evitar dados fora de contexto e cumprir RLS
+    if (userId) {
+      query = query.eq('user_id', userId);
+    }
+
+    const { data: productsData, error: productsError } = await query;
 
     if (productsError) {
       throw productsError;
@@ -91,7 +100,7 @@ export async function fetchProductsWithDetailedStock(): Promise<FormattedProduct
         total_available_stock: totalAvailable,
         stock_by_location: stockArray.map(stock => ({
           stock_id: stock.id,
-          storage_name: stock.storage?.name || 'Galpão Desconhecido',
+          storage_name: stock.storage?.name || 'Armazém Desconhecido',
           storage_id: stock.storage_id,
           current: stock.current || 0,
           reserved: stock.reserved || 0,
@@ -116,12 +125,13 @@ export function useStockData() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { lastUpdate } = useProductSync(); // Use seu hook de ProductSync
+  const { user } = useAuth();
 
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await fetchProductsWithDetailedStock();
+      const data = await fetchProductsWithDetailedStock(user?.id);
       setStockData(data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar dados do estoque';
@@ -138,7 +148,7 @@ export function useStockData() {
 
   useEffect(() => {
     fetchData();
-  }, [lastUpdate]); // Re-fetch quando 'lastUpdate' mudar (indicando uma criação/atualização de produto)
+  }, [lastUpdate, user?.id]); // Re-fetch quando 'lastUpdate' ou usuário mudar
 
   return {
     stockData,

@@ -189,7 +189,7 @@ const Index = () => {
                       <span className="font-semibold text-gray-900">5</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="text-gray-700">Sem Estoque Galpão</span>
+              <span className="text-gray-700">Sem Estoque Armazém</span>
                       <span className="font-semibold text-gray-900">12</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">

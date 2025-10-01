@@ -24,10 +24,14 @@ import { CloseConfirmationDialog } from "@/components/produtos/criar/CloseConfir
 // Import constants and hooks
 import { stepsUnico, stepsVariacoes, stepsKit } from "@/components/produtos/criar/constants";
 import { useProductForm } from "@/hooks/useProductForm";
+import { useProducts } from "@/hooks/useProducts";
 
 export function CreateProductPage() {
   const navigate = useNavigate();
   const [showCloseDialog, setShowCloseDialog] = useState(false);
+  const { products, loading: productsLoading } = useProducts();
+  const [showVariationConfigErrors, setShowVariationConfigErrors] = useState(false);
+  const [showVariationTaxErrors, setShowVariationTaxErrors] = useState(false);
 
   const {
     currentStep,
@@ -41,10 +45,12 @@ export function CreateProductPage() {
     kitItems,
     formData,
     createLoading,
+    errors,
     setSelectedImages,
     setVariations,
     setVariationStep,
     setVariationTypes,
+    setKitStep,
     setKitItems,
     nextStep,
     backStep,
@@ -52,7 +58,7 @@ export function CreateProductPage() {
     handleProductTypeChange,
     getMaxSteps,
   } = useProductForm({
-    onSuccess: () => console.log("Product created successfully!")
+    onSuccess: () => navigate('/produtos/kits')
   });
 
   const getCurrentSteps = () => {
@@ -62,7 +68,7 @@ export function CreateProductPage() {
   };
 
   const handleSave = () => {
-    navigate('/produtos');
+    navigate('/produtos/kits');
   };
 
   const handleCloseRequest = () => {
@@ -86,6 +92,20 @@ export function CreateProductPage() {
         setVariationStep("configuration");
       }
     } else if (variationStep === "configuration") {
+      // Validar campos obrigatórios das variações antes de avançar
+      const nameInvalid = !formData.name || !String(formData.name).trim();
+      const variationsInvalid = variations.some(v => {
+        const skuInvalid = !v.sku || !String(v.sku).trim();
+        const eanInvalid = !v.ean || !String(v.ean).trim();
+        const stockInvalid = !v.stock || String(v.stock).trim() === "";
+        const storageInvalid = !v.storage || String(v.storage).trim() === "";
+        return skuInvalid || eanInvalid || stockInvalid || storageInvalid;
+      });
+      if (nameInvalid || variationsInvalid) {
+        setShowVariationConfigErrors(true);
+        return;
+      }
+      setShowVariationConfigErrors(false);
       nextStep();
     }
   };
@@ -102,32 +122,51 @@ export function CreateProductPage() {
 
   const generateVariations = () => {
     const tiposComOpcoes = variationTypes.filter(tipo => tipo.options.length > 0);
-    
     if (tiposComOpcoes.length === 0) return;
 
     const gerarCombinacoes = (arrays: string[][]): string[][] => {
       if (arrays.length === 0) return [[]];
       if (arrays.length === 1) return arrays[0].map(item => [item]);
-      
       const [first, ...rest] = arrays;
       const restCombinations = gerarCombinacoes(rest);
-      
-      return first.flatMap(item =>
-        restCombinations.map(combination => [item, ...combination])
-      );
+      return first.flatMap(item => restCombinations.map(combination => [item, ...combination]));
     };
+
+    const buildKey = (v: any) => {
+      const parts: string[] = [];
+      if (v.color) parts.push(`cor=${v.color}`);
+      if (v.size) parts.push(`tamanho=${v.size}`);
+      if (v.voltage) parts.push(`voltagem=${v.voltage}`);
+      if (v.customType && v.customValue) parts.push(`${v.customType}=${v.customValue}`);
+      return parts.join("|");
+    };
+
+    // Mapa das variações existentes para preservar dados ao voltar etapas
+    const existingMap = new Map<string, any>();
+    variations.forEach(v => existingMap.set(buildKey(v), v));
 
     const opcoesPorTipo = tiposComOpcoes.map(tipo => tipo.options);
     const combinacoes = gerarCombinacoes(opcoesPorTipo);
 
     const newVariations = combinacoes.map((combinacao, index) => {
       const variationName = combinacao.join(" - ");
-      const variation: any = {
+      const base: any = {
         id: `var_${Date.now()}_${index}`,
         name: variationName,
         sku: "",
         ean: "",
         costPrice: "",
+        sellPrice: "",
+        stock: "",
+        storage: "",
+        height: "",
+        width: "",
+        length: "",
+        weight: "",
+        unit: "",
+        origin: "",
+        ncm: "",
+        cest: "",
         images: [],
       };
 
@@ -135,22 +174,44 @@ export function CreateProductPage() {
         const valor = combinacao[tipoIndex];
         switch (tipo.id) {
           case "cor":
-            variation.color = valor;
+            base.color = valor;
             break;
           case "tamanho":
-            variation.size = valor;
+            base.size = valor;
             break;
           case "voltagem":
-            variation.voltage = valor;
+            base.voltage = valor;
             break;
           default:
-            variation.customType = tipo.name;
-            variation.customValue = valor;
+            base.customType = tipo.name;
+            base.customValue = valor;
             break;
         }
       });
 
-      return variation;
+      const key = buildKey(base);
+      const prev = existingMap.get(key);
+      const merged = {
+        ...base,
+        sku: prev?.sku ?? base.sku,
+        ean: prev?.ean ?? base.ean,
+        costPrice: prev?.costPrice ?? base.costPrice,
+        sellPrice: prev?.sellPrice ?? base.sellPrice,
+        stock: prev?.stock ?? base.stock,
+        storage: prev?.storage ?? base.storage,
+        height: prev?.height ?? base.height,
+        width: prev?.width ?? base.width,
+        length: prev?.length ?? base.length,
+        weight: prev?.weight ?? base.weight,
+        unit: prev?.unit ?? base.unit,
+        origin: prev?.origin ?? base.origin,
+        ncm: prev?.ncm ?? base.ncm,
+        cest: prev?.cest ?? base.cest,
+        images: prev?.images ?? base.images,
+        description: prev?.description ?? base.description,
+      };
+
+      return merged;
     });
 
     setVariations(newVariations);
@@ -164,7 +225,11 @@ export function CreateProductPage() {
       return variationTypes.some(tipo => tipo.options.length > 0);
     }
     if (variationStep === "configuration") {
-      return variations.length > 0;
+      // Na configuração, exigir pelo menos uma variação e armazém definido
+      return (
+        variations.length > 0 &&
+        variations.every(v => v.storage && v.storage !== "")
+      );
     }
     return true;
   };
@@ -177,8 +242,8 @@ export function CreateProductPage() {
         {/* Header with Close Button */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Create New Product</h1>
-            <p className="text-gray-600 text-lg">Follow the steps to register your product</p>
+            <h1 className="text-3xl font-bold text-gray-900">Cadastrar Novo Produto</h1>
+            <p className="text-gray-600 text-lg">Siga os passos para registrar seu produto</p>
           </div>
           <Button variant="ghost" size="sm" onClick={handleCloseRequest}>
             <X className="w-5 h-5 mr-2" />
@@ -207,6 +272,7 @@ export function CreateProductPage() {
                     formData={formData} 
                     onInputChange={handleInputChange} 
                     includeSku={true} 
+                    errors={errors}
                   />
                   <ImageUpload 
                     selectedImages={selectedImages} 
@@ -247,7 +313,7 @@ export function CreateProductPage() {
             )}
 
             {currentStep === 3 && productType === "single" && (
-              <StockForm formData={formData} onInputChange={handleInputChange} />
+              <StockForm formData={formData} onInputChange={handleInputChange} errors={errors} />
             )}
 
             {currentStep === 3 && productType === "variation" && (
@@ -258,6 +324,7 @@ export function CreateProductPage() {
                 onStepChange={setVariationStep}
                 variationTypes={variationTypes}
                 onVariationTypesChange={setVariationTypes}
+                showErrors={showVariationConfigErrors}
               />
             )}
 
@@ -266,28 +333,30 @@ export function CreateProductPage() {
                 formData={formData} 
                 onInputChange={handleInputChange}
                 currentStep={kitStep}
-                onStepChange={() => {}} // Will be implemented properly later
+                onStepChange={setKitStep}
                 kitItems={kitItems}
                 onKitItemsChange={setKitItems}
                 selectedImages={selectedImages}
                 onImagesChange={setSelectedImages}
+                availableProducts={(products || [])}
+                productsLoading={productsLoading}
               />
             )}
 
             {currentStep === 4 && productType === "single" && (
-              <DimensionsForm formData={formData} onInputChange={handleInputChange} />
+              <DimensionsForm formData={formData} onInputChange={handleInputChange} errors={errors} />
             )}
 
             {currentStep === 4 && productType === "variation" && (
-              <VariationDimensionsForm variations={variations} onVariationsChange={setVariations} />
+              <VariationDimensionsForm variations={variations} onVariationsChange={setVariations} showErrors />
             )}
 
             {currentStep === 5 && productType === "single" && (
-              <TaxForm formData={formData} onInputChange={handleInputChange} />
+              <TaxForm formData={formData} onInputChange={handleInputChange} errors={errors} />
             )}
 
             {currentStep === 5 && productType === "variation" && (
-              <VariationTaxForm variations={variations} onVariationsChange={setVariations} />
+              <VariationTaxForm variations={variations} onVariationsChange={setVariations} showErrors={showVariationTaxErrors} />
             )}
 
             {((currentStep === 6 && productType !== "kit") || (currentStep === 4 && productType === "kit")) && (
@@ -308,7 +377,22 @@ export function CreateProductPage() {
           variationEtapa={variationStep}
           canProceedVariation={canProceedVariation}
           loading={createLoading}
-          onNext={currentStep === 3 && productType === "variation" ? handleVariationNext : nextStep}
+          onNext={
+            currentStep === 3 && productType === "variation"
+              ? handleVariationNext
+              : currentStep === 5 && productType === "variation"
+                ? () => {
+                    // Validar NCM e Origem em todas as variações antes de avançar
+                    const invalid = variations.some(v => !v.ncm || !String(v.ncm).trim() || !v.origin || !String(v.origin).trim());
+                    if (invalid) {
+                      setShowVariationTaxErrors(true);
+                      return;
+                    }
+                    setShowVariationTaxErrors(false);
+                    nextStep();
+                  }
+                : nextStep
+          }
           onBack={currentStep === 3 && productType === "variation" ? handleVariationBack : backStep}
           kitEtapa={kitStep}
           onSave={handleSave}

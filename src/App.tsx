@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Desempenho from "./pages/Desempenho";
+import PesquisaMercado from "./pages/PesquisaMercado";
 import Produtos from "./pages/Produtos";
 import Anuncios from "./pages/Anuncios";
 import RecursosSeller from "./pages/RecursosSeller";
@@ -24,6 +25,8 @@ import NovuraAcademy from "./pages/NovuraAcademy";
 import Auth from "./pages/Auth";
 import Configuracoes from "./pages/Configuracoes";
 import { NovaEmpresa } from "./pages/NovaEmpresa";
+import SAC from "./pages/SAC";
+import Comunidade from "./pages/Comunidade";
 
 const queryClient = new QueryClient();
 
@@ -44,17 +47,20 @@ const App = () => (
             {/* Protected dashboard routes */}
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/desempenho/*" element={<ProtectedRoute><Desempenho /></ProtectedRoute>} />
+            <Route path="/pesquisa-mercado" element={<ProtectedRoute><PesquisaMercado /></ProtectedRoute>} />
             <Route path="/produtos/*" element={<ProtectedRoute><Produtos /></ProtectedRoute>} />
             <Route path="/anuncios/*" element={<ProtectedRoute><Anuncios /></ProtectedRoute>} />
             <Route path="/recursos-seller/*" element={<ProtectedRoute><RecursosSeller /></ProtectedRoute>} />
             <Route path="/equipe/*" element={<ProtectedRoute><Equipe /></ProtectedRoute>} />
             <Route path="/aplicativos" element={<ProtectedRoute><Aplicativos /></ProtectedRoute>} />
+            <Route path="/sac" element={<ProtectedRoute><SAC /></ProtectedRoute>} />
             <Route path="/pedidos" element={<ProtectedRoute><Pedidos /></ProtectedRoute>} />
             <Route path="/estoque" element={<ProtectedRoute><Estoque /></ProtectedRoute>} />
             <Route path="/notas-fiscais" element={<ProtectedRoute><NotasFiscais /></ProtectedRoute>} />
             <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
             <Route path="/configuracoes/notas-fiscais/nova-empresa" element={<ProtectedRoute><NovaEmpresa /></ProtectedRoute>} />
             <Route path="/novura-academy/*" element={<ProtectedRoute><NovuraAcademy /></ProtectedRoute>} />
+            <Route path="/comunidade/*" element={<ProtectedRoute><Comunidade /></ProtectedRoute>} />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />

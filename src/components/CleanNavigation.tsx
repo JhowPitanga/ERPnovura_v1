@@ -1,5 +1,4 @@
-
-import { NavLink } from "react-router-dom";
+﻿import { NavLink } from "react-router-dom";
 
 interface NavigationItem {
   title: string;
@@ -11,9 +10,10 @@ interface CleanNavigationProps {
   items: NavigationItem[];
   basePath?: string;
   onNavigate?: (path: string) => void;
+  activePath?: string; // suporte para navegação controlada sem alterar rota
 }
 
-export function CleanNavigation({ items, basePath = "", onNavigate }: CleanNavigationProps) {
+export function CleanNavigation({ items, basePath = "", onNavigate, activePath }: CleanNavigationProps) {
   const handleClick = (path: string, e: React.MouseEvent) => {
     if (onNavigate) {
       e.preventDefault();
@@ -31,7 +31,7 @@ export function CleanNavigation({ items, basePath = "", onNavigate }: CleanNavig
             onClick={(e) => handleClick(item.path, e)}
             className={({ isActive }) =>
               `relative flex flex-col items-start pb-4 transition-colors duration-200 ${
-                isActive && !onNavigate
+                (activePath ? activePath === item.path : (isActive && !onNavigate))
                   ? "text-novura-primary"
                   : "text-gray-600 hover:text-gray-900"
               } group`
@@ -47,7 +47,7 @@ export function CleanNavigation({ items, basePath = "", onNavigate }: CleanNavig
                 )}
                 <div
                   className={`absolute bottom-0 left-0 h-0.5 bg-novura-primary transition-all duration-200 ${
-                    (isActive && !onNavigate) ? "w-full" : "w-0 group-hover:w-full"
+                    ((activePath ? activePath === item.path : (isActive && !onNavigate))) ? "w-full" : "w-0 group-hover:w-full"
                   }`}
                 />
               </>

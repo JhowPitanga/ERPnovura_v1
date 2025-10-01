@@ -7,13 +7,17 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 8080,
+    port: 5173,
   },
   plugins: [
     react(),
     mode === 'development' &&
     componentTagger(),
   ].filter(Boolean),
+  optimizeDeps: {
+    // Evita erro de chunk no pré-bundle do Vite
+    exclude: ['lovable-tagger']
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

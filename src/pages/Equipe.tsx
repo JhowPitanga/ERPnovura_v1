@@ -4,7 +4,7 @@ import { MessageSquare, Kanban, Plus, Filter, Users, Trophy, Calendar, CheckSqua
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { CleanNavigation } from "@/components/CleanNavigation";
-import { TeamChat } from "@/components/TeamChat";
+import { ChatTab } from "@/components/equipe/ChatTab";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -442,7 +442,7 @@ export default function Equipe() {
       case "/gamificacao":
         return <Gamificacao />;
       default:
-        return <TeamChat />;
+        return <ChatTab />;
     }
   };
 

@@ -14,7 +14,7 @@ export function InventarioTab() {
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                 <div>
-                  <p className="font-medium">Galpão Principal SP</p>
+        <p className="font-medium">Armazém Principal SP</p>
                   <p className="text-sm text-gray-600">Setor A - Eletrônicos</p>
                 </div>
                 <Badge>Agendado 25/01</Badge>

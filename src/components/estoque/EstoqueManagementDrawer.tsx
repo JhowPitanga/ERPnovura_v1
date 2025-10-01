@@ -15,6 +15,8 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useStorage } from "@/hooks/useStorage";
 
 interface EstoqueProduct {
   id: string;
@@ -53,6 +55,12 @@ export function EstoqueManagementDrawer({
   const [adjustmentQuantity, setAdjustmentQuantity] = useState<number>(0);
   const [operationType, setOperationType] = useState<"entrada" | "saida">("entrada");
   const [loading, setLoading] = useState(false);
+  const [selectedStorageId, setSelectedStorageId] = useState<string | undefined>(
+    product?.stock_by_location && product.stock_by_location.length > 0
+      ? product.stock_by_location[0].storage_id
+      : undefined
+  );
+  const { storageLocations, loading: storageLoading } = useStorage();
   const { toast } = useToast();
 
   if (!product) return null;
@@ -81,15 +89,16 @@ export function EstoqueManagementDrawer({
 
     setLoading(true);
     try {
-      // Use the first storage location or a default one
-      const targetStorageId = product.stock_by_location && product.stock_by_location.length > 0
-        ? product.stock_by_location[0].storage_id
-        : null;
+      // Use selected storage or fallback to first available on the product
+      const targetStorageId = selectedStorageId
+        || (product.stock_by_location && product.stock_by_location.length > 0
+          ? product.stock_by_location[0].storage_id
+          : null);
 
       if (!targetStorageId) {
         toast({
           title: "Erro",
-          description: "Galpão não especificado para o ajuste. Verifique a configuração.",
+          description: "Armazém não especificado para o ajuste. Verifique a configuração.",
           variant: "destructive",
         });
         return;
@@ -139,22 +148,32 @@ export function EstoqueManagementDrawer({
     }
   };
 
-  const getStatusColor = (status: string) => {
+  // Badge de status padronizado (mesmas cores/labels da listagem)
+  const renderStatusBadge = (status: string) => {
+    const base = "inline-flex items-center rounded px-2 py-0.5 text-xs font-medium";
     switch (status) {
+      case "Sem estoque":
+        return <span className={`${base} bg-red-600 text-white`}>Sem estoque</span>;
       case "Crítico":
-        return "destructive";
+        return <span className={`${base} bg-red-500 text-white`}>Crítico</span>;
       case "Baixo":
-        return "secondary";
+        return <span className={`${base} bg-orange-500 text-white`}>Baixo</span>;
+      case "Médio":
+        return <span className={`${base} bg-yellow-500 text-white`}>Médio</span>;
+      case "Suficiente":
+        return <span className={`${base} bg-green-600 text-white`}>Suficiente</span>;
       default:
-        return "default";
+        return <span className={`${base} bg-gray-500 text-white`}>Médio</span>;
     }
   };
 
   const getUpdatedStatus = (currentStock: number, reserved: number) => {
     const available = currentStock - reserved;
-    if (available <= 0) return "Crítico";
-    if (available <= 10) return "Baixo";
-    return "Normal";
+    if (available <= 0) return "Sem estoque";
+    if (available <= 2) return "Crítico";
+    if (available < 5) return "Baixo";
+    if (available < 10) return "Médio";
+    return "Suficiente";
   };
 
   // Calculate the status for the current stock state
@@ -213,15 +232,13 @@ export function EstoqueManagementDrawer({
                 </div>
                 {product.galpao && (
                   <div>
-                    <Label className="text-xs text-muted-foreground">Galpão</Label>
+                    <Label className="text-xs text-muted-foreground">Armazém</Label>
                     <p className="font-medium">{product.galpao}</p>
                   </div>
                 )}
                 <div>
                   <Label className="text-xs text-muted-foreground">Status</Label>
-                  <Badge variant={getStatusColor(currentStatus)}>
-                    {currentStatus}
-                  </Badge>
+                  {renderStatusBadge(currentStatus)}
                 </div>
               </div>
             </div>
@@ -245,6 +262,37 @@ export function EstoqueManagementDrawer({
                   <p className="text-2xl font-bold text-green-500">{product.disponivel}</p>
                   <p className="text-xs text-muted-foreground">Disponível</p>
                 </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Seleção de Armazém para Ajuste */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Armazém para Ajuste</h3>
+              <div>
+                <Label htmlFor="ajuste-galpao">Armazém</Label>
+                <Select
+                  value={selectedStorageId}
+                  onValueChange={(value) => setSelectedStorageId(value)}
+                >
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Selecione o armazém" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {storageLoading && (
+                      <SelectItem value="__loading" disabled>Carregando armazéns...</SelectItem>
+                    )}
+                    {!storageLoading && storageLocations.length === 0 && (
+                      <SelectItem value="__empty" disabled>Nenhum armazém cadastrado</SelectItem>
+                    )}
+                    {!storageLoading && storageLocations.map((storage) => (
+                      <SelectItem key={storage.id} value={storage.id}>
+                        {storage.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -373,9 +421,7 @@ export function EstoqueManagementDrawer({
                 <div className="p-3 bg-muted rounded-lg space-y-2">
                   <div className="flex justify-between items-center">
                     <p className="text-sm text-muted-foreground">Novo estoque após ajuste:</p>
-                    <Badge variant={getStatusColor(previewStatus)}>
-                      {previewStatus}
-                    </Badge>
+                    {renderStatusBadge(previewStatus)}
                   </div>
                   <p className="text-lg font-bold text-primary">
                     {previewStock} unidades

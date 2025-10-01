@@ -15,6 +15,8 @@ interface VariationFormProps {
   onStepChange: (step: VariationStep) => void;
   variationTypes: VariationType[];
   onVariationTypesChange: (types: VariationType[]) => void;
+  showErrors?: boolean;
+  disableStock?: boolean;
 }
 
 export function VariationForm({
@@ -23,7 +25,9 @@ export function VariationForm({
   currentStep,
   onStepChange,
   variationTypes,
-  onVariationTypesChange
+  onVariationTypesChange,
+  showErrors = false,
+  disableStock = false,
 }: VariationFormProps) {
   const [bulkDrawerOpen, setBulkDrawerOpen] = useState(false);
   // Convert between English and Portuguese types for compatibility with existing components
@@ -109,6 +113,20 @@ export function VariationForm({
     onVariationsChange(updatedVariations);
   };
 
+  const handleImageUpload = (variacaoId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+    const first = files[0];
+    const updated = variations.map(v => {
+      if (v.id !== variacaoId) return v;
+      const existing = Array.isArray(v.images) ? v.images : [];
+      // Inserir como primeira imagem (capa)
+      const nextImages = [first as any, ...existing].slice(0, 8);
+      return { ...v, images: nextImages };
+    });
+    onVariationsChange(updated);
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -134,6 +152,13 @@ export function VariationForm({
 
         {currentStep === "configuration" && (
           <div className="space-y-6">
+            {/* Aviso de controle de estoque por variação */}
+            <div className="rounded-md border border-blue-200 bg-blue-50 text-blue-900 p-4">
+              <p className="text-sm">
+                Para produtos com variações, o controle de estoque é feito individualmente por cada variação.
+                Ao salvar, cada variação será criada como um produto único com seu próprio estoque.
+              </p>
+            </div>
             <div className="flex justify-end mb-4">
               <Button
                 variant="outline"
@@ -162,6 +187,9 @@ export function VariationForm({
                     const englishField = fieldMap[field] || field;
                     handleVariationUpdate(variacaoId, englishField, value);
                   }}
+                  onImageUpload={handleImageUpload}
+                  showErrors={showErrors}
+                  disableStock={disableStock}
                 />
               </div>
             ))}

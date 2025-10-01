@@ -12,7 +12,9 @@ import {
   ShoppingBag,
   Users,
   Settings,
-  User
+  User,
+  MessageSquare,
+  BarChart2
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
@@ -35,8 +37,10 @@ const startModule = [
 
 const managementModules = [
   { title: "Desempenho", url: "/desempenho", icon: TrendingUp },
+  { title: "Pesquisa de Mercado", url: "/pesquisa-mercado", icon: BarChart2 },
   { title: "Produtos", url: "/produtos", icon: Package },
   { title: "Central de Anúncios", url: "/anuncios", icon: Megaphone },
+  { title: "SAC", url: "/sac", icon: MessageSquare },
   { title: "Pedidos", url: "/pedidos", icon: ShoppingCart },
   { title: "Equipe", url: "/equipe", icon: Users },
   { title: "Estoque", url: "/estoque", icon: Store },
@@ -46,6 +50,7 @@ const managementModules = [
 const toolsModules = [
   { title: "Recursos Seller", url: "/recursos-seller", icon: ShoppingBag },
   { title: "Aplicativos", url: "/aplicativos", icon: Puzzle },
+  { title: "Comunidade", url: "/comunidade", icon: MessageSquare },
 ];
 
 export function AppSidebar() {

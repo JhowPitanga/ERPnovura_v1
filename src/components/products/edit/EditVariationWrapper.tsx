@@ -222,6 +222,8 @@ export function EditVariationWrapper() {
             sku: variacao.sku,
             cost_price: parseFloat(variacao.costPrice) || 0,
             barcode: parseInt(variacao.ean) || 0,
+            ncm: parseInt(variacao.ncm) || 0,
+            tax_origin_code: parseInt(variacao.origin) || 0,
             color: variacao.color || null,
             size: variacao.size || null,
             image_urls: [] // TODO: Handle File[] to string[] conversion for image uploads
@@ -356,6 +358,7 @@ export function EditVariationWrapper() {
                   onStepChange={setVariationEtapa}
                   variationTypes={tiposVariacao}
                   onVariationTypesChange={setTiposVariacao}
+                  disableStock
                 />
               </AccordionContent>
             </AccordionItem>

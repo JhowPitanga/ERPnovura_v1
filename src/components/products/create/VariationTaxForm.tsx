@@ -5,9 +5,10 @@ import { VariationTaxForm as OriginalVariationTaxForm } from "@/components/produ
 interface VariationTaxFormProps {
   variations: ProductVariation[];
   onVariationsChange: (variations: ProductVariation[]) => void;
+  showErrors?: boolean;
 }
 
-export function VariationTaxForm({ variations, onVariationsChange }: VariationTaxFormProps) {
+export function VariationTaxForm({ variations, onVariationsChange, showErrors = false }: VariationTaxFormProps) {
   // Convert between English and Portuguese types for compatibility
   const convertVariationsToPT = (variations: ProductVariation[]) => {
     return variations.map(variation => ({
@@ -63,6 +64,7 @@ export function VariationTaxForm({ variations, onVariationsChange }: VariationTa
     <OriginalVariationTaxForm
       variacoes={convertVariationsToPT(variations)}
       onVariacoesChange={(variations) => onVariationsChange(convertVariationsFromPT(variations))}
+      showErrors={showErrors}
     />
   );
 }

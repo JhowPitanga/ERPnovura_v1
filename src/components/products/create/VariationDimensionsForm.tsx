@@ -5,9 +5,10 @@ import { VariationDimensionsForm as OriginalVariationDimensionsForm } from "@/co
 interface VariationDimensionsFormProps {
   variations: ProductVariation[];
   onVariationsChange: (variations: ProductVariation[]) => void;
+  showErrors?: boolean;
 }
 
-export function VariationDimensionsForm({ variations, onVariationsChange }: VariationDimensionsFormProps) {
+export function VariationDimensionsForm({ variations, onVariationsChange, showErrors = false }: VariationDimensionsFormProps) {
   // Convert between English and Portuguese types for compatibility
   const convertVariationsToPT = (variations: ProductVariation[]) => {
     return variations.map(variation => ({
@@ -63,6 +64,7 @@ export function VariationDimensionsForm({ variations, onVariationsChange }: Vari
     <OriginalVariationDimensionsForm
       variacoes={convertVariationsToPT(variations)}
       onVariacoesChange={(variations) => onVariationsChange(convertVariationsFromPT(variations))}
+      showErrors={showErrors}
     />
   );
 }

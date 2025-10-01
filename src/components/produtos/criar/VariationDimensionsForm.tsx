@@ -8,9 +8,10 @@ import { BulkDimensionsDrawer } from "./BulkDimensionsDrawer";
 interface VariationDimensionsFormProps {
   variacoes: Variacao[];
   onVariacoesChange: (variacoes: Variacao[]) => void;
+  showErrors?: boolean;
 }
 
-export function VariationDimensionsForm({ variacoes, onVariacoesChange }: VariationDimensionsFormProps) {
+export function VariationDimensionsForm({ variacoes, onVariacoesChange, showErrors = false }: VariationDimensionsFormProps) {
   const updateVariacao = (variacaoId: string, field: string, value: string) => {
     onVariacoesChange(variacoes.map(v => 
       v.id === variacaoId ? { ...v, [field]: value } : v
@@ -58,8 +59,11 @@ export function VariationDimensionsForm({ variacoes, onVariacoesChange }: Variat
                         value={variacao.altura || ""}
                         onChange={(e) => updateVariacao(variacao.id, "altura", e.target.value)}
                         placeholder="0,00"
-                        className="mt-2"
+                        className={`mt-2 ${showErrors && !variacao.altura ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                       />
+                      {showErrors && !variacao.altura && (
+                        <p className="text-red-600 text-sm mt-1">Campo obrigatório</p>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor={`largura-${variacao.id}`}>Largura (cm)</Label>
@@ -70,8 +74,11 @@ export function VariationDimensionsForm({ variacoes, onVariacoesChange }: Variat
                         value={variacao.largura || ""}
                         onChange={(e) => updateVariacao(variacao.id, "largura", e.target.value)}
                         placeholder="0,00"
-                        className="mt-2"
+                        className={`mt-2 ${showErrors && !variacao.largura ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                       />
+                      {showErrors && !variacao.largura && (
+                        <p className="text-red-600 text-sm mt-1">Campo obrigatório</p>
+                      )}
                     </div>
                   </div>
 
@@ -85,8 +92,11 @@ export function VariationDimensionsForm({ variacoes, onVariacoesChange }: Variat
                         value={variacao.comprimento || ""}
                         onChange={(e) => updateVariacao(variacao.id, "comprimento", e.target.value)}
                         placeholder="0,00"
-                        className="mt-2"
+                        className={`mt-2 ${showErrors && !variacao.comprimento ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                       />
+                      {showErrors && !variacao.comprimento && (
+                        <p className="text-red-600 text-sm mt-1">Campo obrigatório</p>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor={`peso-${variacao.id}`}>Peso (kg)</Label>
@@ -97,8 +107,11 @@ export function VariationDimensionsForm({ variacoes, onVariacoesChange }: Variat
                         value={variacao.peso || ""}
                         onChange={(e) => updateVariacao(variacao.id, "peso", e.target.value)}
                         placeholder="0,000"
-                        className="mt-2"
+                        className={`mt-2 ${showErrors && !variacao.peso ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                       />
+                      {showErrors && !variacao.peso && (
+                        <p className="text-red-600 text-sm mt-1">Campo obrigatório</p>
+                      )}
                     </div>
                   </div>
                 </div>

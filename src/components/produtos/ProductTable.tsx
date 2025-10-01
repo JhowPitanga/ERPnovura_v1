@@ -8,15 +8,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface ProductTableProps {
   products: any[];
   loading: boolean;
   onDeleteProduct: (productId: string) => void;
   onDuplicateProduct?: (productId: string) => void;
+  selectedIds?: string[];
+  onToggleSelect?: (productId: string, checked: boolean) => void;
 }
 
-export function ProductTable({ products, loading, onDeleteProduct, onDuplicateProduct }: ProductTableProps) {
+export function ProductTable({ products, loading, onDeleteProduct, onDuplicateProduct, selectedIds = [], onToggleSelect }: ProductTableProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<any>(null);
   if (loading) {
@@ -50,6 +53,9 @@ export function ProductTable({ products, loading, onDeleteProduct, onDuplicatePr
           <Table>
             <TableHeader>
               <TableRow className="border-b border-gray-100">
+                <TableHead className="w-10">
+                  <Checkbox aria-label="Selecionar todos" disabled />
+                </TableHead>
                 <TableHead className="w-20">Imagem</TableHead>
                 <TableHead>Produto</TableHead>
                 <TableHead>Categoria</TableHead>
@@ -62,7 +68,7 @@ export function ProductTable({ products, loading, onDeleteProduct, onDuplicatePr
             <TableBody>
               {products.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                     Nenhum produto encontrado
                   </TableCell>
                 </TableRow>
@@ -82,6 +88,13 @@ export function ProductTable({ products, loading, onDeleteProduct, onDuplicatePr
                       className="hover:bg-gray-50/50 cursor-pointer"
                       onClick={() => window.location.href = `/produtos/editar/${product.id}`}
                     >
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selectedIds.includes(product.id)}
+                          onCheckedChange={(checked) => onToggleSelect?.(product.id, !!checked)}
+                          aria-label={`Selecionar ${product.name}`}
+                        />
+                      </TableCell>
                       <TableCell>
                         <img
                           src={imageUrl}

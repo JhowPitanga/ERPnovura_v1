@@ -7,13 +7,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface KitsAccordionProps {
   kits: any[];
   loading?: boolean;
+  selectedIds?: string[];
+  onToggleSelect?: (kitId: string, checked: boolean) => void;
 }
 
-export function KitsAccordion({ kits, loading = false }: KitsAccordionProps) {
+export function KitsAccordion({ kits, loading = false, selectedIds = [], onToggleSelect }: KitsAccordionProps) {
   if (loading) {
     return (
       <Card>
@@ -56,6 +59,12 @@ export function KitsAccordion({ kits, loading = false }: KitsAccordionProps) {
               <AccordionTrigger>
                 <div className="flex justify-between items-center w-full pr-4">
                   <div className="flex items-center space-x-4 text-left">
+                    <Checkbox
+                      checked={selectedIds.includes(kit.id)}
+                      onCheckedChange={(checked) => onToggleSelect?.(kit.id, Boolean(checked))}
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label="Selecionar kit"
+                    />
                     <img
                       src={kit.image_urls?.[0] || 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=300&h=300&fit=crop'}
                       alt={kit.name}

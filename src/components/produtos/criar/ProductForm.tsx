@@ -10,9 +10,10 @@ interface ProductFormProps {
   formData: ProductFormData;
   onInputChange: (field: string, value: string) => void;
   includeSku?: boolean;
+  errors?: Record<string, boolean>;
 }
 
-export function ProductForm({ formData, onInputChange, includeSku = true }: ProductFormProps) {
+export function ProductForm({ formData, onInputChange, includeSku = true, errors = {} }: ProductFormProps) {
   const { categories, loading: categoriesLoading } = useCategories();
 
   return (
@@ -26,9 +27,12 @@ export function ProductForm({ formData, onInputChange, includeSku = true }: Prod
           value={formData.name}
           onChange={(e) => onInputChange("name", e.target.value)}
           placeholder="Product name"
-          className="mt-2"
+          className={`mt-2 ${errors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
           required
         />
+        {errors.name && (
+          <p className="text-red-600 text-sm mt-1">Field required</p>
+        )}
       </div>
       {includeSku && (
         <div>
@@ -40,9 +44,12 @@ export function ProductForm({ formData, onInputChange, includeSku = true }: Prod
             value={formData.sku}
             onChange={(e) => onInputChange("sku", e.target.value)}
             placeholder="Unique product code"
-            className="mt-2"
+            className={`mt-2 ${errors.sku ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
             required
           />
+          {errors.sku && (
+            <p className="text-red-600 text-sm mt-1">Field required</p>
+          )}
         </div>
       )}
       <div>

@@ -18,7 +18,7 @@ export function RecebimentoTab() {
               <TableHead>Fornecedor</TableHead>
               <TableHead>Qtd Produtos</TableHead>
               <TableHead>Data Chegada</TableHead>
-              <TableHead>Galpão</TableHead>
+              <TableHead>Armazém</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="w-20">Ações</TableHead>
             </TableRow>

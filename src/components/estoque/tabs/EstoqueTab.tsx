@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Settings, Package } from "lucide-react";
-import { getStatusBadge } from "@/utils/estoqueUtils";
+// Removemos o util de badge para customizar o design localmente
 import { EstoqueManagementDrawer } from "../EstoqueManagementDrawer";
 import { useStockData } from "@/hooks/useStockData";
 
@@ -20,12 +20,51 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Função para calcular o status baseado na quantidade
+  // Função para calcular o status baseado na quantidade (regras temporárias)
   const getStatusFromStock = (estoque: number, reservado: number) => {
     const disponivel = estoque - reservado;
-    if (disponivel <= 0) return "Crítico";
-    if (disponivel <= 10) return "Baixo";
-    return "Normal";
+    if (disponivel <= 0) return "Sem estoque";
+    if (disponivel <= 2) return "Crítico";
+    if (disponivel < 5) return "Baixo";
+    if (disponivel < 10) return "Médio";
+    return "Suficiente";
+  };
+
+  // Mapeamento de preenchimento e cor da barra por status
+  const getBarStyles = (status: string) => {
+    switch (status) {
+      case "Sem estoque":
+        return { percent: 0, color: "bg-red-600" };
+      case "Crítico":
+        return { percent: 15, color: "bg-red-500" };
+      case "Baixo":
+        return { percent: 25, color: "bg-orange-500" };
+      case "Médio":
+        return { percent: 50, color: "bg-yellow-500" };
+      case "Suficiente":
+        return { percent: 100, color: "bg-green-600" };
+      default:
+        return { percent: 50, color: "bg-gray-400" };
+    }
+  };
+
+  // Badge de status abaixo da barra
+  const renderStatusBadge = (status: string) => {
+    const base = "inline-flex items-center rounded px-2 py-0.5 text-xs font-medium";
+    switch (status) {
+      case "Sem estoque":
+        return <span className={`${base} bg-red-600 text-white`}>Sem estoque</span>;
+      case "Crítico":
+        return <span className={`${base} bg-red-500 text-white`}>Crítico</span>;
+      case "Baixo":
+        return <span className={`${base} bg-orange-500 text-white`}>Baixo</span>;
+      case "Médio":
+        return <span className={`${base} bg-yellow-500 text-white`}>Médio</span>;
+      case "Suficiente":
+        return <span className={`${base} bg-green-600 text-white`}>Suficiente</span>;
+      default:
+        return <span className={`${base} bg-gray-500 text-white`}>Médio</span>;
+    }
   };
 
   // Transformar dados do Supabase para o formato esperado pelo componente
@@ -45,21 +84,26 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
       : undefined
   }));
 
-  // Filtrar dados baseado na busca, galpão e filtro ativo
+// Filtrar dados baseado na busca, armazém e filtro ativo
   const filteredData = transformedData.filter(item => {
     const matchesSearch = item.produto.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.sku.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Filtrar por galpão
+// Filtrar por armazém
     const matchesGalpao = selectedGalpao === "todos" || 
       item.stock_by_location?.some(stock => stock.storage_name === selectedGalpao);
     
     // Filtrar por status baseado no filtro ativo
+    const itemStatus = getStatusFromStock(item.estoque, item.reservado);
     if (activeFilter === "estoque" || activeFilter === "total") return matchesSearch && matchesGalpao;
     if (activeFilter === "inventario") {
-      const itemStatus = getStatusFromStock(item.estoque, item.reservado);
-      return matchesSearch && matchesGalpao && (itemStatus === "Crítico" || itemStatus === "Baixo");
+      return matchesSearch && matchesGalpao && (itemStatus === "Sem estoque" || itemStatus === "Crítico" || itemStatus === "Baixo");
     }
+    if (activeFilter === "sem_estoque") return matchesSearch && matchesGalpao && itemStatus === "Sem estoque";
+    if (activeFilter === "critico") return matchesSearch && matchesGalpao && itemStatus === "Crítico";
+    if (activeFilter === "baixo") return matchesSearch && matchesGalpao && itemStatus === "Baixo";
+    if (activeFilter === "medio") return matchesSearch && matchesGalpao && itemStatus === "Médio";
+    if (activeFilter === "suficiente") return matchesSearch && matchesGalpao && itemStatus === "Suficiente";
     
     return matchesSearch && matchesGalpao;
   });
@@ -127,7 +171,7 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
                 <TableHead>SKU</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Preço de Custo</TableHead>
-                <TableHead>Galpão Principal</TableHead>
+            <TableHead>Armazém Principal</TableHead>
                 <TableHead>Reservado</TableHead>
                 <TableHead>Disponível</TableHead>
                 <TableHead>Estoque Atual</TableHead>
@@ -168,7 +212,22 @@ export function EstoqueTab({ activeFilter, searchTerm, selectedGalpao }: Estoque
                       <p className="font-mono text-sm">{item.sku}</p>
                     </TableCell>
                     <TableCell>
-                      {getStatusBadge(currentStatus)}
+                      <div className="w-32">
+                        <div className="mb-2">
+                          {renderStatusBadge(currentStatus)}
+                        </div>
+                        <div className="h-2 w-full bg-gray-200 rounded overflow-hidden">
+                          {(() => {
+                            const { percent, color } = getBarStyles(currentStatus);
+                            return (
+                              <div
+                                className={`h-2 ${color}`}
+                                style={{ width: `${percent}%` }}
+                              />
+                            );
+                          })()}
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <p className="font-medium">

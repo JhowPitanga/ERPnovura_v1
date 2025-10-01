@@ -20,7 +20,7 @@ export function PickingTab() {
               <TableHead>Prioridade</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Operador</TableHead>
-              <TableHead>Galpão</TableHead>
+              <TableHead>Armazém</TableHead>
               <TableHead className="w-20">Ações</TableHead>
             </TableRow>
           </TableHeader>

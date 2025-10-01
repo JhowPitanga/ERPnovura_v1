@@ -6,9 +6,10 @@ import { ProductFormData } from "@/types/products";
 interface DimensionsFormProps {
   formData: ProductFormData;
   onInputChange: (field: string, value: string) => void;
+  errors?: Record<string, boolean>;
 }
 
-export function DimensionsForm({ formData, onInputChange }: DimensionsFormProps) {
+export function DimensionsForm({ formData, onInputChange, errors = {} }: DimensionsFormProps) {
   return (
     <div className="space-y-8">
       <div>
@@ -23,8 +24,11 @@ export function DimensionsForm({ formData, onInputChange }: DimensionsFormProps)
               value={formData.height}
               onChange={(e) => onInputChange("height", e.target.value)}
               placeholder="0.0"
-              className="mt-2"
+              className={`mt-2 ${errors.height ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
             />
+            {errors.height && (
+              <p className="text-red-600 text-sm mt-1">Field required</p>
+            )}
           </div>
           <div>
             <Label htmlFor="width">Width (cm) *</Label>
@@ -35,8 +39,11 @@ export function DimensionsForm({ formData, onInputChange }: DimensionsFormProps)
               value={formData.width}
               onChange={(e) => onInputChange("width", e.target.value)}
               placeholder="0.0"
-              className="mt-2"
+              className={`mt-2 ${errors.width ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
             />
+            {errors.width && (
+              <p className="text-red-600 text-sm mt-1">Field required</p>
+            )}
           </div>
           <div>
             <Label htmlFor="length">Length (cm) *</Label>
@@ -47,8 +54,11 @@ export function DimensionsForm({ formData, onInputChange }: DimensionsFormProps)
               value={formData.length}
               onChange={(e) => onInputChange("length", e.target.value)}
               placeholder="0.0"
-              className="mt-2"
+              className={`mt-2 ${errors.length ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
             />
+            {errors.length && (
+              <p className="text-red-600 text-sm mt-1">Field required</p>
+            )}
           </div>
           <div>
             <Label htmlFor="weight">Package Weight (grams) *</Label>
@@ -59,8 +69,11 @@ export function DimensionsForm({ formData, onInputChange }: DimensionsFormProps)
               value={formData.weight}
               onChange={(e) => onInputChange("weight", e.target.value)}
               placeholder="0"
-              className="mt-2"
+              className={`mt-2 ${errors.weight ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
             />
+            {errors.weight && (
+              <p className="text-red-600 text-sm mt-1">Field required</p>
+            )}
           </div>
         </div>
       </div>

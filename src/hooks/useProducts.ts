@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useProductSync } from '@/hooks/useProductSync';
 
 // Hook para buscar todos os produtos de um usuário
 export function useProducts() {
@@ -10,6 +11,7 @@ export function useProducts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user } = useAuth();
+  const { lastUpdate } = useProductSync();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -20,8 +22,24 @@ export function useProducts() {
       try {
         const { data, error } = await supabase
           .from('products')
-          .select('*')
+          .select(`
+            *,
+            categories (
+              id,
+              name
+            ),
+            products_stock (
+              current,
+              reserved,
+              in_transit,
+              storage (
+                id,
+                name
+              )
+            )
+          `)
           .eq('user_id', user.id)
+          .in('type', ['UNICO', 'VARIACAO_ITEM'])
           .order('name', { ascending: true });
 
         if (error) {
@@ -37,7 +55,7 @@ export function useProducts() {
     };
 
     fetchProducts();
-  }, [user]);
+  }, [user, lastUpdate]);
 
   return { products, loading, error };
 }
@@ -54,6 +72,7 @@ export const useCreateProduct = () => {
         const { data, error } = await supabase
           .from('products')
           .insert([productData])
+          .select()
           .single();
         if (error) throw error;
         return data;

@@ -7,9 +7,10 @@ import { ProductFormData } from "@/types/products";
 interface TaxFormProps {
   formData: ProductFormData;
   onInputChange: (field: string, value: string) => void;
+  errors?: Record<string, boolean>;
 }
 
-export function TaxForm({ formData, onInputChange }: TaxFormProps) {
+export function TaxForm({ formData, onInputChange, errors = {} }: TaxFormProps) {
   return (
     <div className="space-y-8">
       <div>
@@ -23,8 +24,11 @@ export function TaxForm({ formData, onInputChange }: TaxFormProps) {
                 value={formData.barcode}
                 onChange={(e) => onInputChange("barcode", e.target.value)}
                 placeholder="Product barcode"
-                className="mt-2"
+                className={`mt-2 ${errors.barcode ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
               />
+              {errors.barcode && (
+                <p className="text-red-600 text-sm mt-1">Field required</p>
+              )}
             </div>
             <div>
               <Label htmlFor="ncm">
@@ -35,9 +39,12 @@ export function TaxForm({ formData, onInputChange }: TaxFormProps) {
                 value={formData.ncm}
                 onChange={(e) => onInputChange("ncm", e.target.value)}
                 placeholder="00000000"
-                className="mt-2"
+                className={`mt-2 ${errors.ncm ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                 required
               />
+              {errors.ncm && (
+                <p className="text-red-600 text-sm mt-1">Field required</p>
+              )}
             </div>
             <div>
               <Label htmlFor="cest">CEST</Label>
@@ -58,7 +65,7 @@ export function TaxForm({ formData, onInputChange }: TaxFormProps) {
                 value={formData.unitType}
                 onValueChange={(value) => onInputChange("unitType", value)}
               >
-                <SelectTrigger className="mt-2">
+                <SelectTrigger className={`mt-2 ${errors.unitType ? 'border-red-500 focus-visible:ring-red-500' : ''}`}>
                   <SelectValue placeholder="Select unit" />
                 </SelectTrigger>
                 <SelectContent>
@@ -68,6 +75,9 @@ export function TaxForm({ formData, onInputChange }: TaxFormProps) {
                   <SelectItem value="KIT">Kit (KIT)</SelectItem>
                 </SelectContent>
               </Select>
+              {errors.unitType && (
+                <p className="text-red-600 text-sm mt-1">Field required</p>
+              )}
             </div>
             <div>
               <Label htmlFor="origin">Origin</Label>
@@ -75,7 +85,7 @@ export function TaxForm({ formData, onInputChange }: TaxFormProps) {
                 value={formData.origin}
                 onValueChange={(value) => onInputChange("origin", value)}
               >
-                <SelectTrigger className="mt-2">
+                <SelectTrigger className={`mt-2 ${errors.origin ? 'border-red-500 focus-visible:ring-red-500' : ''}`}>
                   <SelectValue placeholder="Select origin" />
                 </SelectTrigger>
                 <SelectContent>
@@ -89,6 +99,9 @@ export function TaxForm({ formData, onInputChange }: TaxFormProps) {
                   <SelectItem value="7">7 - Foreign - Acquired in domestic market without national similar</SelectItem>
                 </SelectContent>
               </Select>
+              {errors.origin && (
+                <p className="text-red-600 text-sm mt-1">Field required</p>
+              )}
             </div>
           </div>
         </div>

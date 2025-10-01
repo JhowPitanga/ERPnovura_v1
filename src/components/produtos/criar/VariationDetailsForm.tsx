@@ -1,4 +1,5 @@
 
+import { useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,13 +9,56 @@ import { Variacao } from "./types";
 interface VariationDetailsFormProps {
   variacao: Variacao;
   onUpdate: (variacaoId: string, field: string, value: string) => void;
+  onImageUpload?: (variacaoId: string, event: React.ChangeEvent<HTMLInputElement>) => void;
+  showErrors?: boolean;
+  disableStock?: boolean;
 }
 
-export function VariationDetailsForm({ variacao, onUpdate }: VariationDetailsFormProps) {
+export function VariationDetailsForm({ variacao, onUpdate, onImageUpload, showErrors = false, disableStock = false }: VariationDetailsFormProps) {
   const { storageLocations, loading: storageLoading } = useStorage();
+
+  // Define automaticamente um armazém padrão ao carregar a lista de storage
+  useEffect(() => {
+    if (!storageLoading && storageLocations.length > 0 && !variacao.armazem) {
+      onUpdate(variacao.id, "armazem", storageLocations[0].id);
+    }
+  }, [storageLoading, storageLocations, variacao.id, variacao.armazem, onUpdate]);
+
+  // Preview da capa (primeira imagem da variação)
+  const coverPreview = (() => {
+    const file = variacao.imagens?.[0];
+    if (!file) return undefined;
+    try {
+      return URL.createObjectURL(file as any);
+    } catch {
+      return undefined;
+    }
+  })();
 
   return (
     <div className="space-y-6">
+      {/* Cabeçalho com nome e quadro de foto de capa */}
+      <div className="flex items-center justify-between">
+        
+        <div className="flex items-center gap-3">
+          <label htmlFor={`capa-${variacao.id}`} className="w-20 h-20 rounded-md border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center overflow-hidden cursor-pointer hover:bg-gray-100">
+            {coverPreview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={coverPreview} alt="Capa da variação" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-sm font-medium text-gray-600">Capa</span>
+            )}
+          </label>
+          <input
+            id={`capa-${variacao.id}`}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => onImageUpload?.(variacao.id, e)}
+          />
+        </div>
+      </div>
+
       {/* Campos de SKU e EAN */}
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -24,8 +68,11 @@ export function VariationDetailsForm({ variacao, onUpdate }: VariationDetailsFor
             value={variacao.sku}
             onChange={(e) => onUpdate(variacao.id, "sku", e.target.value)}
             placeholder="SKU da variação"
-            className="mt-2"
+            className={`mt-2 ${showErrors && !variacao.sku ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
           />
+          {showErrors && !variacao.sku && (
+            <p className="text-red-600 text-sm mt-1">Campo obrigatório</p>
+          )}
         </div>
         <div>
           <Label htmlFor={`ean-${variacao.id}`}>Código de Barras (EAN)</Label>
@@ -34,8 +81,11 @@ export function VariationDetailsForm({ variacao, onUpdate }: VariationDetailsFor
             value={variacao.ean}
             onChange={(e) => onUpdate(variacao.id, "ean", e.target.value)}
             placeholder="Código de barras"
-            className="mt-2"
+            className={`mt-2 ${showErrors && !variacao.ean ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
           />
+          {showErrors && !variacao.ean && (
+            <p className="text-red-600 text-sm mt-1">Campo obrigatório</p>
+          )}
         </div>
       </div>
 
@@ -63,19 +113,35 @@ export function VariationDetailsForm({ variacao, onUpdate }: VariationDetailsFor
             value={variacao.estoque || ""}
             onChange={(e) => onUpdate(variacao.id, "estoque", e.target.value)}
             placeholder="Quantidade em estoque"
-            className="mt-2"
+            className={`mt-2 ${showErrors && !variacao.estoque ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+            disabled={disableStock}
           />
+          {disableStock && (
+            <p className="text-xs text-gray-500 mt-1">Edição de estoque bloqueada. Ajuste no módulo de estoque.</p>
+          )}
+          {showErrors && !variacao.estoque && !disableStock && (
+            <p className="text-red-600 text-sm mt-1">Campo obrigatório</p>
+          )}
         </div>
         <div>
           <Label htmlFor={`armazem-${variacao.id}`}>Armazém</Label>
           <Select
-            value={variacao.armazem || ""}
+            // Use undefined para não marcar seleção quando não houver valor
+            value={variacao.armazem ?? undefined}
             onValueChange={(value) => onUpdate(variacao.id, "armazem", value)}
           >
-            <SelectTrigger className="mt-2">
+            <SelectTrigger
+              className={`mt-2 ${showErrors && !variacao.armazem ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+            >
               <SelectValue placeholder="Selecione o armazém" />
             </SelectTrigger>
             <SelectContent>
+              {storageLoading && (
+                <SelectItem disabled value="__loading">Carregando armazéns...</SelectItem>
+              )}
+              {!storageLoading && storageLocations.length === 0 && (
+                <SelectItem disabled value="__empty">Nenhum armazém cadastrado</SelectItem>
+              )}
               {!storageLoading && storageLocations.map((storage) => (
                 <SelectItem key={storage.id} value={storage.id}>
                   {storage.name}
@@ -83,8 +149,12 @@ export function VariationDetailsForm({ variacao, onUpdate }: VariationDetailsFor
               ))}
             </SelectContent>
           </Select>
+          {showErrors && !variacao.armazem && (
+            <p className="text-red-600 text-sm mt-2">Campo obrigatório</p>
+          )}
         </div>
       </div>
     </div>
   );
 }
+

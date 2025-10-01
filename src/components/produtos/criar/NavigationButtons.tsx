@@ -68,17 +68,17 @@ export function NavigationButtons({
   // Get the next button text based on current state
   const getNextButtonText = () => {
     if (currentStep === 3 && productType === "variation") {
-      if (variationEtapa === "types") return "Next";
-      if (variationEtapa === "options") return "Generate Variations";
-      if (variationEtapa === "configuration") return "Next";
+      if (variationEtapa === "types") return "Avançar";
+      if (variationEtapa === "options") return "Gerar variações";
+      if (variationEtapa === "configuration") return "Avançar";
     }
     
     if (currentStep === 3 && productType === "kit") {
-      if (kitEtapa === "info") return "Next";
-      if (kitEtapa === "products") return "Next";
+      if (kitEtapa === "info") return "Avançar";
+      if (kitEtapa === "products") return "Avançar";
     }
     
-    return "Next";
+    return "Avançar";
   };
 
   return (
@@ -91,7 +91,7 @@ export function NavigationButtons({
           size="lg"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
-          Back
+          Voltar
         </Button>
       )}
 
@@ -118,7 +118,7 @@ export function NavigationButtons({
           disabled={loading}
         >
           <Check className="w-5 h-5 mr-2" />
-          {loading ? "Saving..." : "Save and Continue"}
+          {loading ? "Salvando..." : "Salvar e continuar"}
         </Button>
       ) : productType === "company" && currentStep === 4 ? (
         <Button 
@@ -130,6 +130,16 @@ export function NavigationButtons({
           <Check className="w-5 h-5 mr-2" />
           {loading ? "Salvando..." : "Salvar Empresa"}
         </Button>
+      ) : productType === "kit" && currentStep === 4 ? (
+        <Button 
+          onClick={onNext}
+          className="bg-novura-primary hover:bg-novura-primary/90"
+          size="lg"
+          disabled={loading}
+        >
+          <Check className="w-5 h-5 mr-2" />
+          {loading ? "Salvando..." : "Salvar produto"}
+        </Button>
       ) : (
         <Button 
           onClick={onSave} 
@@ -137,7 +147,7 @@ export function NavigationButtons({
           size="lg"
         >
           <Check className="w-5 h-5 mr-2" />
-          Do Later
+          Fazer depois
         </Button>
       )}
     </div>

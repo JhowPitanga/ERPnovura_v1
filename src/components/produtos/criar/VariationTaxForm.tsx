@@ -9,9 +9,10 @@ import { BulkTaxDrawer } from "./BulkTaxDrawer";
 interface VariationTaxFormProps {
   variacoes: Variacao[];
   onVariacoesChange: (variacoes: Variacao[]) => void;
+  showErrors?: boolean;
 }
 
-export function VariationTaxForm({ variacoes, onVariacoesChange }: VariationTaxFormProps) {
+export function VariationTaxForm({ variacoes, onVariacoesChange, showErrors = false }: VariationTaxFormProps) {
   const updateVariacao = (variacaoId: string, field: string, value: string) => {
     onVariacoesChange(variacoes.map(v => 
       v.id === variacaoId ? { ...v, [field]: value } : v
@@ -59,9 +60,12 @@ export function VariationTaxForm({ variacoes, onVariacoesChange }: VariationTaxF
                         value={variacao.ncm || ""}
                         onChange={(e) => updateVariacao(variacao.id, "ncm", e.target.value)}
                         placeholder="00000000"
-                        className="mt-2"
+                        className={`mt-2 ${showErrors && !variacao.ncm ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                         required
                       />
+                      {showErrors && !variacao.ncm && (
+                        <p className="text-red-600 text-sm mt-1">Campo obrigatório</p>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor={`cest-${variacao.id}`}>CEST</Label>
@@ -82,7 +86,7 @@ export function VariationTaxForm({ variacoes, onVariacoesChange }: VariationTaxF
                         value={variacao.unidade || ""}
                         onValueChange={(value) => updateVariacao(variacao.id, "unidade", value)}
                       >
-                        <SelectTrigger className="mt-2">
+                        <SelectTrigger className={`mt-2 ${showErrors && !variacao.unidade ? 'border-red-500 focus-visible:ring-red-500' : ''}`}>
                           <SelectValue placeholder="Selecione a unidade" />
                         </SelectTrigger>
                         <SelectContent>
@@ -92,6 +96,9 @@ export function VariationTaxForm({ variacoes, onVariacoesChange }: VariationTaxF
                           <SelectItem value="KIT">Kit (KIT)</SelectItem>
                         </SelectContent>
                       </Select>
+                      {showErrors && !variacao.unidade && (
+                        <p className="text-red-600 text-sm mt-1">Campo obrigatório</p>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor={`origem-${variacao.id}`}>Origem</Label>
@@ -99,7 +106,7 @@ export function VariationTaxForm({ variacoes, onVariacoesChange }: VariationTaxF
                         value={variacao.origem || ""}
                         onValueChange={(value) => updateVariacao(variacao.id, "origem", value)}
                       >
-                        <SelectTrigger className="mt-2">
+                        <SelectTrigger className={`mt-2 ${showErrors && !variacao.origem ? 'border-red-500 focus-visible:ring-red-500' : ''}`}>
                           <SelectValue placeholder="Selecione a origem" />
                         </SelectTrigger>
                         <SelectContent>
@@ -113,6 +120,9 @@ export function VariationTaxForm({ variacoes, onVariacoesChange }: VariationTaxF
                           <SelectItem value="7">7 - Estrangeira - Adquirida no mercado interno sem similar nacional</SelectItem>
                         </SelectContent>
                       </Select>
+                      {showErrors && !variacao.origem && (
+                        <p className="text-red-600 text-sm mt-1">Campo obrigatório</p>
+                      )}
                     </div>
                   </div>
                 </div>

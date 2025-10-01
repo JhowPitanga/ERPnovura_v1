@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,6 +7,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from "
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Variacao } from "./types";
+import { useStorage } from "@/hooks/useStorage";
 
 interface BulkVariationStockDrawerProps {
   open: boolean;
@@ -25,6 +26,14 @@ export function BulkVariationStockDrawer({
   const [updateStorage, setUpdateStorage] = useState(false);
   const [stockValue, setStockValue] = useState("");
   const [storageValue, setStorageValue] = useState("");
+  const { storageLocations, loading: storageLoading } = useStorage();
+
+  // Define automaticamente um armazém padrão quando habilitar atualização de armazém
+  useEffect(() => {
+    if (updateStorage && !storageLoading && storageLocations.length > 0 && !storageValue) {
+      setStorageValue(storageLocations[0].id);
+    }
+  }, [updateStorage, storageLoading, storageLocations, storageValue]);
 
   const handleSave = () => {
     const updatedVariacoes = variacoes.map(variacao => {
@@ -96,15 +105,26 @@ export function BulkVariationStockDrawer({
               <div>
                 <Label htmlFor="storage-value">Armazém</Label>
                 <Select value={storageValue} onValueChange={setStorageValue}>
-                  <SelectTrigger>
+                  <SelectTrigger className={`mt-2 ${!storageValue ? "border-red-500 focus-visible:ring-red-500" : ""}`}>
                     <SelectValue placeholder="Selecione o armazém" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="galpaoPrincipal">Galpão Principal</SelectItem>
-                    <SelectItem value="galpaoSecundario">Galpão Secundário</SelectItem>
-                    <SelectItem value="deposito">Depósito</SelectItem>
+                    {storageLoading && (
+                      <SelectItem value="__loading" disabled>Carregando armazéns...</SelectItem>
+                    )}
+                    {!storageLoading && storageLocations.length === 0 && (
+                      <SelectItem value="__empty" disabled>Nenhum armazém cadastrado</SelectItem>
+                    )}
+                    {!storageLoading && storageLocations.map((storage) => (
+                      <SelectItem key={storage.id} value={storage.id}>
+                        {storage.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                {!storageValue && (
+                  <p className="text-red-600 text-sm mt-2">Armazém não especificado</p>
+                )}
               </div>
             )}
           </div>
